@@ -32,16 +32,20 @@ export function AuthForm({ next }: AuthFormProps) {
       return;
     }
     setIsSubmitting(true);
-    const origin = window.location.origin;
-    const { error } = await createSupabaseBrowserClient().auth.resetPasswordForEmail(email, {
-      redirectTo: `${origin}/auth/callback?next=/auth/set-password`,
-    });
-    setMessage(
-      error
-        ? `No fue posible enviar el correo: ${error.message}`
-        : "Solicitud enviada. Revisá también Spam y Promociones; puede demorar unos minutos.",
-    );
-    setIsSubmitting(false);
+    setMessage(null);
+    try {
+      const response = await fetch("/api/auth/recovery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const result = await response.json() as { message?: string };
+      setMessage(result.message ?? "No fue posible procesar la solicitud.");
+    } catch {
+      setMessage("No se pudo conectar para enviar el correo. Intentá nuevamente.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (

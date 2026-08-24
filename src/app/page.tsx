@@ -1,12 +1,14 @@
+import Link from "next/link";
+
 export default function HomePage() {
   return (
     <main className="foundation-shell">
       <p className="eyebrow">Plataforma gastronómica</p>
-      <h1>Fundaciones técnicas listas</h1>
+      <h1>Menús digitales para cada restaurante</h1>
       <p>
-        La Etapa 1 incorporará el menú público por restaurante. Esta pantalla evita
-        exponer contenido de un tenant hasta que Supabase esté configurado.
+        Consultá el menú público, con disponibilidad y franjas horarias propias de cada restaurante.
       </p>
+      <Link className="primary-link" href="/demo">Abrir menú Demo</Link>
     </main>
   );
 }

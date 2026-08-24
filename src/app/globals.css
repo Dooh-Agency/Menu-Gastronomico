@@ -26,6 +26,48 @@ body {
 .eyebrow { color: var(--color-accent); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 h1 { font-size: clamp(2rem, 7vw, 4rem); line-height: 1.05; }
 p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
+.primary-link { display: inline-block; border-radius: .6rem; background: var(--color-accent); color: white; font-weight: 700; padding: .85rem 1.1rem; text-decoration: none; }
+
+.sr-only { height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+.menu-shell { margin: 0 auto; max-width: 72rem; padding: 1rem clamp(1rem, 4vw, 3rem) 4rem; }
+.menu-header { align-items: center; display: flex; justify-content: space-between; min-height: 3.5rem; }
+.brand { align-items: center; color: var(--color-ink); display: inline-flex; font-size: 1.1rem; font-weight: 800; gap: .55rem; text-decoration: none; }
+.brand-mark { background: var(--color-accent); border-radius: 50%; display: inline-block; height: .7rem; width: .7rem; }
+.language-picker select { background: transparent; border: 1px solid #c8c2b9; border-radius: .5rem; color: var(--color-ink); font: inherit; padding: .45rem .55rem; }
+.menu-hero { border-bottom: 1px solid #e7e1d8; padding: clamp(2.5rem, 8vw, 6rem) 0 clamp(1.75rem, 4vw, 3rem); }
+.menu-hero .eyebrow { font-size: .78rem; margin: 0 0 .75rem; }
+.menu-hero h1 { margin: 0; max-width: 11ch; }
+.daypart-status { color: var(--color-ink); font-size: 1rem; font-weight: 700; margin: 1.2rem 0 0; }
+.menu-filters { align-items: baseline; display: flex; flex-wrap: wrap; gap: .8rem 1.25rem; padding: 1.4rem 0; }
+.menu-filters > span { color: var(--color-muted); font-size: .9rem; font-weight: 700; }
+.filter-list { display: flex; flex-wrap: wrap; gap: .5rem; }
+.filter-list button { background: transparent; border: 1px solid #c8c2b9; border-radius: 999px; color: var(--color-ink); cursor: pointer; font: inherit; font-size: .9rem; padding: .4rem .7rem; }
+.filter-list button.is-selected { background: var(--color-ink); border-color: var(--color-ink); color: white; }
+.category-nav { display: flex; gap: .5rem 1rem; overflow-x: auto; padding: .25rem 0 1.25rem; }
+.category-nav a { color: var(--color-ink); font-size: .95rem; font-weight: 700; text-decoration-color: var(--color-accent); text-underline-offset: .25rem; white-space: nowrap; }
+.menu-content { padding-top: 1rem; }
+.menu-section + .menu-section { border-top: 1px solid #e7e1d8; margin-top: 2.75rem; padding-top: 2.75rem; }
+.section-heading { margin-bottom: 1.1rem; }
+.section-heading h2 { font-size: clamp(1.5rem, 4vw, 2.1rem); margin: 0; }
+.section-heading p { font-size: 1rem; margin: .35rem 0 0; }
+.menu-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); }
+.menu-card { background: #fff; border: 1px solid #e7e1d8; border-radius: var(--radius-card); overflow: hidden; }
+.menu-card.is-unavailable { opacity: .62; }
+.menu-image { aspect-ratio: 16 / 9; display: block; object-fit: cover; width: 100%; }
+.menu-card-content { padding: 1.15rem; }
+.menu-card-heading { align-items: flex-start; display: flex; gap: .75rem; justify-content: space-between; }
+.menu-card h3 { font-size: 1.2rem; margin: 0; }
+.menu-card strong { color: var(--color-accent); font-size: 1rem; white-space: nowrap; }
+.menu-card p { font-size: .96rem; margin: .65rem 0 0; }
+.tag-list { display: flex; flex-wrap: wrap; gap: .4rem; list-style: none; margin: 1rem 0 0; padding: 0; }
+.tag-list li, .sold-out { background: #edf2ea; border-radius: 999px; color: #42553a; font-size: .78rem; font-weight: 700; padding: .3rem .55rem; }
+.menu-card details { margin-top: 1rem; }
+.menu-card summary { color: var(--color-ink); cursor: pointer; font-weight: 700; font-size: .88rem; }
+.menu-card details p { font-size: .84rem; }
+.sold-out { background: #fbe8df; color: #8c361d; display: inline-block; margin-top: 1rem; }
+.empty-state { border: 1px dashed #c8c2b9; border-radius: var(--radius-card); padding: 1.2rem; }
+
+@media (max-width: 34rem) { .menu-hero h1 { font-size: clamp(2.75rem, 15vw, 4rem); } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }

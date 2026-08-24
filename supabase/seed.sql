@@ -63,3 +63,12 @@ values
 on conflict (menu_item_id, locale) do update set
   name = excluded.name,
   description = excluded.description;
+
+insert into public.menu_category_translations (menu_category_id, locale, name, description)
+values
+  ('12000000-0000-0000-0000-000000000001', 'en', 'Mains', 'House specialties.'),
+  ('12000000-0000-0000-0000-000000000002', 'en', 'Dinner', 'For sharing and enjoying.'),
+  ('22000000-0000-0000-0000-000000000001', 'en', 'Coffee', 'House selection.')
+on conflict (menu_category_id, locale) do update set
+  name = excluded.name,
+  description = excluded.description;

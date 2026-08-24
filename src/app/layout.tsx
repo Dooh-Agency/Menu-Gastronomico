@@ -4,6 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Plataforma gastronómica",
   description: "Menú digital multi-tenant para restaurantes.",
+  applicationName: "Plataforma gastronómica",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

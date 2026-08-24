@@ -8,12 +8,14 @@ function safeNext(value: string | null) {
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
+  const tokenHash = requestUrl.searchParams.get("token_hash");
+  const type = requestUrl.searchParams.get("type");
   const next = safeNext(requestUrl.searchParams.get("next"));
   const response = NextResponse.redirect(new URL(next, requestUrl.origin));
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-  if (!code || !url || !key) return response;
+  if ((!code && !tokenHash) || !url || !key) return response;
 
   const supabase = createServerClient(url, key, {
     cookies: {
@@ -23,6 +25,10 @@ export async function GET(request: NextRequest) {
       },
     },
   });
-  await supabase.auth.exchangeCodeForSession(code);
+  if (code) {
+    await supabase.auth.exchangeCodeForSession(code);
+  } else if (tokenHash && type === "recovery") {
+    await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "recovery" });
+  }
   return response;
 }

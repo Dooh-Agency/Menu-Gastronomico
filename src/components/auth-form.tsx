@@ -17,13 +17,24 @@ export function AuthForm({ next }: AuthFormProps) {
     event.preventDefault();
     setIsSubmitting(true);
     setMessage(null);
-    const { error } = await createSupabaseBrowserClient().auth.signInWithPassword({ email, password });
-    if (error) {
-      setMessage("No pudimos iniciar sesión. Revisá el correo y la contraseña.");
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const result = await response.json() as { message?: string; ok?: boolean };
+      if (!response.ok || !result.ok) {
+        setMessage(result.message ?? "No pudimos iniciar sesión.");
+        return;
+      }
+      router.replace(next);
+      router.refresh();
+    } catch {
+      setMessage("No se pudo conectar para iniciar sesión. Intentá nuevamente.");
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-    router.push(next);
   }
 
   async function sendRecovery() {

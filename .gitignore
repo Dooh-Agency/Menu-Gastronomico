@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.pnp/
+.pnp.js
+
+# Next.js
+.next/
+out/
+
+# Production
+build/
+dist/
+
+# Local environment
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# macOS
+.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test and coverage
+coverage/
+.nyc_output/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

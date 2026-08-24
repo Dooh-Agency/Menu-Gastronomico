@@ -11,7 +11,7 @@ El objetivo inmediato no es construir toda la plataforma, sino desarrollar una d
 - Construir por etapas pequeñas y demostrables.
 - Mantener el alcance de cada etapa controlado.
 - Diseñar como SaaS multi-tenant desde el inicio.
-- MUUD es un tenant de demostración/piloto, no una aplicación hecha a medida.
+- Demo es el tenant de demostración interno; MUUD será el primer tenant piloto, no una aplicación hecha a medida.
 - Las diferencias entre restaurantes deben resolverse mediante configuración, no mediante código especial.
 - Priorizar primero el menú y la operación básica.
 - Incorporar IA, promociones avanzadas, pagos y automatizaciones después de estabilizar los datos y los flujos principales.
@@ -60,7 +60,7 @@ Crear una base segura y extensible para todos los módulos posteriores.
 - Configurar variables de entorno.
 - Crear políticas Row-Level Security.
 - Crear ambientes de desarrollo y producción.
-- Crear datos semilla de MUUD.
+- Crear datos semilla para Demo, basados en material de referencia de MUUD.
 - Dejar preparado el despliegue en Netlify.
 
 #### Criterio de salida
@@ -97,7 +97,7 @@ Mostrar un menú atractivo, rápido y navegable usando datos semilla.
 
 #### Criterio de salida
 
-Una persona puede abrir la demo de MUUD, navegar su menú en español o inglés y visualizar la carta correcta según el horario configurado.
+Una persona puede abrir la demo interna, navegar el menú de Demo en español o inglés y visualizar la carta correcta según el horario configurado.
 
 ---
 
@@ -133,7 +133,7 @@ Más adelante se podrá agregar una excepción por producto si el negocio lo nec
 
 #### Criterio de salida
 
-Un administrador puede modificar el menú de MUUD desde el panel y los cambios aparecen en el menú público sin realizar un nuevo despliegue.
+Un administrador puede modificar el menú de Demo desde el panel y los cambios aparecen en el menú público sin realizar un nuevo despliegue.
 
 ---
 
@@ -584,7 +584,7 @@ La automatización del branding debe mantenerse bajo revisión humana, porque el
 El orden operativo será:
 
 1. Fundaciones técnicas.
-2. Menú público con datos semilla de MUUD.
+2. Menú público de Demo con datos semilla de referencia.
 3. Panel de administración.
 4. Branding y configuración por restaurante.
 5. Validación interna en la agencia.
@@ -611,7 +611,7 @@ La primera versión no incluirá pedidos, reservas, pagos, stock, promociones ni
 
 Se considerará usable cuando permita:
 
-- Mostrar el menú de MUUD.
+- Mostrar el menú de Demo.
 - Cambiar entre español e inglés.
 - Mostrar una carta única o una carta según la franja horaria.
 - Gestionar categorías y platos desde el panel.

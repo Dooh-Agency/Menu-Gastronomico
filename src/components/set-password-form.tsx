@@ -2,7 +2,6 @@
 
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function SetPasswordForm() {
   const router = useRouter();
@@ -13,13 +12,25 @@ export function SetPasswordForm() {
   async function savePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
-    const { error } = await createSupabaseBrowserClient().auth.updateUser({ password });
-    if (error) {
-      setMessage("El enlace no es válido o venció. Solicitá uno nuevo desde el acceso.");
+    setMessage(null);
+    try {
+      const response = await fetch("/api/auth/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const result = await response.json() as { message?: string; ok?: boolean };
+      if (!response.ok || !result.ok) {
+        setMessage(result.message ?? "No fue posible guardar la contraseña.");
+        return;
+      }
+      router.replace("/admin");
+      router.refresh();
+    } catch {
+      setMessage("No se pudo conectar para guardar la contraseña. Intentá nuevamente.");
+    } finally {
       setIsSubmitting(false);
-      return;
     }
-    router.push("/admin");
   }
 
   return (

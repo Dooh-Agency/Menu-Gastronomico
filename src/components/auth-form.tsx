@@ -36,7 +36,11 @@ export function AuthForm({ next }: AuthFormProps) {
     const { error } = await createSupabaseBrowserClient().auth.resetPasswordForEmail(email, {
       redirectTo: `${origin}/auth/callback?next=/auth/set-password`,
     });
-    setMessage(error ? "No fue posible enviar el correo. Intentá nuevamente." : "Te enviamos un correo para definir una nueva contraseña.");
+    setMessage(
+      error
+        ? `No fue posible enviar el correo: ${error.message}`
+        : "Solicitud enviada. Revisá también Spam y Promociones; puede demorar unos minutos.",
+    );
     setIsSubmitting(false);
   }
 

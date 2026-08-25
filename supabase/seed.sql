@@ -13,8 +13,8 @@ on conflict (restaurant_id) do update set unavailable_item_behavior = excluded.u
 
 insert into public.dayparts (id, restaurant_id, name, starts_at, ends_at, sort_order)
 values
-  ('11000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 'Almuerzo', '11:00', '15:00', 0),
-  ('11000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', 'Cena', '20:00', '23:00', 1)
+  ('11000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 'Diurna', '07:00', '20:00', 0),
+  ('11000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', 'Nocturna', '20:00', '23:00', 1)
 on conflict (id) do update set name = excluded.name, starts_at = excluded.starts_at, ends_at = excluded.ends_at, sort_order = excluded.sort_order;
 
 insert into public.menu_categories (id, restaurant_id, daypart_id, name, description, sort_order)

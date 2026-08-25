@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import type { PublicMenu } from "@/lib/supabase/public-menu";
@@ -23,8 +23,8 @@ const labels = {
     outsideHours: "En este momento la carta no está disponible.",
     languages: "Idioma",
     menus: "Cartas",
-    allDay: "Todo el día",
     currentMenu: "Carta activa",
+    unavailableMenu: "Esta carta se ofrece de",
   },
   en: {
     menu: "Menu",
@@ -37,8 +37,8 @@ const labels = {
     outsideHours: "The menu is not available at this time.",
     languages: "Language",
     menus: "Menus",
-    allDay: "All day",
     currentMenu: "Current menu",
+    unavailableMenu: "This menu is offered from",
   },
 } as const;
 
@@ -71,49 +71,20 @@ function menuImageUrl(imagePath: string) {
 
 export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps) {
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null);
-  const [selectedDaypartId, setSelectedDaypartId] = useState<string | null>(currentDaypartId);
-  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [selectedDaypartId, setSelectedDaypartId] = useState(currentDaypartId ?? menu.dayparts[0]?.id ?? null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const copy = copyFor(locale);
 
-  const dietaryTags = useMemo(
-    () => Array.from(new Set(menu.items.flatMap((item) => item.dietary_tags))).sort(),
-    [menu.items],
-  );
-  const categories = useMemo(
-    () =>
-      menu.categories.filter(
-        (category) => {
-          if (!menu.settings.uses_dayparts) return true;
-          const daypartIds = category.daypart_ids.length
-            ? category.daypart_ids
-            : category.daypart_id
-              ? [category.daypart_id]
-              : [];
-          return daypartIds.length === 0 || daypartIds.includes(selectedDaypartId ?? "");
-        },
-      ),
-    [menu.categories, menu.settings.uses_dayparts, selectedDaypartId],
-  );
-
-  useEffect(() => {
-    const sections = categories
-      .map((category) => document.getElementById(`category-${category.id}`))
-      .filter((section): section is HTMLElement => section !== null);
-    if (!sections.length) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.find((entry) => entry.isIntersecting);
-        if (visible) setActiveCategoryId(visible.target.id.replace("category-", ""));
-      },
-      { rootMargin: "-20% 0px -65% 0px" },
-    );
-    sections.forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
-  }, [categories]);
+  const dietaryTags = Array.from(new Set(menu.items.flatMap((item) => item.dietary_tags))).sort();
+  const categories = menu.categories.filter((category) => {
+    if (!menu.settings.uses_dayparts) return true;
+    const daypartIds = category.daypart_ids.length ? category.daypart_ids : category.daypart_id ? [category.daypart_id] : [];
+    return daypartIds.length === 0 || daypartIds.includes(selectedDaypartId ?? "");
+  });
 
   function selectLocale(nextLocale: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -123,11 +94,15 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
     router.push(query ? `${pathname}?${query}` : pathname);
   }
 
-  const hasOpenDaypart = !menu.settings.uses_dayparts || selectedDaypartId !== null || menu.categories.some((category) => !category.daypart_id && category.daypart_ids.length === 0);
   const activeDaypart = menu.dayparts.find((daypart) => daypart.id === selectedDaypartId);
-  const visibleActiveCategoryId = categories.some((category) => category.id === activeCategoryId)
-    ? activeCategoryId
-    : (categories[0]?.id ?? null);
+  const selectedCategory = categories.find((category) => category.id === selectedCategoryId) ?? categories[0];
+  const categoryIndex = selectedCategory ? categories.indexOf(selectedCategory) : -1;
+  const isActiveMenu = selectedDaypartId === currentDaypartId;
+
+  function switchCategory(nextIndex: number) {
+    const next = categories[nextIndex];
+    if (next) setSelectedCategoryId(next.id);
+  }
 
   return (
     <main className="menu-shell">
@@ -153,22 +128,19 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
       <section className="menu-hero" aria-labelledby="menu-title">
         <p className="eyebrow">{copy.menu}</p>
         <h1 id="menu-title">{menu.restaurant.name}</h1>
-        {menu.settings.uses_dayparts ? <p className="daypart-status">{activeDaypart?.name ?? copy.allDay}</p> : null}
+        {menu.settings.uses_dayparts && activeDaypart ? <p className="daypart-status">{activeDaypart.name}</p> : null}
       </section>
 
       {menu.settings.uses_dayparts && menu.dayparts.length ? (
         <section className="daypart-switcher" aria-label={copy.menus}>
           <span>{copy.menus}</span>
           <div className="daypart-list" role="group">
-            <button className={selectedDaypartId === null ? "is-selected" : ""} onClick={() => setSelectedDaypartId(null)} type="button">
-              {copy.allDay}
-            </button>
             {menu.dayparts.map((daypart) => (
               <button
                 aria-label={daypart.id === currentDaypartId ? `${daypart.name} (${copy.currentMenu})` : daypart.name}
                 className={selectedDaypartId === daypart.id ? "is-selected" : ""}
                 key={daypart.id}
-                onClick={() => setSelectedDaypartId(daypart.id)}
+                onClick={() => { setSelectedDaypartId(daypart.id); setSelectedCategoryId(null); }}
                 type="button"
               >
                 {daypart.name}
@@ -177,6 +149,8 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
           </div>
         </section>
       ) : null}
+
+      {activeDaypart && !isActiveMenu ? <p className="menu-availability">{copy.unavailableMenu} {activeDaypart.starts_at.slice(0, 5)}–{activeDaypart.ends_at.slice(0, 5)}.</p> : null}
 
       {dietaryTags.length ? (
         <section className="menu-filters" aria-label={copy.filters}>
@@ -199,15 +173,15 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
         </section>
       ) : null}
 
-      {hasOpenDaypart && categories.length > 1 ? (
+      {categories.length > 1 ? (
         <nav className="category-nav" aria-label={copy.menu}>
           {categories.map((category) => (
             <a
-              aria-current={visibleActiveCategoryId === category.id ? "true" : undefined}
-              className={visibleActiveCategoryId === category.id ? "is-active" : ""}
-              href={`#category-${category.id}`}
+              aria-current={selectedCategory?.id === category.id ? "true" : undefined}
+              className={selectedCategory?.id === category.id ? "is-active" : ""}
+              href="#menu-content"
               key={category.id}
-              onClick={() => setActiveCategoryId(category.id)}
+              onClick={() => setSelectedCategoryId(category.id)}
             >
               {translated(category, locale).name}
             </a>
@@ -216,8 +190,8 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
       ) : null}
 
       <section className="menu-content" id="menu-content" aria-live="polite">
-        {!hasOpenDaypart ? <p className="empty-state">{copy.outsideHours}</p> : null}
-        {hasOpenDaypart && categories.map((category) => {
+        {selectedCategory ? (() => {
+          const category = selectedCategory;
           const localizedCategory = translated(category, locale);
           const items = menu.items.filter((item) => {
             const matchesCategory = item.category_id === category.id;
@@ -229,7 +203,14 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
           if (!items.length) return null;
 
           return (
-            <section className="menu-section" id={`category-${category.id}`} key={category.id}>
+            <section className="menu-section" id={`category-${category.id}`} key={category.id} onTouchEnd={(event) => {
+              const start = touchStart.current;
+              if (!start) return;
+              const dx = event.changedTouches[0].clientX - start.x;
+              const dy = event.changedTouches[0].clientY - start.y;
+              if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) switchCategory(categoryIndex + (dx < 0 ? 1 : -1));
+              touchStart.current = null;
+            }} onTouchStart={(event) => { touchStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY }; }}>
               <div className="section-heading">
                 <h2>{localizedCategory.name}</h2>
                 {localizedCategory.description ? <p>{localizedCategory.description}</p> : null}
@@ -274,8 +255,7 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
               </div>
             </section>
           );
-        })}
-        {hasOpenDaypart && !categories.some((category) => menu.items.some((item) => item.category_id === category.id && (menu.settings.unavailable_item_behavior === "show_sold_out" || item.is_available) && (!dietaryFilter || item.dietary_tags.includes(dietaryFilter)))) ? <p className="empty-state">{copy.noItems}</p> : null}
+        })() : <p className="empty-state">{copy.noItems}</p>}
       </section>
     </main>
   );

@@ -26,6 +26,7 @@ type DaypartRow = {
 type CategoryRow = {
   id: string;
   daypart_id: string | null;
+  daypart_ids: string[];
   name: string;
   description: string | null;
   sort_order: number;
@@ -121,7 +122,7 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
 
   const categories = (categoriesResult.data ?? []) as CategoryRow[];
   const items = (itemsResult.data ?? []) as ItemRow[];
-  const [itemTranslationsResult, categoryTranslationsResult] = await Promise.all([
+  const [itemTranslationsResult, categoryTranslationsResult, categoryDaypartsResult] = await Promise.all([
     items.length
       ? supabase
           .from("menu_item_translations")
@@ -134,6 +135,12 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
           .select("menu_category_id, locale, name, description")
           .in("menu_category_id", categories.map((category) => category.id))
       : Promise.resolve({ data: [], error: null }),
+    categories.length
+      ? supabase
+          .from("menu_category_dayparts")
+          .select("menu_category_id, daypart_id")
+          .in("menu_category_id", categories.map((category) => category.id))
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
   // The table is introduced in the Stage 1 migration. This makes the page still
@@ -143,12 +150,21 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
     : ((categoryTranslationsResult.data ?? []) as CategoryTranslationRow[]);
   if (itemTranslationsResult.error) throw itemTranslationsResult.error;
 
+  // The category/daypart mapping was added after the original Stage 1 schema.
+  // During the short migration window, legacy `daypart_id` keeps the menu usable.
+  const categoryDayparts = categoryDaypartsResult.error
+    ? []
+    : ((categoryDaypartsResult.data ?? []) as Array<{ menu_category_id: string; daypart_id: string }>);
+
   return {
     restaurant,
     settings: settingsResult.data ?? { unavailable_item_behavior: "show_sold_out", uses_dayparts: false },
     dayparts: (daypartsResult.data ?? []) as DaypartRow[],
     categories: categories.map((category) => ({
       ...category,
+      daypart_ids: categoryDayparts
+        .filter((mapping) => mapping.menu_category_id === category.id)
+        .map((mapping) => mapping.daypart_id),
       translations: categoryTranslations.filter((translation) => translation.menu_category_id === category.id),
     })),
     items: items.map((item) => ({

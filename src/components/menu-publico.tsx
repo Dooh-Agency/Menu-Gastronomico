@@ -56,6 +56,7 @@ function formatPrice(cents: number, currency: string, locale: string) {
 }
 
 function menuImageUrl(imagePath: string) {
+  if (imagePath.startsWith("/")) return imagePath;
   if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!baseUrl) return imagePath;
@@ -76,7 +77,15 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
   const categories = useMemo(
     () =>
       menu.categories.filter(
-        (category) => !menu.settings.uses_dayparts || category.daypart_id === null || category.daypart_id === currentDaypartId,
+        (category) => {
+          if (!menu.settings.uses_dayparts) return true;
+          const daypartIds = category.daypart_ids.length
+            ? category.daypart_ids
+            : category.daypart_id
+              ? [category.daypart_id]
+              : [];
+          return daypartIds.length === 0 || daypartIds.includes(currentDaypartId ?? "");
+        },
       ),
     [currentDaypartId, menu.categories, menu.settings.uses_dayparts],
   );
@@ -89,7 +98,7 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
     router.push(query ? `${pathname}?${query}` : pathname);
   }
 
-  const hasOpenDaypart = !menu.settings.uses_dayparts || currentDaypartId !== null;
+  const hasOpenDaypart = !menu.settings.uses_dayparts || currentDaypartId !== null || menu.categories.some((category) => !category.daypart_id && category.daypart_ids.length === 0);
 
   return (
     <main className="menu-shell">

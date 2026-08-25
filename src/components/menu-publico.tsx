@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import type { PublicMenu } from "@/lib/supabase/public-menu";
@@ -22,6 +22,9 @@ const labels = {
     noItems: "No hay platos disponibles para esta selección.",
     outsideHours: "En este momento la carta no está disponible.",
     languages: "Idioma",
+    menus: "Cartas",
+    allDay: "Todo el día",
+    currentMenu: "Carta activa",
   },
   en: {
     menu: "Menu",
@@ -33,6 +36,9 @@ const labels = {
     noItems: "There are no dishes available for this selection.",
     outsideHours: "The menu is not available at this time.",
     languages: "Language",
+    menus: "Menus",
+    allDay: "All day",
+    currentMenu: "Current menu",
   },
 } as const;
 
@@ -65,6 +71,8 @@ function menuImageUrl(imagePath: string) {
 
 export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps) {
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null);
+  const [selectedDaypartId, setSelectedDaypartId] = useState<string | null>(currentDaypartId);
+  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -84,11 +92,28 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
             : category.daypart_id
               ? [category.daypart_id]
               : [];
-          return daypartIds.length === 0 || daypartIds.includes(currentDaypartId ?? "");
+          return daypartIds.length === 0 || daypartIds.includes(selectedDaypartId ?? "");
         },
       ),
-    [currentDaypartId, menu.categories, menu.settings.uses_dayparts],
+    [menu.categories, menu.settings.uses_dayparts, selectedDaypartId],
   );
+
+  useEffect(() => {
+    const sections = categories
+      .map((category) => document.getElementById(`category-${category.id}`))
+      .filter((section): section is HTMLElement => section !== null);
+    if (!sections.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.find((entry) => entry.isIntersecting);
+        if (visible) setActiveCategoryId(visible.target.id.replace("category-", ""));
+      },
+      { rootMargin: "-20% 0px -65% 0px" },
+    );
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, [categories]);
 
   function selectLocale(nextLocale: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -98,7 +123,11 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
     router.push(query ? `${pathname}?${query}` : pathname);
   }
 
-  const hasOpenDaypart = !menu.settings.uses_dayparts || currentDaypartId !== null || menu.categories.some((category) => !category.daypart_id && category.daypart_ids.length === 0);
+  const hasOpenDaypart = !menu.settings.uses_dayparts || selectedDaypartId !== null || menu.categories.some((category) => !category.daypart_id && category.daypart_ids.length === 0);
+  const activeDaypart = menu.dayparts.find((daypart) => daypart.id === selectedDaypartId);
+  const visibleActiveCategoryId = categories.some((category) => category.id === activeCategoryId)
+    ? activeCategoryId
+    : (categories[0]?.id ?? null);
 
   return (
     <main className="menu-shell">
@@ -124,10 +153,30 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
       <section className="menu-hero" aria-labelledby="menu-title">
         <p className="eyebrow">{copy.menu}</p>
         <h1 id="menu-title">{menu.restaurant.name}</h1>
-        {menu.settings.uses_dayparts && currentDaypartId ? (
-          <p className="daypart-status">{menu.dayparts.find((daypart) => daypart.id === currentDaypartId)?.name}</p>
-        ) : null}
+        {menu.settings.uses_dayparts ? <p className="daypart-status">{activeDaypart?.name ?? copy.allDay}</p> : null}
       </section>
+
+      {menu.settings.uses_dayparts && menu.dayparts.length ? (
+        <section className="daypart-switcher" aria-label={copy.menus}>
+          <span>{copy.menus}</span>
+          <div className="daypart-list" role="group">
+            <button className={selectedDaypartId === null ? "is-selected" : ""} onClick={() => setSelectedDaypartId(null)} type="button">
+              {copy.allDay}
+            </button>
+            {menu.dayparts.map((daypart) => (
+              <button
+                aria-label={daypart.id === currentDaypartId ? `${daypart.name} (${copy.currentMenu})` : daypart.name}
+                className={selectedDaypartId === daypart.id ? "is-selected" : ""}
+                key={daypart.id}
+                onClick={() => setSelectedDaypartId(daypart.id)}
+                type="button"
+              >
+                {daypart.name}
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {dietaryTags.length ? (
         <section className="menu-filters" aria-label={copy.filters}>
@@ -152,7 +201,17 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
 
       {hasOpenDaypart && categories.length > 1 ? (
         <nav className="category-nav" aria-label={copy.menu}>
-          {categories.map((category) => <a href={`#category-${category.id}`} key={category.id}>{translated(category, locale).name}</a>)}
+          {categories.map((category) => (
+            <a
+              aria-current={visibleActiveCategoryId === category.id ? "true" : undefined}
+              className={visibleActiveCategoryId === category.id ? "is-active" : ""}
+              href={`#category-${category.id}`}
+              key={category.id}
+              onClick={() => setActiveCategoryId(category.id)}
+            >
+              {translated(category, locale).name}
+            </a>
+          ))}
         </nav>
       ) : null}
 

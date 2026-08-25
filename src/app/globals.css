@@ -40,14 +40,21 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
 .menu-hero .eyebrow { font-size: .78rem; margin: 0 0 .75rem; }
 .menu-hero h1 { margin: 0; max-width: 11ch; }
 .daypart-status { color: var(--color-ink); font-size: 1rem; font-weight: 700; margin: 1.2rem 0 0; }
+.daypart-switcher { align-items: center; border-bottom: 1px solid #e7e1d8; display: flex; flex-wrap: wrap; gap: .75rem 1rem; padding: 1rem 0; }
+.daypart-switcher > span { color: var(--color-muted); font-size: .9rem; font-weight: 700; }
+.daypart-list { display: flex; flex-wrap: wrap; gap: .5rem; }
+.daypart-list button { background: transparent; border: 1px solid #c8c2b9; border-radius: 999px; color: var(--color-ink); cursor: pointer; font: inherit; font-size: .9rem; padding: .42rem .75rem; }
+.daypart-list button.is-selected { background: var(--color-accent); border-color: var(--color-accent); color: white; }
 .menu-filters { align-items: baseline; display: flex; flex-wrap: wrap; gap: .8rem 1.25rem; padding: 1.4rem 0; }
 .menu-filters > span { color: var(--color-muted); font-size: .9rem; font-weight: 700; }
 .filter-list { display: flex; flex-wrap: wrap; gap: .5rem; }
 .filter-list button { background: transparent; border: 1px solid #c8c2b9; border-radius: 999px; color: var(--color-ink); cursor: pointer; font: inherit; font-size: .9rem; padding: .4rem .7rem; }
 .filter-list button.is-selected { background: var(--color-ink); border-color: var(--color-ink); color: white; }
-.category-nav { display: flex; gap: .5rem 1rem; overflow-x: auto; padding: .25rem 0 1.25rem; }
-.category-nav a { color: var(--color-ink); font-size: .95rem; font-weight: 700; text-decoration-color: var(--color-accent); text-underline-offset: .25rem; white-space: nowrap; }
+.category-nav { background: var(--color-paper); display: flex; gap: .5rem; overflow-x: auto; padding: .8rem 0 1rem; position: sticky; top: 0; z-index: 10; }
+.category-nav a { border: 1px solid transparent; border-radius: 999px; color: var(--color-ink); font-size: .95rem; font-weight: 700; padding: .42rem .7rem; text-decoration: none; white-space: nowrap; }
+.category-nav a.is-active { background: #f3e5df; border-color: #e5b4a2; color: #823718; }
 .menu-content { padding-top: 1rem; }
+.menu-section { scroll-margin-top: 4.75rem; }
 .menu-section + .menu-section { border-top: 1px solid #e7e1d8; margin-top: 2.75rem; padding-top: 2.75rem; }
 .section-heading { margin-bottom: 1.1rem; }
 .section-heading h2 { font-size: clamp(1.5rem, 4vw, 2.1rem); margin: 0; }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { type UIEvent, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import type { PublicMenu } from "@/lib/supabase/public-menu";
@@ -73,7 +73,8 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null);
   const [selectedDaypartId, setSelectedDaypartId] = useState(currentDaypartId ?? menu.dayparts[0]?.id ?? null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const categoryNav = useRef<HTMLElement>(null);
+  const categoryScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -96,12 +97,28 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
 
   const activeDaypart = menu.dayparts.find((daypart) => daypart.id === selectedDaypartId);
   const selectedCategory = categories.find((category) => category.id === selectedCategoryId) ?? categories[0];
-  const categoryIndex = selectedCategory ? categories.indexOf(selectedCategory) : -1;
   const isActiveMenu = selectedDaypartId === currentDaypartId;
 
-  function switchCategory(nextIndex: number) {
-    const next = categories[nextIndex];
-    if (next) setSelectedCategoryId(next.id);
+  useEffect(() => () => {
+    if (categoryScrollTimeout.current) clearTimeout(categoryScrollTimeout.current);
+  }, []);
+
+  function selectCategory(categoryId: string) {
+    setSelectedCategoryId(categoryId);
+  }
+
+  function selectCategoryFromNavScroll(event: UIEvent<HTMLElement>) {
+    const nav = event.currentTarget;
+    if (categoryScrollTimeout.current) clearTimeout(categoryScrollTimeout.current);
+    categoryScrollTimeout.current = setTimeout(() => {
+      const navCenter = nav.getBoundingClientRect().left + nav.clientWidth / 2;
+      const closestTab = Array.from(nav.querySelectorAll<HTMLElement>("[data-category-id]")).reduce<HTMLElement | null>(
+        (closest, tab) => !closest || Math.abs(tab.getBoundingClientRect().left + tab.offsetWidth / 2 - navCenter) < Math.abs(closest.getBoundingClientRect().left + closest.offsetWidth / 2 - navCenter) ? tab : closest,
+        null,
+      );
+      const categoryId = closestTab?.dataset.categoryId;
+      if (categoryId) setSelectedCategoryId(categoryId);
+    }, 120);
   }
 
   return (
@@ -174,17 +191,21 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
       ) : null}
 
       {categories.length > 1 ? (
-        <nav className="category-nav" aria-label={copy.menu}>
+        <nav className="category-nav" aria-label={copy.menu} onScroll={selectCategoryFromNavScroll} ref={categoryNav} role="tablist">
           {categories.map((category) => (
-            <a
-              aria-current={selectedCategory?.id === category.id ? "true" : undefined}
+            <button
+              aria-controls={`category-${category.id}`}
+              aria-selected={selectedCategory?.id === category.id}
               className={selectedCategory?.id === category.id ? "is-active" : ""}
-              href="#menu-content"
+              data-category-id={category.id}
+              id={`tab-${category.id}`}
               key={category.id}
-              onClick={() => setSelectedCategoryId(category.id)}
+              onClick={() => selectCategory(category.id)}
+              role="tab"
+              type="button"
             >
               {translated(category, locale).name}
-            </a>
+            </button>
           ))}
         </nav>
       ) : null}
@@ -200,22 +221,13 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
             return matchesCategory && matchesAvailability && matchesFilter;
           });
 
-          if (!items.length) return null;
-
           return (
-            <section className="menu-section" id={`category-${category.id}`} key={category.id} onTouchEnd={(event) => {
-              const start = touchStart.current;
-              if (!start) return;
-              const dx = event.changedTouches[0].clientX - start.x;
-              const dy = event.changedTouches[0].clientY - start.y;
-              if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) switchCategory(categoryIndex + (dx < 0 ? 1 : -1));
-              touchStart.current = null;
-            }} onTouchStart={(event) => { touchStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY }; }}>
+            <section aria-labelledby={`tab-${category.id}`} className="menu-section" id={`category-${category.id}`} key={category.id} role="tabpanel">
               <div className="section-heading">
                 <h2>{localizedCategory.name}</h2>
                 {localizedCategory.description ? <p>{localizedCategory.description}</p> : null}
               </div>
-              <div className="menu-grid">
+              {items.length ? <div className="menu-grid">
                 {items.map((item) => {
                   const localizedItem = translated(item, locale);
                   return (
@@ -252,7 +264,7 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
                     </article>
                   );
                 })}
-              </div>
+              </div> : <p className="empty-state">{copy.noItems}</p>}
             </section>
           );
         })() : <p className="empty-state">{copy.noItems}</p>}

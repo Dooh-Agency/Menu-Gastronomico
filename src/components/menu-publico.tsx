@@ -11,12 +11,16 @@ type MenuPublicoProps = {
   currentDaypartId: string | null;
 };
 
+type MenuItem = PublicMenu["items"][number];
+
 const labels = {
   es: {
     menu: "Menú",
     filters: "Filtrar por preferencias",
     all: "Todo",
     details: "Ver detalle",
+    close: "Cerrar",
+    qr: "Ver QR",
     allergens: "Alérgenos",
     soldOut: "Agotado",
     noItems: "No hay platos disponibles para esta selección.",
@@ -31,6 +35,8 @@ const labels = {
     filters: "Filter by dietary preference",
     all: "All",
     details: "View details",
+    close: "Close",
+    qr: "View QR",
     allergens: "Allergens",
     soldOut: "Sold out",
     noItems: "There are no dishes available for this selection.",
@@ -73,6 +79,7 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null);
   const [selectedDaypartId, setSelectedDaypartId] = useState(currentDaypartId ?? menu.dayparts[0]?.id ?? null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const categoryNav = useRef<HTMLElement>(null);
   const categoryScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
@@ -128,6 +135,7 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
           <span className="brand-mark" aria-hidden="true" />
           {menu.restaurant.name}
         </a>
+        <a className="qr-link" href={`/${menu.restaurant.slug}/qr`}>{copy.qr}</a>
         {menu.restaurant.supported_locales.length > 1 ? (
           <label className="language-picker">
             <span className="sr-only">{copy.languages}</span>
@@ -259,6 +267,7 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
                             <p><b>{copy.allergens}:</b> {item.allergens.join(", ")}</p>
                           </details>
                         ) : null}
+                        <button className="item-detail-button" onClick={() => setSelectedItem(item)} type="button">{copy.details}</button>
                         {!item.is_available ? <span className="sold-out">{copy.soldOut}</span> : null}
                       </div>
                     </article>
@@ -269,6 +278,25 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
           );
         })() : <p className="empty-state">{copy.noItems}</p>}
       </section>
+      {selectedItem ? (() => {
+        const localizedItem = translated(selectedItem, locale);
+        return (
+          <div aria-label={localizedItem.name} className="item-dialog-backdrop" onMouseDown={() => setSelectedItem(null)} role="presentation">
+            <section aria-modal="true" className="item-dialog" onKeyDown={(event) => { if (event.key === "Escape") setSelectedItem(null); }} onMouseDown={(event) => event.stopPropagation()} role="dialog">
+              <button aria-label={copy.close} autoFocus className="item-dialog-close" onClick={() => setSelectedItem(null)} type="button">×</button>
+              {selectedItem.image_path ? <Image alt="" className="item-dialog-image" height={720} src={menuImageUrl(selectedItem.image_path)} width={1280} /> : null}
+              <div className="item-dialog-content">
+                <h2>{localizedItem.name}</h2>
+                <strong>{formatPrice(selectedItem.price_cents, selectedItem.currency_code, locale)}</strong>
+                {localizedItem.description ? <p>{localizedItem.description}</p> : null}
+                {selectedItem.dietary_tags.length ? <p><b>{copy.filters}:</b> {selectedItem.dietary_tags.join(", ")}</p> : null}
+                {selectedItem.allergens.length ? <p><b>{copy.allergens}:</b> {selectedItem.allergens.join(", ")}</p> : null}
+                {!selectedItem.is_available ? <span className="sold-out">{copy.soldOut}</span> : null}
+              </div>
+            </section>
+          </div>
+        );
+      })() : null}
     </main>
   );
 }

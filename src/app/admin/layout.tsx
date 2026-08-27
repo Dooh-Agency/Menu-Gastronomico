@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { signOut } from "./actions";
+import { AdminNav } from "./admin-nav";
 
 type Profile = { restaurant_id: string | null; role: "super_admin" | "restaurant_admin"; display_name: string | null };
 type Restaurant = { name: string; slug: string };
@@ -31,10 +32,7 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
           <form action={signOut}><button className="text-button" type="submit">Salir</button></form>
         </div>
       </header>
-      <nav className="admin-nav" aria-label="Administración">
-        <Link href="/admin">Resumen</Link>
-        {restaurant ? <Link href={`/${restaurant.slug}`} target="_blank">Ver menú público</Link> : null}
-      </nav>
+      <AdminNav publicMenuHref={restaurant ? `/${restaurant.slug}` : undefined} />
       {children}
     </div>
   );

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AdminDialog } from "../admin-dialog";
 import { createCategory, deleteCategory, reorderCategories, updateCategory } from "../actions";
+import { LocalizationFields } from "../localization-fields";
 
 type Category = {
   id: string;
@@ -10,9 +11,13 @@ type Category = {
   description: string | null;
   sort_order: number;
   is_active: boolean;
+  menu_category_translations?: Array<{ locale: string; name: string; description: string | null }>;
+  menu_category_dayparts?: Array<{ daypart_id: string }>;
 };
 
-export function CategoryManager({ categories: initialCategories }: { categories: Category[] }) {
+type Daypart = { id: string; name: string };
+
+export function CategoryManager({ categories: initialCategories, dayparts, locales }: { categories: Category[]; dayparts: Daypart[]; locales: string[] }) {
   const [categories, setCategories] = useState(initialCategories);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
@@ -64,6 +69,8 @@ export function CategoryManager({ categories: initialCategories }: { categories:
               Descripción <span className="field-optional">Opcional</span>
               <input name="description" />
             </label>
+            {dayparts.length ? <fieldset className="daypart-fields"><legend>Cartas donde se muestra</legend><p>Si no elegís ninguna, la categoría aparece en todas las cartas.</p>{dayparts.map((daypart) => <label className="checkbox-label" key={daypart.id}><input name="daypart_ids" type="checkbox" value={daypart.id} />{daypart.name}</label>)}</fieldset> : null}
+            <LocalizationFields locales={locales} translations={[]} />
             <div className="admin-modal-actions">
               <button className="secondary-link" onClick={() => setIsCreateDialogOpen(false)} type="button">Cancelar</button>
               <button className="primary-link" type="submit">Crear categoría</button>
@@ -85,6 +92,8 @@ export function CategoryManager({ categories: initialCategories }: { categories:
             <label>Nombre<input autoFocus defaultValue={editingCategory.name} name="name" required /></label>
             <label>Descripción <span className="field-optional">Opcional</span><input defaultValue={editingCategory.description ?? ""} name="description" /></label>
             <label className="checkbox-label"><input defaultChecked={editingCategory.is_active} name="is_active" type="checkbox" />Activa</label>
+            {dayparts.length ? <fieldset className="daypart-fields"><legend>Cartas donde se muestra</legend><p>Si no elegís ninguna, la categoría aparece en todas las cartas.</p>{dayparts.map((daypart) => <label className="checkbox-label" key={daypart.id}><input defaultChecked={editingCategory.menu_category_dayparts?.some((item) => item.daypart_id === daypart.id)} name="daypart_ids" type="checkbox" value={daypart.id} />{daypart.name}</label>)}</fieldset> : null}
+            <LocalizationFields locales={locales} translations={editingCategory.menu_category_translations ?? []} />
             <div className="admin-modal-actions">
               <button className="secondary-link" onClick={() => setEditingCategory(null)} type="button">Cancelar</button>
               <button className="primary-link" type="submit">Guardar cambios</button>
@@ -112,7 +121,7 @@ export function CategoryManager({ categories: initialCategories }: { categories:
                 <strong>{category.name}</strong>
                 {category.description ? <p>{category.description}</p> : <p className="empty-row-detail">Sin descripción</p>}
               </div>
-              <span className={`availability-status${category.is_active ? "" : " is-inactive"}`}>{category.is_active ? "Activa" : "Inactiva"}</span>
+              <span className={`status-badge${category.is_active ? "" : " is-inactive"}`}>{category.is_active ? "Activa" : "Inactiva"}</span>
               <div className="row-actions">
                 <button aria-label={`Editar ${category.name}`} className="icon-button" onClick={() => setEditingCategory(category)} title="Editar categoría" type="button"><span aria-hidden="true" className="material-symbols-outlined">edit</span></button>
                 <form action={deleteCategory}>

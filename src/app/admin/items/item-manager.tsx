@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { AdminDialog } from "../admin-dialog";
 import { createMenuItem, deleteMenuItem, reorderMenuItems, updateMenuItem } from "../actions";
+import { LocalizationFields } from "../localization-fields";
 
 type Category = { id: string; name: string };
 type Item = {
@@ -13,9 +14,13 @@ type Item = {
   price_cents: number;
   is_available: boolean;
   sort_order: number;
+  image_path: string | null;
+  dietary_tags: string[];
+  allergens: string[];
+  menu_item_translations?: Array<{ locale: string; name: string; description: string | null }>;
 };
 
-export function ItemManager({ categories, items }: { categories: Category[]; items: Item[] }) {
+export function ItemManager({ categories, items, locales }: { categories: Category[]; items: Item[]; locales: string[] }) {
   const [orderedItems, setOrderedItems] = useState(items);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
@@ -71,6 +76,10 @@ export function ItemManager({ categories, items }: { categories: Category[]; ite
               <label>Categoría<select name="category_id">{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
             </div>
             <label className="checkbox-label"><input defaultChecked name="is_available" type="checkbox" />Disponible</label>
+            <label>Imagen <span className="field-optional">JPG, PNG o WebP; máximo 5 MB</span><input accept="image/jpeg,image/png,image/webp" name="image" type="file" /></label>
+            <label>Etiquetas dietéticas <span className="field-optional">Separadas por comas</span><input name="dietary_tags" placeholder="vegetariano, vegano" /></label>
+            <label>Alérgenos <span className="field-optional">Separados por comas</span><input name="allergens" placeholder="lácteos, gluten" /></label>
+            <LocalizationFields locales={locales} translations={[]} />
             <div className="admin-modal-actions">
               <button className="secondary-link" onClick={() => setIsCreateDialogOpen(false)} type="button">Cancelar</button>
               <button className="primary-link" type="submit">Agregar plato</button>
@@ -94,6 +103,10 @@ export function ItemManager({ categories, items }: { categories: Category[]; ite
               <label>Precio (ARS)<input defaultValue={(editingItem.price_cents / 100).toFixed(2)} min="0" name="price" required step=".01" type="number" /></label>
               <label>Categoría<select defaultValue={editingItem.category_id} name="category_id">{categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}</select></label>
             </div>
+            <label>Reemplazar imagen <span className="field-optional">JPG, PNG o WebP; máximo 5 MB</span><input accept="image/jpeg,image/png,image/webp" name="image" type="file" /></label>
+            <label>Etiquetas dietéticas <span className="field-optional">Separadas por comas</span><input defaultValue={editingItem.dietary_tags.join(", ")} name="dietary_tags" /></label>
+            <label>Alérgenos <span className="field-optional">Separados por comas</span><input defaultValue={editingItem.allergens.join(", ")} name="allergens" /></label>
+            <LocalizationFields locales={locales} translations={editingItem.menu_item_translations ?? []} />
             <div className="admin-modal-grid">
               <input name="sort_order" type="hidden" value={editingItem.sort_order} />
               <label className="checkbox-label"><input defaultChecked={editingItem.is_available} name="is_available" type="checkbox" />Disponible</label>
@@ -132,9 +145,8 @@ export function ItemManager({ categories, items }: { categories: Category[]; ite
                     {item.description ? <p>{item.description}</p> : <p className="empty-row-detail">Sin descripción</p>}
                   </div>
                   <strong className="item-price">{new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 2 }).format(item.price_cents / 100)}</strong>
-                  <span className="item-category-display">{categories.find((category) => category.id === item.category_id)?.name ?? "Sin categoría"}</span>
-                  {selectedCategoryId !== "all" ? <span className="item-order">Orden {item.sort_order}</span> : null}
-                  <span className={`availability-status${item.is_available ? "" : " is-inactive"}`}>{item.is_available ? "Disponible" : "No disponible"}</span>
+                  {selectedCategoryId === "all" ? <span className="item-category-display">{categories.find((category) => category.id === item.category_id)?.name ?? "Sin categoría"}</span> : null}
+                  <span className={`status-badge${item.is_available ? "" : " is-inactive"}`}>{item.is_available ? "Disponible" : "No disponible"}</span>
                   <div className="row-actions">
                     <button aria-label={`Editar ${item.name}`} className="icon-button" onClick={() => setEditingItem(item)} title="Editar plato" type="button"><span aria-hidden="true" className="material-symbols-outlined">edit</span></button>
                     <form action={deleteMenuItem}>

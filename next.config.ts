@@ -5,6 +5,12 @@ const supabaseHost = supabaseUrl ? new URL(supabaseUrl).hostname : "ibrcqrjkdcnd
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  experimental: {
+    serverActions: {
+      // Product photography is limited to 5 MB in Supabase Storage.
+      bodySizeLimit: "6mb",
+    },
+  },
   images: {
     remotePatterns: [
       {

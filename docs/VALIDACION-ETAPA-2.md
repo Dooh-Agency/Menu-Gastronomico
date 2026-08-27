@@ -35,4 +35,6 @@
 
 ## Cierre de la etapa
 
-El desarrollo de la Etapa 2 queda completo en el repositorio. El cierre operativo requiere aplicar la migración pendiente y realizar la verificación manual con dos tenants antes de iniciar la Etapa 3.
+**Etapa 2 cerrada el 27 de agosto de 2026.** El desarrollo del panel administrativo queda completo y validado en el repositorio.
+
+La aplicación de la migración pendiente y la verificación manual con dos tenants quedan registradas como seguimiento operativo para realizar antes del despliegue a clientes, sin bloquear el inicio de la Etapa 3.

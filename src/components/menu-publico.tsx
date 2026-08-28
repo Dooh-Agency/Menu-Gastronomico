@@ -1,9 +1,10 @@
 "use client";
 
-import { type UIEvent, useEffect, useRef, useState } from "react";
+import { type CSSProperties, type UIEvent, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import type { PublicMenu } from "@/lib/supabase/public-menu";
+import { brandingFor, restaurantFonts } from "@/lib/restaurant-branding";
 
 type MenuPublicoProps = {
   menu: PublicMenu;
@@ -27,7 +28,6 @@ const labels = {
     outsideHours: "En este momento la carta no está disponible.",
     languages: "Idioma",
     menus: "Cartas",
-    currentMenu: "Carta activa",
     unavailableMenu: "Esta carta se ofrece de",
   },
   en: {
@@ -43,7 +43,6 @@ const labels = {
     outsideHours: "The menu is not available at this time.",
     languages: "Language",
     menus: "Menus",
-    currentMenu: "Current menu",
     unavailableMenu: "This menu is offered from",
   },
 } as const;
@@ -86,6 +85,16 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const copy = copyFor(locale);
+  const branding = brandingFor(menu.restaurant.branding);
+  const brandStyle = {
+    "--color-accent": branding.primary_color,
+    "--color-secondary": branding.secondary_color,
+    "--color-paper": branding.surface_color,
+    "--color-ink": branding.text_color,
+    "--color-link": branding.accent_text_color,
+    "--menu-font": restaurantFonts[branding.font_family ?? "inter"].cssFamily,
+    "--radius-card": branding.radius === "soft" ? ".65rem" : branding.radius === "square" ? ".15rem" : "1rem",
+  } as CSSProperties;
 
   const dietaryTags = Array.from(new Set(menu.items.flatMap((item) => item.dietary_tags))).sort();
   const categories = menu.categories.filter((category) => {
@@ -129,74 +138,24 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
   }
 
   return (
-    <main className="menu-shell">
+    <main className="menu-shell" style={brandStyle}>
       <header className="menu-header">
         <a className="brand" href="#menu-content" aria-label={`${menu.restaurant.name}, ${copy.menu}`}>
-          <span className="brand-mark" aria-hidden="true" />
+          {branding.logo_path ? <Image alt="" className="brand-logo" height={72} src={menuImageUrl(branding.logo_path)} width={72} /> : <span className="brand-mark" aria-hidden="true" />}
           {menu.restaurant.name}
         </a>
         <a className="qr-link" href={`/${menu.restaurant.slug}/qr`}>{copy.qr}</a>
-        {menu.restaurant.supported_locales.length > 1 ? (
-          <label className="language-picker">
-            <span className="sr-only">{copy.languages}</span>
-            <select value={locale} onChange={(event) => selectLocale(event.target.value)}>
-              {menu.restaurant.supported_locales.map((supportedLocale) => (
-                <option key={supportedLocale} value={supportedLocale}>
-                  {supportedLocale.toUpperCase()}
-                </option>
-              ))}
-            </select>
-          </label>
-        ) : null}
       </header>
 
-      <section className="menu-hero" aria-labelledby="menu-title">
-        <p className="eyebrow">{copy.menu}</p>
-        <h1 id="menu-title">{menu.restaurant.name}</h1>
-        {menu.settings.uses_dayparts && activeDaypart ? <p className="daypart-status">{activeDaypart.name}</p> : null}
-      </section>
+      {branding.cover_image_path ? <div aria-hidden="true" className="menu-cover"><Image alt="" className="menu-cover-image" fill priority sizes="(max-width: 72rem) 100vw, 72rem" src={menuImageUrl(branding.cover_image_path)} /></div> : null}
 
-      {menu.settings.uses_dayparts && menu.dayparts.length ? (
-        <section className="daypart-switcher" aria-label={copy.menus}>
-          <span>{copy.menus}</span>
-          <div className="daypart-list" role="group">
-            {menu.dayparts.map((daypart) => (
-              <button
-                aria-label={daypart.id === currentDaypartId ? `${daypart.name} (${copy.currentMenu})` : daypart.name}
-                className={selectedDaypartId === daypart.id ? "is-selected" : ""}
-                key={daypart.id}
-                onClick={() => { setSelectedDaypartId(daypart.id); setSelectedCategoryId(null); }}
-                type="button"
-              >
-                {daypart.name}
-              </button>
-            ))}
-          </div>
-        </section>
-      ) : null}
+      {menu.settings.uses_dayparts || dietaryTags.length || menu.restaurant.supported_locales.length > 1 ? <section className="menu-controls" aria-label={copy.menu}>
+        {menu.settings.uses_dayparts && menu.dayparts.length ? <label className="menu-control"><span>{copy.menus}</span><select aria-label={copy.menus} onChange={(event) => { setSelectedDaypartId(event.target.value); setSelectedCategoryId(null); }} value={selectedDaypartId ?? ""}>{menu.dayparts.map((daypart) => <option key={daypart.id} value={daypart.id}>{daypart.name}</option>)}</select></label> : null}
+        {dietaryTags.length ? <label className="menu-control"><span>{copy.filters}</span><select aria-label={copy.filters} onChange={(event) => setDietaryFilter(event.target.value || null)} value={dietaryFilter ?? ""}><option value="">{copy.all}</option>{dietaryTags.map((tag) => <option key={tag} value={tag}>{tag}</option>)}</select></label> : null}
+        {menu.restaurant.supported_locales.length > 1 ? <label className="menu-control language-control"><span>{copy.languages}</span><select aria-label={copy.languages} onChange={(event) => selectLocale(event.target.value)} value={locale}>{menu.restaurant.supported_locales.map((supportedLocale) => <option key={supportedLocale} value={supportedLocale}>{supportedLocale.toUpperCase()}</option>)}</select></label> : null}
+      </section> : null}
 
       {activeDaypart && !isActiveMenu ? <p className="menu-availability">{copy.unavailableMenu} {activeDaypart.starts_at.slice(0, 5)}–{activeDaypart.ends_at.slice(0, 5)}.</p> : null}
-
-      {dietaryTags.length ? (
-        <section className="menu-filters" aria-label={copy.filters}>
-          <span>{copy.filters}</span>
-          <div className="filter-list">
-            <button className={!dietaryFilter ? "is-selected" : ""} onClick={() => setDietaryFilter(null)} type="button">
-              {copy.all}
-            </button>
-            {dietaryTags.map((tag) => (
-              <button
-                className={dietaryFilter === tag ? "is-selected" : ""}
-                key={tag}
-                onClick={() => setDietaryFilter(dietaryFilter === tag ? null : tag)}
-                type="button"
-              >
-                {tag}
-              </button>
-            ))}
-          </div>
-        </section>
-      ) : null}
 
       {categories.length > 1 ? (
         <nav className="category-nav" aria-label={copy.menu} onScroll={selectCategoryFromNavScroll} ref={categoryNav} role="tablist">
@@ -278,6 +237,7 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
           );
         })() : <p className="empty-state">{copy.noItems}</p>}
       </section>
+      {menu.settings.contact.phone || menu.settings.contact.email || menu.settings.contact.address || menu.settings.contact.website ? <footer className="menu-contact" aria-label="Contacto"><h2>{menu.restaurant.name}</h2>{menu.settings.contact.address ? <p>{menu.settings.contact.address}</p> : null}{menu.settings.contact.phone ? <a href={`tel:${menu.settings.contact.phone}`}>{menu.settings.contact.phone}</a> : null}{menu.settings.contact.email ? <a href={`mailto:${menu.settings.contact.email}`}>{menu.settings.contact.email}</a> : null}{menu.settings.contact.website ? <a href={menu.settings.contact.website} rel="noreferrer" target="_blank">Sitio web</a> : null}</footer> : null}
       {selectedItem ? (() => {
         const localizedItem = translated(selectedItem, locale);
         return (

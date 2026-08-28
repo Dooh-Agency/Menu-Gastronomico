@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { brandingFor, contactFor, restaurantFonts, type RestaurantFont } from "@/lib/restaurant-branding";
 
 type Profile = { restaurant_id: string | null; role: "super_admin" | "restaurant_admin" };
 
@@ -91,6 +92,30 @@ async function uploadItemImage(itemId: string, restaurantId: string, image: File
 }
 
 function invalidate(slug: string) { revalidatePath("/admin"); revalidatePath("/admin/categories"); revalidatePath("/admin/items"); revalidatePath("/admin/settings"); revalidatePath("/admin/users"); revalidatePath(`/${slug}`); }
+
+function hexColor(formData: FormData, field: string) {
+  const value = required(formData, field);
+  if (!/^#[0-9a-fA-F]{6}$/.test(value)) throw new Error(`${field} debe ser un color hexadecimal.`);
+  return value.toLowerCase();
+}
+
+function optionalText(formData: FormData, field: string, maxLength: number) {
+  const value = formData.get(field);
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed ? trimmed.slice(0, maxLength) : undefined;
+}
+
+async function uploadBrandImage(kind: "logo" | "cover", restaurantId: string, image: File | null, previousPath: string | undefined, supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>) {
+  if (!image || image.size === 0) return previousPath;
+  if (image.size > 5 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(image.type)) throw new Error("La imagen debe ser JPG, PNG o WebP y pesar hasta 5 MB.");
+  const extension = image.type === "image/png" ? "png" : image.type === "image/webp" ? "webp" : "jpg";
+  const path = `${restaurantId}/branding/${kind}-${crypto.randomUUID()}.${extension}`;
+  const { error } = await supabase.storage.from("menu-images").upload(path, image, { contentType: image.type, upsert: false });
+  if (error) throw error;
+  if (previousPath?.startsWith(`${restaurantId}/branding/`)) await supabase.storage.from("menu-images").remove([previousPath]);
+  return path;
+}
 
 export async function createCategory(formData: FormData) {
   const { supabase, restaurantId, slug } = await context();
@@ -196,6 +221,38 @@ export async function updateRestaurantSettings(formData: FormData) {
   if (unavailable_item_behavior !== "hide" && unavailable_item_behavior !== "show_sold_out") throw new Error("Configuración de agotados inválida.");
   const { error } = await supabase.from("restaurant_settings").upsert({ restaurant_id: restaurantId, unavailable_item_behavior, uses_dayparts: formData.get("uses_dayparts") === "on" });
   if (error) throw error;
+  invalidate(slug);
+}
+
+export async function updateRestaurantConfiguration(formData: FormData) {
+  const { supabase, restaurantId, slug } = await context();
+  const { data: restaurant } = await supabase.from("restaurants").select("name, timezone, supported_locales, default_locale, branding").eq("id", restaurantId).maybeSingle<{ name: string; timezone: string; supported_locales: string[]; default_locale: string; branding: Record<string, unknown> }>();
+  if (!restaurant) throw new Error("Restaurante no encontrado.");
+  const supported_locales = formData.getAll("supported_locales").filter((locale): locale is string => locale === "es" || locale === "en");
+  if (!supported_locales.length) throw new Error("Seleccioná al menos un idioma.");
+  const default_locale = required(formData, "default_locale");
+  if (!supported_locales.includes(default_locale)) throw new Error("El idioma predeterminado debe estar habilitado.");
+  const timezone = required(formData, "timezone");
+  try { Intl.DateTimeFormat(undefined, { timeZone: timezone }); } catch { throw new Error("Zona horaria inválida."); }
+  const font_family = required(formData, "font_family");
+  const radius = required(formData, "radius");
+  if (!(font_family in restaurantFonts) || !["soft", "rounded", "square"].includes(radius)) throw new Error("Estilo visual inválido.");
+  const oldBranding = brandingFor(restaurant.branding);
+  const branding = {
+    primary_color: hexColor(formData, "primary_color"), secondary_color: hexColor(formData, "secondary_color"), surface_color: hexColor(formData, "surface_color"), text_color: hexColor(formData, "text_color"), accent_text_color: hexColor(formData, "accent_text_color"),
+    font_family: font_family as RestaurantFont, radius: radius as "soft" | "rounded" | "square",
+    logo_path: await uploadBrandImage("logo", restaurantId, formData.get("logo") instanceof File ? formData.get("logo") as File : null, oldBranding.logo_path, supabase),
+    cover_image_path: await uploadBrandImage("cover", restaurantId, formData.get("cover_image") instanceof File ? formData.get("cover_image") as File : null, oldBranding.cover_image_path, supabase),
+  };
+  const contact = contactFor({ phone: optionalText(formData, "phone", 60), email: optionalText(formData, "email", 254), address: optionalText(formData, "address", 240), website: optionalText(formData, "website", 240) });
+  if (contact.email && !/^\S+@\S+\.\S+$/.test(contact.email)) throw new Error("Email de contacto inválido.");
+  if (contact.website) { try { const url = new URL(contact.website); if (!/^https?:$/.test(url.protocol)) throw new Error(); } catch { throw new Error("Sitio web inválido."); } }
+  const [{ error: restaurantError }, { error: settingsError }] = await Promise.all([
+    supabase.from("restaurants").update({ name: required(formData, "name"), timezone, supported_locales, default_locale, branding }).eq("id", restaurantId),
+    supabase.from("restaurant_settings").update({ contact }).eq("restaurant_id", restaurantId),
+  ]);
+  if (restaurantError) throw restaurantError;
+  if (settingsError) throw settingsError;
   invalidate(slug);
 }
 

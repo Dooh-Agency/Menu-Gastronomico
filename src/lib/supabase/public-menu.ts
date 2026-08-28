@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { RestaurantContact } from "@/lib/restaurant-branding";
 
 type RestaurantRow = {
   id: string;
@@ -13,6 +14,7 @@ type RestaurantRow = {
 type SettingsRow = {
   unavailable_item_behavior: "hide" | "show_sold_out";
   uses_dayparts: boolean;
+  contact: RestaurantContact;
 };
 
 type DaypartRow = {
@@ -95,7 +97,7 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
   const [settingsResult, daypartsResult, categoriesResult, itemsResult] = await Promise.all([
     supabase
       .from("restaurant_settings")
-      .select("unavailable_item_behavior, uses_dayparts")
+    .select("unavailable_item_behavior, uses_dayparts, contact")
       .eq("restaurant_id", restaurant.id)
       .maybeSingle<SettingsRow>(),
     supabase
@@ -158,7 +160,7 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
 
   return {
     restaurant,
-    settings: settingsResult.data ?? { unavailable_item_behavior: "show_sold_out", uses_dayparts: false },
+    settings: settingsResult.data ?? { unavailable_item_behavior: "show_sold_out", uses_dayparts: false, contact: {} },
     dayparts: (daypartsResult.data ?? []) as DaypartRow[],
     categories: categories.map((category) => ({
       ...category,

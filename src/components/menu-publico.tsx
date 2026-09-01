@@ -24,6 +24,9 @@ const labels = {
     allMenus: "Ver todas las cartas",
     changeMenu: "Cambiar de carta",
     viewMenu: "Ver carta",
+    availableNow: "Disponibles ahora",
+    outsideHoursTitle: "Fuera de horario",
+    outsideHoursBadge: "Fuera de horario",
     category: "categoría",
     categories: "categorías",
     dish: "plato",
@@ -50,6 +53,9 @@ const labels = {
     allMenus: "View all menus",
     changeMenu: "Change menu",
     viewMenu: "View menu",
+    availableNow: "Available now",
+    outsideHoursTitle: "Outside hours",
+    outsideHoursBadge: "Outside hours",
     category: "category",
     categories: "categories",
     dish: "dish",
@@ -115,10 +121,59 @@ function formatMenuSchedule(schedules: PublicMenuSchedule[], locale: string) {
     : `${schedules.length} franjas horarias`;
 }
 
+function isMenuScheduleActive(schedules: PublicMenuSchedule[], timezone: string): boolean {
+  if (!schedules || schedules.length === 0) return true;
+
+  try {
+    const date = new Date();
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone || "America/Argentina/Buenos_Aires",
+      hour: "2-digit",
+      minute: "2-digit",
+      weekday: "short",
+      hourCycle: "h23",
+    }).formatToParts(date);
+
+    const hour = Number(parts.find((part) => part.type === "hour")?.value ?? 0);
+    const minute = Number(parts.find((part) => part.type === "minute")?.value ?? 0);
+    const dayStr = parts.find((part) => part.type === "weekday")?.value?.toLowerCase() ?? "";
+
+    const dayMap: Record<string, number> = {
+      sun: 0,
+      mon: 1,
+      tue: 2,
+      wed: 3,
+      thu: 4,
+      fri: 5,
+      sat: 6,
+    };
+    const currentDay = dayMap[dayStr] ?? date.getDay();
+    const currentMins = hour * 60 + minute;
+
+    return schedules.some((s) => {
+      if (s.day_of_week !== null && s.day_of_week !== currentDay) return false;
+
+      const [startH, startM] = s.starts_at.slice(0, 5).split(":").map(Number);
+      const [endH, endM] = s.ends_at.slice(0, 5).split(":").map(Number);
+      const startMins = startH * 60 + startM;
+      const endMins = endH * 60 + endM;
+
+      if (startMins === 0 && (endMins === 1439 || endMins === 0 || (endH === 23 && endM === 59))) {
+        return true;
+      }
+
+      return startMins < endMins
+        ? currentMins >= startMins && currentMins <= endMins
+        : currentMins >= startMins || currentMins <= endMins;
+    });
+  } catch {
+    return true;
+  }
+}
+
 export function MenuPublico({
   menu,
   locale,
-  currentDaypartId,
   initialMenuId,
 }: MenuPublicoProps) {
   const activeMenus = menu.menus.filter((m) => m.is_active);
@@ -197,9 +252,143 @@ export function MenuPublico({
   }
 
   // =========================================================================
-  // VISTA 1: Selector de Cartas (Landing previa cuando no hay carta seleccionada)
+  // VISTA 1: Selector de Cartas (Separadas en Disponibles y Fuera de horario)
   // =========================================================================
   if (!selectedMenuId) {
+    const availableMenus = activeMenus.filter((m) =>
+      isMenuScheduleActive(m.schedules, menu.restaurant.timezone)
+    );
+    const outsideHoursMenus = activeMenus.filter(
+      (m) => !isMenuScheduleActive(m.schedules, menu.restaurant.timezone)
+    );
+
+    function renderMenuCard(m: PublicMenu["menus"][number], isAvailable: boolean) {
+      const menuCats = menu.categories.filter((c) => c.menu_id === m.id);
+      const menuCatIds = new Set(menuCats.map((c) => c.id));
+      const menuDishCount = menu.items.filter((i) => menuCatIds.has(i.category_id)).length;
+      const bannerPath = m.banner_path || branding.cover_image_path;
+      const scheduleText = formatMenuSchedule(m.schedules, locale);
+
+      return (
+        <article
+          className={`public-menu-card ${!isAvailable ? "is-outside-hours" : ""}`}
+          key={m.id}
+          onClick={() => handleSelectMenu(m.id)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleSelectMenu(m.id);
+            }
+          }}
+          role="button"
+          tabIndex={0}
+        >
+          <div className="public-menu-card-cover">
+            {bannerPath ? (
+              <Image
+                alt={`Portada ${m.name}`}
+                className="public-menu-card-image"
+                fill
+                sizes="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 33vw"
+                src={menuImageUrl(bannerPath)}
+              />
+            ) : (
+              <div className="public-menu-card-placeholder-banner">
+                <span className="public-menu-placeholder-mark" />
+              </div>
+            )}
+
+            {!isAvailable ? (
+              <div className="public-menu-outside-badge">
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  height="13"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.3"
+                  viewBox="0 0 24 24"
+                  width="13"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <span>{copy.outsideHoursBadge}</span>
+              </div>
+            ) : null}
+
+            <div className="public-menu-card-overlay">
+              <span className="public-menu-card-enter-btn">{copy.viewMenu} →</span>
+            </div>
+          </div>
+
+          <div className="public-menu-card-body">
+            <div className="public-menu-card-info">
+              <h2 className="public-menu-card-name">{m.name}</h2>
+              {m.description ? (
+                <p className="public-menu-card-desc">{m.description}</p>
+              ) : null}
+            </div>
+
+            <div className="public-menu-card-meta-list">
+              <div className="public-menu-card-meta-item">
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  height="14"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  width="14"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <span>{scheduleText}</span>
+              </div>
+              <div className="public-menu-card-meta-item">
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  height="14"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  width="14"
+                >
+                  <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                  <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                  <line x1="6" x2="6" y1="1" y2="4" />
+                  <line x1="10" x2="10" y1="1" y2="4" />
+                  <line x1="14" x2="14" y1="1" y2="4" />
+                </svg>
+                <span>
+                  {menuCats.length} {menuCats.length === 1 ? copy.category : copy.categories} · {menuDishCount}{" "}
+                  {menuDishCount === 1 ? copy.dish : copy.dishes}
+                </span>
+              </div>
+            </div>
+
+            <button
+              className={`public-menu-card-cta-btn ${!isAvailable ? "is-outside-hours" : ""}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSelectMenu(m.id);
+              }}
+              type="button"
+            >
+              {copy.viewMenu} →
+            </button>
+          </div>
+        </article>
+      );
+    }
+
     return (
       <main className="menu-shell public-menus-landing" style={brandStyle}>
         {/* Header con marca y controles */}
@@ -249,114 +438,55 @@ export function MenuPublico({
           <p className="public-menus-hero-subtitle">{copy.chooseMenuSubtitle}</p>
         </section>
 
-        {/* Grilla de Cartas Disponibles */}
+        {/* Secciones de Cartas: Disponibles y Fuera de Horario */}
         <section aria-label={copy.chooseMenu} className="public-menus-section">
-          <div className="public-menus-grid">
-            {activeMenus.map((m) => {
-              const menuCats = menu.categories.filter((c) => c.menu_id === m.id);
-              const menuCatIds = new Set(menuCats.map((c) => c.id));
-              const menuDishCount = menu.items.filter((i) => menuCatIds.has(i.category_id)).length;
-              const bannerPath = m.banner_path || branding.cover_image_path;
-              const scheduleText = formatMenuSchedule(m.schedules, locale);
-
-              return (
-                <article
-                  className="public-menu-card"
-                  key={m.id}
-                  onClick={() => handleSelectMenu(m.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      handleSelectMenu(m.id);
-                    }
-                  }}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <div className="public-menu-card-cover">
-                    {bannerPath ? (
-                      <Image
-                        alt={`Portada ${m.name}`}
-                        className="public-menu-card-image"
-                        fill
-                        sizes="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 33vw"
-                        src={menuImageUrl(bannerPath)}
-                      />
-                    ) : (
-                      <div className="public-menu-card-placeholder-banner">
-                        <span className="public-menu-placeholder-mark" />
-                      </div>
-                    )}
-                    <div className="public-menu-card-overlay">
-                      <span className="public-menu-card-enter-btn">{copy.viewMenu} →</span>
+          <div className="public-menus-groups">
+            {/* Cartas Disponibles Ahora */}
+            {availableMenus.length > 0 && (
+              <div className="public-menus-group">
+                {outsideHoursMenus.length > 0 && (
+                  <div className="public-menus-group-header">
+                    <div className="public-menus-group-status is-available">
+                      <span className="status-dot" />
+                      <h2>{copy.availableNow}</h2>
                     </div>
+                    <span className="public-menus-group-count">{availableMenus.length}</span>
                   </div>
+                )}
+                <div className="public-menus-grid">
+                  {availableMenus.map((m) => renderMenuCard(m, true))}
+                </div>
+              </div>
+            )}
 
-                  <div className="public-menu-card-body">
-                    <div className="public-menu-card-info">
-                      <h2 className="public-menu-card-name">{m.name}</h2>
-                      {m.description ? (
-                        <p className="public-menu-card-desc">{m.description}</p>
-                      ) : null}
-                    </div>
-
-                    <div className="public-menu-card-meta-list">
-                      <div className="public-menu-card-meta-item">
-                        <svg
-                          aria-hidden="true"
-                          fill="none"
-                          height="14"
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          width="14"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <polyline points="12 6 12 12 16 14" />
-                        </svg>
-                        <span>{scheduleText}</span>
-                      </div>
-                      <div className="public-menu-card-meta-item">
-                        <svg
-                          aria-hidden="true"
-                          fill="none"
-                          height="14"
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          width="14"
-                        >
-                          <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-                          <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-                          <line x1="6" x2="6" y1="1" y2="4" />
-                          <line x1="10" x2="10" y1="1" y2="4" />
-                          <line x1="14" x2="14" y1="1" y2="4" />
-                        </svg>
-                        <span>
-                          {menuCats.length} {menuCats.length === 1 ? copy.category : copy.categories} · {menuDishCount}{" "}
-                          {menuDishCount === 1 ? copy.dish : copy.dishes}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      className="public-menu-card-cta-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSelectMenu(m.id);
-                      }}
-                      type="button"
+            {/* Cartas Fuera de Horario */}
+            {outsideHoursMenus.length > 0 && (
+              <div className="public-menus-group public-menus-group-closed">
+                <div className="public-menus-group-header">
+                  <div className="public-menus-group-status is-outside-hours">
+                    <svg
+                      aria-hidden="true"
+                      fill="none"
+                      height="18"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2.2"
+                      viewBox="0 0 24 24"
+                      width="18"
                     >
-                      {copy.viewMenu} →
-                    </button>
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    <h2>{copy.outsideHoursTitle}</h2>
                   </div>
-                </article>
-              );
-            })}
+                  <span className="public-menus-group-count">{outsideHoursMenus.length}</span>
+                </div>
+                <div className="public-menus-grid">
+                  {outsideHoursMenus.map((m) => renderMenuCard(m, false))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -402,6 +532,7 @@ export function MenuPublico({
     };
 
   const activeBannerPath = currentMenu.banner_path || branding.cover_image_path;
+  const isCurrentMenuInSchedule = isMenuScheduleActive(currentMenu.schedules, menu.restaurant.timezone);
 
   const dietaryTags = Array.from(new Set(menu.items.flatMap((item) => item.dietary_tags))).sort();
 
@@ -493,6 +624,30 @@ export function MenuPublico({
           <p className="menu-active-description">{currentMenu.description}</p>
         )}
       </div>
+
+      {/* Alerta si la carta está fuera de horario actual */}
+      {!isCurrentMenuInSchedule && (
+        <div className="menu-outside-hours-banner">
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="18"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.2"
+            viewBox="0 0 24 24"
+            width="18"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <div>
+            <strong>{copy.outsideHoursBadge}:</strong>{" "}
+            <span>{formatMenuSchedule(currentMenu.schedules, locale)}</span>
+          </div>
+        </div>
+      )}
 
       {/* Controles: Preferencias e Idioma */}
       {dietaryTags.length > 0 || menu.restaurant.supported_locales.length > 1 ? (

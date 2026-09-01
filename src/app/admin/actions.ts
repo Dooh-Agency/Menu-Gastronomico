@@ -231,6 +231,20 @@ export async function deleteMenuItem(formData: FormData) {
   invalidate(slug);
 }
 
+export async function toggleMenuItemAvailability(formData: FormData) {
+  const { supabase, restaurantId, slug } = await context();
+  const itemId = required(formData, "item_id");
+  const isAvailable = formData.get("is_available") === "true";
+  const { error } = await supabase
+    .from("menu_items")
+    .update({ is_available: !isAvailable })
+    .eq("id", itemId)
+    .eq("restaurant_id", restaurantId);
+  if (error) throw error;
+  invalidate(slug);
+}
+
+
 export async function reorderMenuItems(formData: FormData) {
   const { supabase, restaurantId, slug } = await context();
   const categoryId = required(formData, "category_id");

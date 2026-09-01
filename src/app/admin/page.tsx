@@ -23,7 +23,7 @@ export default async function AdminHomePage() {
     );
   }
 
-  const [restaurantResult, settingsResult, daypartsResult, categoriesResult] = await Promise.all([
+  const [restaurantResult, settingsResult, daypartsResult, categoriesResult, itemsResult] = await Promise.all([
     supabase
       .from("restaurants")
       .select("id, name, slug, timezone, supported_locales, default_locale, branding")
@@ -46,6 +46,13 @@ export default async function AdminHomePage() {
       )
       .eq("restaurant_id", profile.restaurant_id)
       .order("sort_order"),
+    supabase
+      .from("menu_items")
+      .select(
+        "id, category_id, name, description, price_cents, currency_code, image_path, dietary_tags, allergens, is_available, sort_order, menu_item_translations(locale, name, description)"
+      )
+      .eq("restaurant_id", profile.restaurant_id)
+      .order("sort_order"),
   ]);
 
   const restaurant = restaurantResult.data;
@@ -64,12 +71,14 @@ export default async function AdminHomePage() {
 
   const dayparts = daypartsResult.data ?? [];
   const categories = categoriesResult.data ?? [];
+  const items = itemsResult.data ?? [];
 
   return (
     <main className="admin-content-full">
       <AdminMenuView
         categories={categories}
         dayparts={dayparts}
+        items={items}
         restaurant={restaurant}
         settings={settings}
       />

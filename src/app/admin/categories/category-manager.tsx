@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AdminDialog } from "../admin-dialog";
 import { createCategory, deleteCategory, reorderCategories, updateCategory } from "../actions";
 import { LocalizationFields } from "../localization-fields";
@@ -22,6 +23,11 @@ export function CategoryManager({ categories: initialCategories, dayparts, local
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [draggedCategoryId, setDraggedCategoryId] = useState<string | null>(null);
+
+  // Sync state whenever initialCategories updates from server revalidation
+  useEffect(() => {
+    setCategories(initialCategories);
+  }, [initialCategories]);
 
   function moveCategory(destinationId: string) {
     if (!draggedCategoryId || draggedCategoryId === destinationId) return;
@@ -69,11 +75,26 @@ export function CategoryManager({ categories: initialCategories, dayparts, local
               Descripción <span className="field-optional">Opcional</span>
               <input name="description" />
             </label>
-            {dayparts.length ? <fieldset className="daypart-fields"><legend>Cartas donde se muestra</legend><p>Si no elegís ninguna, la categoría aparece en todas las cartas.</p>{dayparts.map((daypart) => <label className="checkbox-label" key={daypart.id}><input name="daypart_ids" type="checkbox" value={daypart.id} />{daypart.name}</label>)}</fieldset> : null}
+            {dayparts.length ? (
+              <fieldset className="daypart-fields">
+                <legend>Cartas donde se muestra</legend>
+                <p>Si no elegís ninguna, la categoría aparece en todas las cartas.</p>
+                {dayparts.map((daypart) => (
+                  <label className="checkbox-label" key={daypart.id}>
+                    <input name="daypart_ids" type="checkbox" value={daypart.id} />
+                    {daypart.name}
+                  </label>
+                ))}
+              </fieldset>
+            ) : null}
             <LocalizationFields locales={locales} translations={[]} />
             <div className="admin-modal-actions">
-              <button className="secondary-link" onClick={() => setIsCreateDialogOpen(false)} type="button">Cancelar</button>
-              <button className="primary-link" type="submit">Crear categoría</button>
+              <button className="secondary-link" onClick={() => setIsCreateDialogOpen(false)} type="button">
+                Cancelar
+              </button>
+              <button className="primary-link" type="submit">
+                Crear categoría
+              </button>
             </div>
           </form>
         </AdminDialog>
@@ -89,14 +110,43 @@ export function CategoryManager({ categories: initialCategories, dayparts, local
               <h2>{editingCategory.name}</h2>
               <p>Actualizá los datos que se mostrarán en el menú público.</p>
             </div>
-            <label>Nombre<input autoFocus defaultValue={editingCategory.name} name="name" required /></label>
-            <label>Descripción <span className="field-optional">Opcional</span><input defaultValue={editingCategory.description ?? ""} name="description" /></label>
-            <label className="checkbox-label"><input defaultChecked={editingCategory.is_active} name="is_active" type="checkbox" />Activa</label>
-            {dayparts.length ? <fieldset className="daypart-fields"><legend>Cartas donde se muestra</legend><p>Si no elegís ninguna, la categoría aparece en todas las cartas.</p>{dayparts.map((daypart) => <label className="checkbox-label" key={daypart.id}><input defaultChecked={editingCategory.menu_category_dayparts?.some((item) => item.daypart_id === daypart.id)} name="daypart_ids" type="checkbox" value={daypart.id} />{daypart.name}</label>)}</fieldset> : null}
+            <label>
+              Nombre
+              <input autoFocus defaultValue={editingCategory.name} name="name" required />
+            </label>
+            <label>
+              Descripción <span className="field-optional">Opcional</span>
+              <input defaultValue={editingCategory.description ?? ""} name="description" />
+            </label>
+            <label className="checkbox-label">
+              <input defaultChecked={editingCategory.is_active} name="is_active" type="checkbox" />
+              Activa
+            </label>
+            {dayparts.length ? (
+              <fieldset className="daypart-fields">
+                <legend>Cartas donde se muestra</legend>
+                <p>Si no elegís ninguna, la categoría aparece en todas las cartas.</p>
+                {dayparts.map((daypart) => (
+                  <label className="checkbox-label" key={daypart.id}>
+                    <input
+                      defaultChecked={editingCategory.menu_category_dayparts?.some((item) => item.daypart_id === daypart.id)}
+                      name="daypart_ids"
+                      type="checkbox"
+                      value={daypart.id}
+                    />
+                    {daypart.name}
+                  </label>
+                ))}
+              </fieldset>
+            ) : null}
             <LocalizationFields locales={locales} translations={editingCategory.menu_category_translations ?? []} />
             <div className="admin-modal-actions">
-              <button className="secondary-link" onClick={() => setEditingCategory(null)} type="button">Cancelar</button>
-              <button className="primary-link" type="submit">Guardar cambios</button>
+              <button className="secondary-link" onClick={() => setEditingCategory(null)} type="button">
+                Cancelar
+              </button>
+              <button className="primary-link" type="submit">
+                Guardar cambios
+              </button>
             </div>
           </form>
         </AdminDialog>
@@ -116,17 +166,55 @@ export function CategoryManager({ categories: initialCategories, dayparts, local
               onDrop={() => moveCategory(category.id)}
               role="listitem"
             >
-              <span aria-hidden="true" className="drag-handle" title="Arrastrar para reordenar">⠿</span>
+              <span aria-hidden="true" className="drag-handle" title="Arrastrar para reordenar">
+                ⠿
+              </span>
               <div className="category-details">
                 <strong>{category.name}</strong>
                 {category.description ? <p>{category.description}</p> : <p className="empty-row-detail">Sin descripción</p>}
               </div>
-              <span className={`status-badge${category.is_active ? "" : " is-inactive"}`}>{category.is_active ? "Activa" : "Inactiva"}</span>
+              <span className={`status-badge${category.is_active ? "" : " is-inactive"}`}>
+                {category.is_active ? "Activa" : "Inactiva"}
+              </span>
               <div className="row-actions">
-                <button aria-label={`Editar ${category.name}`} className="icon-button" onClick={() => setEditingCategory(category)} title="Editar categoría" type="button"><span aria-hidden="true" className="material-symbols-outlined">edit</span></button>
+                <Link
+                  aria-label={`Ver platos de ${category.name}`}
+                  className="icon-button"
+                  href={`/admin/items?category=${category.id}`}
+                  prefetch={true}
+                  title="Ver platos de esta categoría"
+                >
+                  <span aria-hidden="true" className="material-symbols-outlined">
+                    restaurant_menu
+                  </span>
+                </Link>
+                <button
+                  aria-label={`Editar ${category.name}`}
+                  className="icon-button"
+                  onClick={() => setEditingCategory(category)}
+                  title="Editar categoría"
+                  type="button"
+                >
+                  <span aria-hidden="true" className="material-symbols-outlined">
+                    edit
+                  </span>
+                </button>
                 <form action={deleteCategory}>
                   <input name="category_id" type="hidden" value={category.id} />
-                  <button aria-label={`Eliminar ${category.name}`} className="icon-button icon-button-danger" onClick={(event) => { if (!window.confirm(`¿Eliminar la categoría “${category.name}” y los platos que contiene?`)) event.preventDefault(); }} title="Eliminar categoría" type="submit"><span aria-hidden="true" className="material-symbols-outlined">delete</span></button>
+                  <button
+                    aria-label={`Eliminar ${category.name}`}
+                    className="icon-button icon-button-danger"
+                    onClick={(event) => {
+                      if (!window.confirm(`¿Eliminar la categoría “${category.name}” y los platos que contiene?`))
+                        event.preventDefault();
+                    }}
+                    title="Eliminar categoría"
+                    type="submit"
+                  >
+                    <span aria-hidden="true" className="material-symbols-outlined">
+                      delete
+                    </span>
+                  </button>
                 </form>
               </div>
             </div>
@@ -136,3 +224,4 @@ export function CategoryManager({ categories: initialCategories, dayparts, local
     </>
   );
 }
+

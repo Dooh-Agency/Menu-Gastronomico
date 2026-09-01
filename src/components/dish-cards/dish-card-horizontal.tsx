@@ -83,22 +83,48 @@ export function DishCardHorizontal({
       </div>
 
       {/* Miniatura del plato (Derecha) */}
-      {item.image_path ? (
-        <div className="dish-card-horizontal-media">
-          <Image
-            alt=""
-            className="dish-card-horizontal-img"
-            fill
-            sizes="90px"
-            src={menuImageUrl(item.image_path)}
-          />
-          {!item.is_available && (
-            <div className="dish-card-horizontal-media-overlay">
-              <span>{soldOutLabel}</span>
-            </div>
-          )}
-        </div>
-      ) : null}
+      {item.image_path || (item.image_paths && item.image_paths.length > 0) ? (() => {
+        const thumbPath = item.image_paths?.[0] || item.image_path;
+        if (!thumbPath) return null;
+        const totalPhotos = item.image_paths?.length ?? 1;
+
+        return (
+          <div className="dish-card-horizontal-media">
+            <Image
+              alt=""
+              className="dish-card-horizontal-img"
+              fill
+              sizes="110px"
+              src={menuImageUrl(thumbPath)}
+            />
+            {totalPhotos > 1 && item.is_available ? (
+              <div className="dish-card-horizontal-photos-badge" aria-label={`${totalPhotos} fotos`}>
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  height="10"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.2"
+                  viewBox="0 0 24 24"
+                  width="10"
+                >
+                  <rect height="18" rx="2" ry="2" width="18" x="3" y="3" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                <span>{totalPhotos}</span>
+              </div>
+            ) : null}
+            {!item.is_available && (
+              <div className="dish-card-horizontal-media-overlay">
+                <span>{soldOutLabel}</span>
+              </div>
+            )}
+          </div>
+        );
+      })() : null}
     </article>
   );
 }

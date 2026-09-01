@@ -6,6 +6,7 @@ import Image from "next/image";
 import type { PublicMenu, PublicMenuSchedule } from "@/lib/supabase/public-menu";
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
 import { DishCardHorizontal } from "@/components/dish-cards";
+import { DishImageCarousel } from "@/components/dish-image-carousel";
 
 type MenuPublicoProps = {
   menu: PublicMenu;
@@ -34,7 +35,7 @@ const labels = {
     dishes: "platos",
     availableAllDay: "Disponible todo el día",
     filters: "Filtrar por preferencias",
-    all: "Inicio",
+    all: "Todos",
     details: "Ver detalle",
     close: "Cerrar",
     qr: "Ver QR",
@@ -63,7 +64,7 @@ const labels = {
     dishes: "dishes",
     availableAllDay: "Available all day",
     filters: "Filter by dietary preference",
-    all: "Home",
+    all: "All",
     details: "View details",
     close: "Close",
     qr: "View QR",
@@ -318,10 +319,6 @@ export function MenuPublico({
                 <span>{copy.outsideHoursBadge}</span>
               </div>
             ) : null}
-
-            <div className="public-menu-card-overlay">
-              <span className="public-menu-card-enter-btn">{copy.viewMenu} →</span>
-            </div>
           </div>
 
           <div className="public-menu-card-body">
@@ -604,15 +601,6 @@ export function MenuPublico({
       {/* Título y descripción de la carta activa */}
       <div className="menu-info-header">
         <div className="menu-info-header-top">
-          {activeMenus.length > 1 ? (
-            <button
-              className="back-to-menus-badge-btn"
-              onClick={() => handleSelectMenu(null)}
-              type="button"
-            >
-              ← {copy.allMenus}
-            </button>
-          ) : null}
           <h1 className="menu-active-title">{currentMenu.name}</h1>
         </div>
         {currentMenu.description && (
@@ -846,15 +834,16 @@ export function MenuPublico({
               >
                 ×
               </button>
-              {selectedItem.image_path ? (
-                <Image
-                  alt=""
-                  className="item-dialog-image"
-                  height={720}
-                  src={menuImageUrl(selectedItem.image_path)}
-                  width={1280}
-                />
-              ) : null}
+              <DishImageCarousel
+                alt={localizedItem.name}
+                images={
+                  selectedItem.image_paths?.length
+                    ? selectedItem.image_paths
+                    : selectedItem.image_path
+                    ? [selectedItem.image_path]
+                    : []
+                }
+              />
               <div className="item-dialog-content">
                 <h2>{localizedItem.name}</h2>
                 <strong>

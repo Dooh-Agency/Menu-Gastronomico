@@ -58,7 +58,7 @@ export default async function AdminHomePage() {
     supabase
       .from("menu_items")
       .select(
-        "id, category_id, name, description, price_cents, currency_code, image_path, dietary_tags, allergens, is_available, sort_order, menu_item_translations(locale, name, description)"
+        "id, category_id, name, description, price_cents, currency_code, image_path, image_paths, dietary_tags, allergens, is_available, sort_order, menu_item_translations(locale, name, description)"
       )
       .eq("restaurant_id", profile.restaurant_id)
       .order("sort_order"),
@@ -90,7 +90,17 @@ export default async function AdminHomePage() {
 
   const dayparts = (daypartsResult.data ?? []) as Daypart[];
   const rawCategories = (categoriesResult.data ?? []) as Category[];
-  const items = (itemsResult.data ?? []) as MenuItem[];
+  let items = (itemsResult.data ?? []) as MenuItem[];
+  if (itemsResult.error && itemsResult.error.code === "42703") {
+    const fallback = await supabase
+      .from("menu_items")
+      .select(
+        "id, category_id, name, description, price_cents, currency_code, image_path, dietary_tags, allergens, is_available, sort_order, menu_item_translations(locale, name, description)"
+      )
+      .eq("restaurant_id", profile.restaurant_id)
+      .order("sort_order");
+    items = (fallback.data ?? []) as MenuItem[];
+  }
   const schedules = (schedulesResult.data ?? []) as MenuSchedule[];
 
   // Prepare menus: if no menus exist yet (or migration pending), create a virtual default menu

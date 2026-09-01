@@ -23,6 +23,7 @@ import {
 } from "./actions";
 import { LocalizationFields } from "./localization-fields";
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
+import { DishImageCarousel } from "@/components/dish-image-carousel";
 import type { Category, Daypart, Menu, MenuItem, RestaurantData, SettingsData } from "./types";
 
 type AdminMenuViewProps = {
@@ -562,7 +563,7 @@ export function AdminMenuView({
         <section className="admin-category-section" aria-label="Categorías del menú">
           <div className="admin-category-header">
             <div className="admin-category-tabs" role="tablist">
-              {/* Botón Inicio */}
+              {/* Botón Todos */}
               <button
                 aria-selected={selectedCategoryId === "all"}
                 className={`admin-category-tab admin-tab-all ${selectedCategoryId === "all" ? "is-active" : ""}`}
@@ -570,7 +571,7 @@ export function AdminMenuView({
                 role="tab"
                 type="button"
               >
-                Inicio
+                Todos
               </button>
 
               {visibleCategories.map((category) => {
@@ -721,8 +722,22 @@ export function AdminMenuView({
 
                       return (
                         <article
-                          className={`menu-card${item.is_available ? "" : " is-unavailable"}`}
+                          aria-label={`Editar plato ${itemDisplayName}`}
+                          className={`menu-card admin-dish-card${item.is_available ? "" : " is-unavailable"}`}
                           key={item.id}
+                          onClick={() => {
+                            setItemImagePreview(null);
+                            setEditingItem(item);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              setItemImagePreview(null);
+                              setEditingItem(item);
+                            }
+                          }}
+                          role="button"
+                          tabIndex={0}
                         >
                           {item.image_path ? (
                             <Image
@@ -758,21 +773,16 @@ export function AdminMenuView({
 
                             {/* Alérgenos */}
                             {item.allergens.length > 0 ? (
-                              <details className="menu-allergens-details">
+                              <details
+                                className="menu-allergens-details"
+                                onClick={(e) => e.stopPropagation()}
+                              >
                                 <summary>Alérgenos</summary>
                                 <p>
                                   <b>Alérgenos:</b> {item.allergens.join(", ")}
                                 </p>
                               </details>
                             ) : null}
-
-                            <button
-                              className="item-detail-button"
-                              onClick={() => setPreviewItem(item)}
-                              type="button"
-                            >
-                              Ver detalle
-                            </button>
 
                             {!item.is_available ? (
                               <span className="sold-out">Agotado</span>
@@ -783,7 +793,10 @@ export function AdminMenuView({
                               <button
                                 className={`admin-availability-toggle ${item.is_available ? "is-available" : "is-paused"}`}
                                 disabled={isPending}
-                                onClick={() => handleToggleAvailability(item)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleToggleAvailability(item);
+                                }}
                                 title={item.is_available ? "Pausar plato" : "Reactivar plato"}
                                 type="button"
                               >
@@ -795,7 +808,8 @@ export function AdminMenuView({
                                 <button
                                   aria-label={`Editar plato ${item.name}`}
                                   className="icon-button"
-                                  onClick={() => {
+                                  onClick={(e) => {
+                                    e.stopPropagation();
                                     setItemImagePreview(null);
                                     setEditingItem(item);
                                   }}
@@ -819,7 +833,10 @@ export function AdminMenuView({
                                   aria-label={`Eliminar plato ${item.name}`}
                                   className="icon-button icon-button-danger"
                                   disabled={isPending}
-                                  onClick={() => handleDeleteItem(item)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteItem(item);
+                                  }}
                                   title="Eliminar plato"
                                   type="button"
                                 >
@@ -1353,15 +1370,16 @@ export function AdminMenuView({
               >
                 ×
               </button>
-              {previewItem.image_path ? (
-                <Image
-                  alt=""
-                  className="item-dialog-image"
-                  height={720}
-                  src={menuImageUrl(previewItem.image_path)}
-                  width={1280}
-                />
-              ) : null}
+              <DishImageCarousel
+                alt={displayName}
+                images={
+                  previewItem.image_paths?.length
+                    ? previewItem.image_paths
+                    : previewItem.image_path
+                    ? [previewItem.image_path]
+                    : []
+                }
+              />
               <div className="item-dialog-content">
                 <h2>{displayName}</h2>
                 <strong>

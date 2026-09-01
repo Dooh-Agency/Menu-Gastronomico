@@ -126,9 +126,9 @@ with content(category_id, name, description, price_cents, image_path, sort_order
     substr(md5('demo-menu:' || category_id::text || ':' || name), 21, 12)
   )::uuid as id, * from content
 )
-insert into public.menu_items (id, restaurant_id, category_id, name, description, price_cents, image_path, is_available, sort_order)
-select id, '10000000-0000-0000-0000-000000000001', category_id, name, description, price_cents, image_path, true, sort_order from prepared
-on conflict (id) do update set category_id = excluded.category_id, name = excluded.name, description = excluded.description, price_cents = excluded.price_cents, image_path = excluded.image_path, is_available = excluded.is_available, sort_order = excluded.sort_order;
+insert into public.menu_items (id, restaurant_id, category_id, name, description, price_cents, image_path, image_paths, is_available, sort_order)
+select id, '10000000-0000-0000-0000-000000000001', category_id, name, description, price_cents, image_path, case when image_path is not null then array[image_path] else '{}'::text[] end, true, sort_order from prepared
+on conflict (id) do update set category_id = excluded.category_id, name = excluded.name, description = excluded.description, price_cents = excluded.price_cents, image_path = excluded.image_path, image_paths = excluded.image_paths, is_available = excluded.is_available, sort_order = excluded.sort_order;
 
 insert into public.menu_category_translations (menu_category_id, locale, name, description)
 values

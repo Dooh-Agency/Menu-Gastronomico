@@ -63,6 +63,7 @@ type ItemRow = {
   price_cents: number;
   currency_code: string;
   image_path: string | null;
+  image_paths?: string[] | null;
   dietary_tags: string[];
   allergens: string[];
   is_available: boolean;
@@ -142,7 +143,7 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
     supabase
       .from("menu_items")
       .select(
-        "id, category_id, name, description, price_cents, currency_code, image_path, dietary_tags, allergens, is_available, sort_order"
+        "id, category_id, name, description, price_cents, currency_code, image_path, image_paths, dietary_tags, allergens, is_available, sort_order"
       )
       .eq("restaurant_id", restaurant.id)
       .order("sort_order"),
@@ -161,10 +162,27 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
   if (settingsResult.error) throw settingsResult.error;
   if (daypartsResult.error) throw daypartsResult.error;
   if (categoriesResult.error) throw categoriesResult.error;
-  if (itemsResult.error) throw itemsResult.error;
+
+  let items: ItemRow[] = [];
+  if (itemsResult.error) {
+    if (itemsResult.error.code === "42703") {
+      const fallbackResult = await supabase
+        .from("menu_items")
+        .select(
+          "id, category_id, name, description, price_cents, currency_code, image_path, dietary_tags, allergens, is_available, sort_order"
+        )
+        .eq("restaurant_id", restaurant.id)
+        .order("sort_order");
+      if (fallbackResult.error) throw fallbackResult.error;
+      items = (fallbackResult.data ?? []) as ItemRow[];
+    } else {
+      throw itemsResult.error;
+    }
+  } else {
+    items = (itemsResult.data ?? []) as ItemRow[];
+  }
 
   const categories = (categoriesResult.data ?? []) as CategoryRow[];
-  const items = (itemsResult.data ?? []) as ItemRow[];
   const rawMenus = (menusResult.data ?? []) as PublicMenuRecord[];
   const rawSchedules = (schedulesResult.data ?? []) as PublicMenuSchedule[];
 
@@ -190,27 +208,25 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
         : Promise.resolve({ data: [], error: null }),
     ]);
 
-  const categoryTranslations = categoryTranslationsResult.error
-    ? []
-    : ((categoryTranslationsResult.data ?? []) as CategoryTranslationRow[]);
   if (itemTranslationsResult.error) throw itemTranslationsResult.error;
+  if (categoryTranslationsResult.error) throw categoryTranslationsResult.error;
+  if (categoryDaypartsResult.error) throw categoryDaypartsResult.error;
 
-  const categoryDayparts = categoryDaypartsResult.error
-    ? []
-    : ((categoryDaypartsResult.data ?? []) as Array<{
-        menu_category_id: string;
-        daypart_id: string;
-      }>);
+  const categoryTranslations = (categoryTranslationsResult.data ??
+    []) as CategoryTranslationRow[];
+  const categoryDayparts = (categoryDaypartsResult.data ?? []) as Array<{
+    menu_category_id: string;
+    daypart_id: string;
+  }>;
 
-  // Build menus list with schedules
-  let menus: PublicMenuRecord[] = rawMenus.filter((m) => m.is_active);
+  let menus = rawMenus;
   if (menus.length === 0) {
     menus = [
       {
         id: "default-main-menu",
         restaurant_id: restaurant.id,
         name: "Carta Principal",
-        description: "Nuestra selección de platos y especialidades de la casa.",
+        description: null,
         banner_path: (restaurant.branding as Record<string, unknown>)?.cover_image_path as string | null ?? null,
         is_active: true,
         sort_order: 0,
@@ -254,11 +270,22 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
         (translation) => translation.menu_category_id === category.id
       ),
     })),
-    items: items.map((item) => ({
-      ...item,
-      translations: ((itemTranslationsResult.data ?? []) as TranslationRow[]).filter(
-        (translation) => translation.menu_item_id === item.id
-      ),
-    })),
+    items: items.map((item) => {
+      const itemImages =
+        item.image_paths && Array.isArray(item.image_paths) && item.image_paths.length > 0
+          ? item.image_paths
+          : item.image_path
+          ? [item.image_path]
+          : [];
+
+      return {
+        ...item,
+        image_path: itemImages[0] ?? item.image_path ?? null,
+        image_paths: itemImages,
+        translations: ((itemTranslationsResult.data ?? []) as TranslationRow[]).filter(
+          (translation) => translation.menu_item_id === item.id
+        ),
+      };
+    }),
   };
 }

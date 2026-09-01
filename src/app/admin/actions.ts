@@ -80,15 +80,39 @@ async function replaceCategoryDayparts(categoryId: string, formData: FormData, r
   }
 }
 
+async function uploadItemImages(
+  itemId: string,
+  restaurantId: string,
+  files: (File | null)[],
+  previousPaths: string[],
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>
+) {
+  const validFiles = files.filter((f): f is File => f instanceof File && f.size > 0);
+  if (validFiles.length === 0) return previousPaths;
+
+  for (const f of validFiles) {
+    if (f.size > 5 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(f.type)) {
+      throw new Error("Cada imagen debe ser JPG, PNG o WebP y pesar hasta 5 MB.");
+    }
+  }
+
+  const newPaths: string[] = [];
+  for (const image of validFiles) {
+    const extension = image.type === "image/png" ? "png" : image.type === "image/webp" ? "webp" : "jpg";
+    const path = `${restaurantId}/${itemId}-${crypto.randomUUID()}.${extension}`;
+    const { error } = await supabase.storage.from("menu-images").upload(path, image, { contentType: image.type, upsert: false });
+    if (error) throw error;
+    newPaths.push(path);
+  }
+
+  return newPaths;
+}
+
 async function uploadItemImage(itemId: string, restaurantId: string, image: File | null, previousPath: string | null, supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>) {
   if (!image || image.size === 0) return previousPath;
-  if (image.size > 5 * 1024 * 1024 || !["image/jpeg", "image/png", "image/webp"].includes(image.type)) throw new Error("La imagen debe ser JPG, PNG o WebP y pesar hasta 5 MB.");
-  const extension = image.type === "image/png" ? "png" : image.type === "image/webp" ? "webp" : "jpg";
-  const path = `${restaurantId}/${itemId}-${crypto.randomUUID()}.${extension}`;
-  const { error } = await supabase.storage.from("menu-images").upload(path, image, { contentType: image.type, upsert: false });
-  if (error) throw error;
+  const paths = await uploadItemImages(itemId, restaurantId, [image], previousPath ? [previousPath] : [], supabase);
   if (previousPath?.startsWith(`${restaurantId}/`)) await supabase.storage.from("menu-images").remove([previousPath]);
-  return path;
+  return paths[0] || null;
 }
 
 function invalidate(slug: string) {
@@ -454,9 +478,16 @@ export async function createMenuItem(formData: FormData) {
   const { data: last } = await supabase.from("menu_items").select("sort_order").eq("category_id", categoryId).eq("restaurant_id", restaurantId).order("sort_order", { ascending: false }).limit(1).maybeSingle<{ sort_order: number }>();
   const { data, error } = await supabase.from("menu_items").insert({ restaurant_id: restaurantId, category_id: categoryId, name: required(formData, "name"), description: (formData.get("description") as string | null)?.trim() || null, price_cents: cents(formData), currency_code: "ARS", dietary_tags: textList(formData, "dietary_tags"), allergens: textList(formData, "allergens"), is_available: formData.get("is_available") === "on", sort_order: (last?.sort_order ?? -1) + 1 }).select("id").single();
   if (error || !data) throw error ?? new Error("No se pudo crear el plato.");
-  const image = formData.get("image");
-  const imagePath = await uploadItemImage(data.id, restaurantId, image instanceof File ? image : null, null, supabase);
-  if (imagePath) { const { error: imageError } = await supabase.from("menu_items").update({ image_path: imagePath }).eq("id", data.id).eq("restaurant_id", restaurantId); if (imageError) throw imageError; }
+  const rawImages = (formData.getAll("images") as (File | null)[]).concat(formData.getAll("image") as (File | null)[]);
+  const imagePaths = await uploadItemImages(data.id, restaurantId, rawImages, [], supabase);
+  if (imagePaths.length > 0) {
+    const { error: imageError } = await supabase
+      .from("menu_items")
+      .update({ image_path: imagePaths[0], image_paths: imagePaths })
+      .eq("id", data.id)
+      .eq("restaurant_id", restaurantId);
+    if (imageError) throw imageError;
+  }
   await replaceTranslations("menu_item_translations", "menu_item_id", data.id, formData, supabase);
   invalidate(slug);
 }
@@ -509,10 +540,34 @@ export async function updateMenuItem(formData: FormData) {
   const categoryId = required(formData, "category_id");
   const { data: category } = await supabase.from("menu_categories").select("id").eq("id", categoryId).eq("restaurant_id", restaurantId).maybeSingle();
   if (!category) throw new Error("Categoría no válida.");
-  const { data: item } = await supabase.from("menu_items").select("image_path").eq("id", itemId).eq("restaurant_id", restaurantId).maybeSingle<{ image_path: string | null }>();
+  const { data: item } = await supabase
+    .from("menu_items")
+    .select("image_path, image_paths")
+    .eq("id", itemId)
+    .eq("restaurant_id", restaurantId)
+    .maybeSingle<{ image_path: string | null; image_paths: string[] | null }>();
   if (!item) throw new Error("Plato no válido.");
-  const image = formData.get("image");
-  const imagePath = await uploadItemImage(itemId, restaurantId, image instanceof File ? image : null, item.image_path, supabase);
+
+  const currentPaths =
+    item.image_paths && Array.isArray(item.image_paths) && item.image_paths.length > 0
+      ? item.image_paths
+      : item.image_path
+      ? [item.image_path]
+      : [];
+
+  const rawImages = (formData.getAll("images") as (File | null)[]).concat(formData.getAll("image") as (File | null)[]);
+  const validNewFiles = rawImages.filter((f): f is File => f instanceof File && f.size > 0);
+
+  let finalPaths = currentPaths;
+  if (validNewFiles.length > 0) {
+    finalPaths = await uploadItemImages(itemId, restaurantId, validNewFiles, currentPaths, supabase);
+    for (const oldPath of currentPaths) {
+      if (oldPath?.startsWith(`${restaurantId}/`)) {
+        await supabase.storage.from("menu-images").remove([oldPath]);
+      }
+    }
+  }
+
   const { error } = await supabase.from("menu_items").update({
     category_id: categoryId,
     name: required(formData, "name"),
@@ -520,7 +575,8 @@ export async function updateMenuItem(formData: FormData) {
     price_cents: cents(formData),
     dietary_tags: textList(formData, "dietary_tags"),
     allergens: textList(formData, "allergens"),
-    image_path: imagePath,
+    image_path: finalPaths[0] || null,
+    image_paths: finalPaths,
     is_available: formData.get("is_available") === "on",
     sort_order: order(formData),
   }).eq("id", itemId).eq("restaurant_id", restaurantId);

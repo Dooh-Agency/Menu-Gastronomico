@@ -45,6 +45,7 @@ export type MenuItem = {
   price_cents: number;
   currency_code: string;
   image_path: string | null;
+  image_paths?: string[];
   dietary_tags: string[];
   allergens: string[];
   is_available: boolean;

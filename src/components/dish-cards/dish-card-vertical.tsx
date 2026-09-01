@@ -29,16 +29,20 @@ export function DishCardVertical({
       className={`menu-card ${!item.is_available ? "is-unavailable" : ""} ${className}`}
       key={item.id}
     >
-      {item.image_path ? (
-        <Image
-          alt=""
-          className="menu-image"
-          height={720}
-          sizes="(max-width: 34rem) 100vw, 33vw"
-          src={menuImageUrl(item.image_path)}
-          width={1280}
-        />
-      ) : null}
+      {item.image_path || (item.image_paths && item.image_paths.length > 0) ? (() => {
+        const thumbPath = item.image_paths?.[0] || item.image_path;
+        if (!thumbPath) return null;
+        return (
+          <Image
+            alt=""
+            className="menu-image"
+            height={720}
+            sizes="(max-width: 34rem) 100vw, 33vw"
+            src={menuImageUrl(thumbPath)}
+            width={1280}
+          />
+        );
+      })() : null}
       <div className="menu-card-content">
         <div className="menu-card-heading">
           <h3>{localized.name}</h3>

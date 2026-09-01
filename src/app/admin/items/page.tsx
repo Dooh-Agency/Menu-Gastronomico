@@ -18,13 +18,26 @@ export default async function ItemsPage({
   const [cr, ir, rr] = p?.restaurant_id
     ? await Promise.all([
         s.from("menu_categories").select("id,name").eq("restaurant_id", p.restaurant_id).order("sort_order"),
-        s.from("menu_items").select("id,category_id,name,description,price_cents,is_available,sort_order,image_path,dietary_tags,allergens,menu_item_translations(locale,name,description)").eq("restaurant_id", p.restaurant_id).order("sort_order"),
+        s.from("menu_items").select("id,category_id,name,description,price_cents,is_available,sort_order,image_path,image_paths,dietary_tags,allergens,menu_item_translations(locale,name,description)").eq("restaurant_id", p.restaurant_id).order("sort_order"),
         s.from("restaurants").select("supported_locales").eq("id", p.restaurant_id).maybeSingle<{ supported_locales: string[] }>(),
       ])
     : [{ data: [] }, { data: [] }, { data: null }];
 
   const categories = cr.data ?? [];
-  const items = ir.data ?? [];
+  let rawItems = ir.data ?? [];
+  if (ir.error && ir.error.code === "42703" && p?.restaurant_id) {
+    const fallback = await s
+      .from("menu_items")
+      .select("id,category_id,name,description,price_cents,is_available,sort_order,image_path,dietary_tags,allergens,menu_item_translations(locale,name,description)")
+      .eq("restaurant_id", p.restaurant_id)
+      .order("sort_order");
+    rawItems = (fallback.data ?? []) as typeof rawItems;
+  }
+
+  const items = rawItems.map((item) => ({
+    ...item,
+    image_paths: (item as { image_paths?: string[] }).image_paths,
+  }));
 
   return (
     <main className="admin-content">

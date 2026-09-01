@@ -25,12 +25,12 @@ values
   ('22000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000002', null, 'Cafetería', 'Selección de la casa.', 0)
 on conflict (id) do update set daypart_id = excluded.daypart_id, name = excluded.name, description = excluded.description, sort_order = excluded.sort_order;
 
-insert into public.menu_items (id, restaurant_id, category_id, name, description, price_cents, image_path, dietary_tags, allergens, is_available, sort_order)
+insert into public.menu_items (id, restaurant_id, category_id, name, description, price_cents, image_path, image_paths, dietary_tags, allergens, is_available, sort_order)
 values
-  ('13000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', 'Espresso', 'Café corto e intenso.', 320000, '/images/demo/cafeteria-y-pasteleria.png', array['vegetariano'], array[]::text[], true, 0),
-  ('13000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', 'Americano', 'Espresso alargado con agua caliente.', 340000, '/images/demo/cafeteria-y-pasteleria.png', array['vegetariano'], array[]::text[], true, 1),
-  ('23000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000002', '22000000-0000-0000-0000-000000000001', 'Café con leche', 'Café de especialidad y leche vaporizada.', 420000, null, array['vegetariano'], array['lácteos'], true, 0)
-on conflict (id) do update set category_id = excluded.category_id, name = excluded.name, description = excluded.description, price_cents = excluded.price_cents, image_path = excluded.image_path, dietary_tags = excluded.dietary_tags, allergens = excluded.allergens, is_available = excluded.is_available, sort_order = excluded.sort_order;
+  ('13000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', 'Espresso', 'Café corto e intenso.', 320000, '/images/demo/cafeteria-y-pasteleria.png', array['/images/demo/cafeteria-y-pasteleria.png', '/images/demo/algo-para-comer-y-beber.png'], array['vegetariano'], array[]::text[], true, 0),
+  ('13000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', 'Americano', 'Espresso alargado con agua caliente.', 340000, '/images/demo/cafeteria-y-pasteleria.png', array['/images/demo/cafeteria-y-pasteleria.png'], array['vegetariano'], array[]::text[], true, 1),
+  ('23000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000002', '22000000-0000-0000-0000-000000000001', 'Café con leche', 'Café de especialidad y leche vaporizada.', 420000, null, array[]::text[], array['vegetariano'], array['lácteos'], true, 0)
+on conflict (id) do update set category_id = excluded.category_id, name = excluded.name, description = excluded.description, price_cents = excluded.price_cents, image_path = excluded.image_path, image_paths = excluded.image_paths, dietary_tags = excluded.dietary_tags, allergens = excluded.allergens, is_available = excluded.is_available, sort_order = excluded.sort_order;
 
 insert into public.menu_category_translations (menu_category_id, locale, name, description)
 values

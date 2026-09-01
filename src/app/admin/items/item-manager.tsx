@@ -16,6 +16,7 @@ type Item = {
   is_available: boolean;
   sort_order: number;
   image_path: string | null;
+  image_paths?: string[];
   dietary_tags: string[];
   allergens: string[];
   menu_item_translations?: Array<{ locale: string; name: string; description: string | null }>;
@@ -301,14 +302,21 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
                   className="item-row"
                   draggable={activeCategoryId !== "all"}
                   key={item.id}
+                  onClick={() => setEditingItem(item)}
                   onDragEnd={() => setDraggedItemId(null)}
                   onDragOver={(event) => event.preventDefault()}
                   onDragStart={() => setDraggedItemId(item.id)}
                   onDrop={() => moveItem(item.id)}
                   role="listitem"
+                  style={{ cursor: "pointer" }}
                 >
                   {activeCategoryId !== "all" ? (
-                    <span aria-hidden="true" className="drag-handle" title="Arrastrar para reordenar">
+                    <span
+                      aria-hidden="true"
+                      className="drag-handle"
+                      onClick={(e) => e.stopPropagation()}
+                      title="Arrastrar para reordenar"
+                    >
                       ⠿
                     </span>
                   ) : null}
@@ -329,11 +337,14 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
                   <span className={`status-badge${item.is_available ? "" : " is-inactive"}`}>
                     {item.is_available ? "Disponible" : "No disponible"}
                   </span>
-                  <div className="row-actions">
+                  <div className="row-actions" onClick={(e) => e.stopPropagation()}>
                     <button
                       aria-label={`Editar ${item.name}`}
                       className="icon-button"
-                      onClick={() => setEditingItem(item)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingItem(item);
+                      }}
                       title="Editar plato"
                       type="button"
                     >
@@ -341,12 +352,13 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
                         edit
                       </span>
                     </button>
-                    <form action={deleteMenuItem}>
+                    <form action={deleteMenuItem} onClick={(e) => e.stopPropagation()}>
                       <input name="item_id" type="hidden" value={item.id} />
                       <button
                         aria-label={`Eliminar ${item.name}`}
                         className="icon-button icon-button-danger"
                         onClick={(event) => {
+                          event.stopPropagation();
                           if (!window.confirm(`¿Eliminar el plato “${item.name}”?`)) event.preventDefault();
                         }}
                         title="Eliminar plato"

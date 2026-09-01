@@ -133,9 +133,6 @@ export function MenuPublico({
   );
 
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null);
-  const [selectedDaypartId, setSelectedDaypartId] = useState(
-    currentDaypartId ?? menu.dayparts[0]?.id ?? null
-  );
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>("all");
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const categoryNav = useRef<HTMLElement>(null);
@@ -410,19 +407,7 @@ export function MenuPublico({
 
   // Categorías de la carta seleccionada
   const menuCategories = menu.categories.filter((c) => c.menu_id === currentMenu.id);
-
-  const categories = menuCategories.filter((category) => {
-    if (!menu.settings.uses_dayparts) return true;
-    const daypartIds = category.daypart_ids.length
-      ? category.daypart_ids
-      : category.daypart_id
-      ? [category.daypart_id]
-      : [];
-    return daypartIds.length === 0 || daypartIds.includes(selectedDaypartId ?? "");
-  });
-
-  const activeDaypart = menu.dayparts.find((daypart) => daypart.id === selectedDaypartId);
-  const isActiveMenu = selectedDaypartId === currentDaypartId;
+  const categories = menuCategories;
 
   const categoriesToRender =
     !selectedCategoryId || selectedCategoryId === "all"
@@ -509,57 +494,9 @@ export function MenuPublico({
         )}
       </div>
 
-      {/* Selector de Cartas y Controles */}
-      {activeMenus.length > 1 ||
-      menu.settings.uses_dayparts ||
-      dietaryTags.length ||
-      menu.restaurant.supported_locales.length > 1 ? (
+      {/* Controles: Preferencias e Idioma */}
+      {dietaryTags.length > 0 || menu.restaurant.supported_locales.length > 1 ? (
         <section className="menu-controls" aria-label={copy.menu}>
-          {/* Selector de Carta si hay múltiples */}
-          {activeMenus.length > 1 ? (
-            <label className="menu-control">
-              <span>{copy.menus}</span>
-              <select
-                aria-label={copy.menus}
-                onChange={(event) => {
-                  if (event.target.value === "all_menus") {
-                    handleSelectMenu(null);
-                  } else {
-                    handleSelectMenu(event.target.value);
-                  }
-                }}
-                value={selectedMenuId}
-              >
-                {activeMenus.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.name}
-                  </option>
-                ))}
-                <option value="all_menus">← {copy.allMenus}</option>
-              </select>
-            </label>
-          ) : null}
-
-          {menu.settings.uses_dayparts && menu.dayparts.length ? (
-            <label className="menu-control">
-              <span>{copy.menus}</span>
-              <select
-                aria-label={copy.menus}
-                onChange={(event) => {
-                  setSelectedDaypartId(event.target.value);
-                  setSelectedCategoryId("all");
-                }}
-                value={selectedDaypartId ?? ""}
-              >
-                {menu.dayparts.map((daypart) => (
-                  <option key={daypart.id} value={daypart.id}>
-                    {daypart.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-
           {dietaryTags.length ? (
             <label className="menu-control">
               <span>{copy.filters}</span>
@@ -595,12 +532,6 @@ export function MenuPublico({
             </label>
           ) : null}
         </section>
-      ) : null}
-
-      {activeDaypart && !isActiveMenu ? (
-        <p className="menu-availability">
-          {copy.unavailableMenu} {activeDaypart.starts_at.slice(0, 5)}–{activeDaypart.ends_at.slice(0, 5)}.
-        </p>
       ) : null}
 
       {categories.length > 0 ? (

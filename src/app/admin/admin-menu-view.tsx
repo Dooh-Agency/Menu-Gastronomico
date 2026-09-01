@@ -154,13 +154,7 @@ export function AdminMenuView({
 
   // Categories belonging to the active menu
   const menuCategories = categories.filter((c) => c.menu_id === currentMenu.id);
-
-  // Filter categories by selected daypart if dayparts are enabled
-  const visibleCategories = menuCategories.filter((category) => {
-    if (!settings.uses_dayparts || !selectedDaypartId) return true;
-    const daypartIds = category.menu_category_dayparts?.map((d) => d.daypart_id) ?? [];
-    return daypartIds.length === 0 || daypartIds.includes(selectedDaypartId);
-  });
+  const visibleCategories = menuCategories;
 
   // Filter categories to display based on selectedCategoryId
   const displayCategories =
@@ -276,25 +270,6 @@ export function AdminMenuView({
           </svg>
           Volver a Mis Cartas
         </button>
-
-        {menus.length > 1 && (
-          <div className="admin-editor-menu-switcher">
-            <span>Carta actual:</span>
-            <select
-              onChange={(e) => {
-                setSelectedMenuId(e.target.value);
-                setSelectedCategoryId("all");
-              }}
-              value={currentMenu.id}
-            >
-              {menus.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.name} {!m.is_active ? "(Oculta)" : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-        )}
       </div>
 
       {/* Lienzo de la Carta */}

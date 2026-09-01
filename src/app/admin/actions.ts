@@ -569,7 +569,7 @@ export async function updateRestaurantSettings(formData: FormData) {
   const { supabase, restaurantId, slug } = await context();
   const unavailable_item_behavior = required(formData, "unavailable_item_behavior");
   if (unavailable_item_behavior !== "hide" && unavailable_item_behavior !== "show_sold_out") throw new Error("Configuración de agotados inválida.");
-  const { error } = await supabase.from("restaurant_settings").upsert({ restaurant_id: restaurantId, unavailable_item_behavior, uses_dayparts: formData.get("uses_dayparts") === "on" });
+  const { error } = await supabase.from("restaurant_settings").upsert({ restaurant_id: restaurantId, unavailable_item_behavior, uses_dayparts: false });
   if (error) throw error;
   invalidate(slug);
 }

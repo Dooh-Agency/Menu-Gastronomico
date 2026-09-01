@@ -20,6 +20,7 @@ El proyecto comienza con una demo interna del menú digital usando datos semilla
 - No borrar ni sobrescribir datos sin confirmación.
 - Mantener accesibilidad, rendimiento móvil y soporte para `prefers-reduced-motion`.
 - No agregar dependencias innecesarias.
+- No realizar pruebas interactivas en el navegador web simulando a un usuario (abrir navegador, clics o navegación web) a menos que el usuario lo solicite textualmente de forma explícita.
 - Verificar los cambios antes de entregarlos.
 
 ## Entrega de cada tarea

@@ -494,6 +494,32 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
   color: var(--color-accent, #ae4c2c);
 }
 
+.admin-editor-top-nav {
+  margin-bottom: 1rem;
+}
+
+.admin-back-to-menus-btn {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  color: #334155;
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  transition: all 0.15s ease;
+}
+
+.admin-back-to-menus-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
 .menu-info-header-top {
   display: flex;
   flex-direction: column;
@@ -2255,6 +2281,170 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
   line-height: 1.45;
 }
 
+/* Dish Multi-Images Uploader */
+.dish-uploader-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-block: 0.25rem;
+}
+
+.dish-uploader-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dish-uploader-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.dish-uploader-dropzone {
+  align-items: center;
+  background: #fbf9f6;
+  border: 2px dashed #d5cec5;
+  border-radius: var(--radius-card, 0.75rem);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  transition: all 0.15s ease;
+}
+
+.dish-uploader-dropzone:hover {
+  background: #f5eee9;
+  border-color: var(--color-accent, #ae4c2c);
+}
+
+.dish-uploader-dropzone-icon {
+  align-items: center;
+  background: rgba(174, 76, 44, 0.08);
+  border-radius: 50%;
+  color: var(--color-accent, #ae4c2c);
+  display: flex;
+  height: 3rem;
+  justify-content: center;
+  width: 3rem;
+}
+
+.dish-uploader-dropzone-text strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--color-ink);
+}
+
+.dish-uploader-dropzone-text p {
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  margin: 0.2rem 0 0;
+}
+
+.dish-uploader-browse-btn {
+  font-size: 0.84rem;
+  padding: 0.45rem 0.9rem;
+  background: white;
+}
+
+.dish-uploader-grid {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+}
+
+.dish-uploader-thumb {
+  aspect-ratio: 1;
+  background: #f0ebe4;
+  border: 1px solid #e2dbd2;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.dish-uploader-thumb.is-new {
+  border-color: #cbd5e1;
+}
+
+.dish-uploader-img {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.dish-uploader-badge {
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  border-radius: 999px;
+  bottom: 0.25rem;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  left: 0.25rem;
+  padding: 0.1rem 0.4rem;
+  position: absolute;
+  z-index: 2;
+}
+
+.dish-uploader-badge.is-primary {
+  background: var(--color-accent, #ae4c2c);
+}
+
+.dish-uploader-remove-btn {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  border: none;
+  border-radius: 50%;
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  font-size: 1.1rem;
+  font-weight: 700;
+  height: 1.35rem;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  position: absolute;
+  right: 0.25rem;
+  top: 0.25rem;
+  transition: all 0.15s ease;
+  width: 1.35rem;
+  z-index: 3;
+}
+
+.dish-uploader-remove-btn:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+}
+
+.dish-uploader-add-btn {
+  align-items: center;
+  aspect-ratio: 1;
+  background: #fbf9f6;
+  border: 2px dashed #d5cec5;
+  border-radius: 0.5rem;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  gap: 0.25rem;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.dish-uploader-add-btn:hover {
+  background: #f5eee9;
+  border-color: var(--color-accent, #ae4c2c);
+  color: var(--color-accent, #ae4c2c);
+}
+
 @media (max-width: 48rem) {
   .admin-dashboard-header {
     flex-direction: column;
@@ -2288,6 +2478,7 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
 
 
 

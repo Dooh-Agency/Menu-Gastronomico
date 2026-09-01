@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useState, useTransition } from "react";
+import { type CSSProperties, useEffect, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -23,6 +23,7 @@ import {
   updateMenuItem,
 } from "./actions";
 import { LocalizationFields } from "./localization-fields";
+import { DishImagesUploader } from "./dish-images-uploader";
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
 import { DishImageCarousel } from "@/components/dish-image-carousel";
 import type { Category, Daypart, Menu, MenuItem, RestaurantData, SettingsData } from "./types";
@@ -90,9 +91,20 @@ export function AdminMenuView({
 
   // Navigation state: null = Cartas Dashboard; string = Editing specific menu
   const menuParam = searchParams.get("menu");
-  const selectedMenuId = menuParam && menus.some((m) => m.id === menuParam) ? menuParam : null;
+  const [selectedMenuId, setSelectedMenuIdState] = useState<string | null>(() => {
+    return menuParam && menus.some((m) => m.id === menuParam) ? menuParam : null;
+  });
+
+  useEffect(() => {
+    if (menuParam && menus.some((m) => m.id === menuParam)) {
+      setSelectedMenuIdState(menuParam);
+    } else {
+      setSelectedMenuIdState(null);
+    }
+  }, [menuParam, menus]);
 
   function setSelectedMenuId(menuId: string | null) {
+    setSelectedMenuIdState(menuId);
     const params = new URLSearchParams(searchParams.toString());
     if (menuId) {
       params.set("menu", menuId);
@@ -265,6 +277,31 @@ export function AdminMenuView({
 
   return (
     <div className="admin-menu-editor-layout">
+      {/* Barra superior de navegación de vuelta a Mis Cartas */}
+      <div className="admin-editor-top-nav">
+        <button
+          className="admin-back-to-menus-btn"
+          onClick={() => setSelectedMenuId(null)}
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.5"
+            viewBox="0 0 24 24"
+            width="16"
+          >
+            <line x1="19" x2="5" y1="12" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+          Volver a Mis Cartas
+        </button>
+      </div>
+
       {/* Lienzo de la Carta */}
       <div className="admin-menu-view" style={brandStyle}>
         {/* 1. Header general del restaurante */}
@@ -714,18 +751,16 @@ export function AdminMenuView({
 
                       return (
                         <article
-                          aria-label={`Editar plato ${itemDisplayName}`}
+                          aria-label={`Ver vista previa de ${itemDisplayName}`}
                           className={`menu-card admin-dish-card${item.is_available ? "" : " is-unavailable"}`}
                           key={item.id}
                           onClick={() => {
-                            setItemImagePreview(null);
-                            setEditingItem(item);
+                            setPreviewItem(item);
                           }}
                           onKeyDown={(e) => {
                             if (e.key === "Enter" || e.key === " ") {
                               e.preventDefault();
-                              setItemImagePreview(null);
-                              setEditingItem(item);
+                              setPreviewItem(item);
                             }
                           }}
                           role="button"
@@ -1163,22 +1198,7 @@ export function AdminMenuView({
               </label>
             </div>
 
-            {itemImagePreview ? (
-              <div className="banner-preview-box">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img alt="Vista previa del plato" className="banner-preview-img" src={itemImagePreview} />
-              </div>
-            ) : null}
-
-            <label>
-              Imagen del plato <span className="field-optional">JPG, PNG o WebP; máx 5 MB</span>
-              <input
-                accept="image/jpeg,image/png,image/webp"
-                name="image"
-                onChange={handleItemImageChange}
-                type="file"
-              />
-            </label>
+            <DishImagesUploader />
 
             <div className="admin-modal-grid">
               <label>
@@ -1264,32 +1284,15 @@ export function AdminMenuView({
               </label>
             </div>
 
-            {itemImagePreview ? (
-              <div className="banner-preview-box">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img alt="Vista previa del plato" className="banner-preview-img" src={itemImagePreview} />
-              </div>
-            ) : editingItem.image_path ? (
-              <div className="banner-preview-box">
-                <Image
-                  alt=""
-                  className="banner-preview-img"
-                  height={140}
-                  src={menuImageUrl(editingItem.image_path)}
-                  width={320}
-                />
-              </div>
-            ) : null}
-
-            <label>
-              Reemplazar imagen <span className="field-optional">JPG, PNG o WebP; máx 5 MB</span>
-              <input
-                accept="image/jpeg,image/png,image/webp"
-                name="image"
-                onChange={handleItemImageChange}
-                type="file"
-              />
-            </label>
+            <DishImagesUploader
+              initialImages={
+                editingItem.image_paths?.length
+                  ? editingItem.image_paths
+                  : editingItem.image_path
+                  ? [editingItem.image_path]
+                  : []
+              }
+            />
 
             <div className="admin-modal-grid">
               <label>
@@ -1341,16 +1344,18 @@ export function AdminMenuView({
           <div
             aria-label={displayName}
             className="item-dialog-backdrop"
-            onMouseDown={() => setPreviewItem(null)}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setPreviewItem(null);
+            }}
             role="presentation"
           >
             <section
               aria-modal="true"
               className="item-dialog"
+              onClick={(event) => event.stopPropagation()}
               onKeyDown={(event) => {
                 if (event.key === "Escape") setPreviewItem(null);
               }}
-              onMouseDown={(event) => event.stopPropagation()}
               role="dialog"
             >
               <button

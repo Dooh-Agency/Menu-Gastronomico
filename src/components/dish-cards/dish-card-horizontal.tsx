@@ -60,7 +60,7 @@ export function DishCardHorizontal({
           </div>
 
           <div className="dish-card-horizontal-meta">
-            {item.dietary_tags.length > 0 && (
+            {Array.isArray(item.dietary_tags) && item.dietary_tags.length > 0 && (
               <div className="dish-card-horizontal-tags" aria-label={filtersLabel}>
                 {item.dietary_tags.slice(0, 3).map((tag) => (
                   <span className="dish-card-horizontal-tag" key={tag}>

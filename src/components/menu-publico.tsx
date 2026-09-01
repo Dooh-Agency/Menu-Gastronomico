@@ -83,11 +83,15 @@ function copyFor(locale: string) {
   return locale.startsWith("en") ? labels.en : labels.es;
 }
 
-function translated<T extends { translations: Array<{ locale: string; name: string; description: string | null }> }>(
+function translated<T extends { name: string; description?: string | null; translations?: Array<{ locale: string; name: string; description: string | null }> }>(
   entity: T,
   locale: string,
 ) {
-  return entity.translations.find((translation) => translation.locale === locale) ?? entity;
+  if (!entity) return { name: "", description: null };
+  const found = Array.isArray(entity.translations)
+    ? entity.translations.find((translation) => translation.locale === locale)
+    : null;
+  return found ?? entity;
 }
 
 function formatPrice(cents: number, currency: string, locale: string) {
@@ -185,14 +189,25 @@ export function MenuPublico({
   const searchParams = useSearchParams();
   const menuQueryParam = searchParams.get("menu");
 
-  const selectedMenuId = useMemo(() => {
+  const [selectedMenuId, setSelectedMenuId] = useState<string | null>(() => {
     if (activeMenus.length === 1) return activeMenus[0]?.id ?? null;
     if (menuQueryParam) {
       const found = activeMenus.find((m) => m.id === menuQueryParam);
       if (found) return found.id;
     }
     return initialMenuId ?? null;
-  }, [activeMenus, menuQueryParam, initialMenuId]);
+  });
+
+  useEffect(() => {
+    if (activeMenus.length === 1) {
+      setSelectedMenuId(activeMenus[0]?.id ?? null);
+    } else if (menuQueryParam) {
+      const found = activeMenus.find((m) => m.id === menuQueryParam);
+      setSelectedMenuId(found ? found.id : null);
+    } else {
+      setSelectedMenuId(null);
+    }
+  }, [menuQueryParam, activeMenus]);
 
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>("all");
@@ -222,6 +237,7 @@ export function MenuPublico({
 
   function handleSelectMenu(menuId: string | null) {
     setSelectedCategoryId("all");
+    setSelectedMenuId(menuId);
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "instant" });
     }
@@ -810,20 +826,31 @@ export function MenuPublico({
 
       {selectedItem ? (() => {
         const localizedItem = translated(selectedItem, locale);
+        const images = Array.isArray(selectedItem.image_paths) && selectedItem.image_paths.length > 0
+          ? selectedItem.image_paths
+          : selectedItem.image_path
+          ? [selectedItem.image_path]
+          : [];
+        const dietaryTags = Array.isArray(selectedItem.dietary_tags) ? selectedItem.dietary_tags : [];
+        const allergens = Array.isArray(selectedItem.allergens) ? selectedItem.allergens : [];
+        const formattedPrice = formatPrice(selectedItem.price_cents ?? 0, selectedItem.currency_code ?? "ARS", locale);
+
         return (
           <div
             aria-label={localizedItem.name}
             className="item-dialog-backdrop"
-            onMouseDown={() => setSelectedItem(null)}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setSelectedItem(null);
+            }}
             role="presentation"
           >
             <section
               aria-modal="true"
               className="item-dialog"
+              onClick={(event) => event.stopPropagation()}
               onKeyDown={(event) => {
                 if (event.key === "Escape") setSelectedItem(null);
               }}
-              onMouseDown={(event) => event.stopPropagation()}
               role="dialog"
             >
               <button
@@ -837,28 +864,20 @@ export function MenuPublico({
               </button>
               <DishImageCarousel
                 alt={localizedItem.name}
-                images={
-                  selectedItem.image_paths?.length
-                    ? selectedItem.image_paths
-                    : selectedItem.image_path
-                    ? [selectedItem.image_path]
-                    : []
-                }
+                images={images}
               />
               <div className="item-dialog-content">
                 <h2>{localizedItem.name}</h2>
-                <strong>
-                  {formatPrice(selectedItem.price_cents, selectedItem.currency_code, locale)}
-                </strong>
+                <strong>{formattedPrice}</strong>
                 {localizedItem.description ? <p>{localizedItem.description}</p> : null}
-                {selectedItem.dietary_tags.length ? (
+                {dietaryTags.length > 0 ? (
                   <p>
-                    <b>{copy.filters}:</b> {selectedItem.dietary_tags.join(", ")}
+                    <b>{copy.filters}:</b> {dietaryTags.join(", ")}
                   </p>
                 ) : null}
-                {selectedItem.allergens.length ? (
+                {allergens.length > 0 ? (
                   <p>
-                    <b>{copy.allergens}:</b> {selectedItem.allergens.join(", ")}
+                    <b>{copy.allergens}:</b> {allergens.join(", ")}
                   </p>
                 ) : null}
                 {!selectedItem.is_available ? <span className="sold-out">{copy.soldOut}</span> : null}

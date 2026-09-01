@@ -17,9 +17,10 @@ export function DishImageCarousel({
 }: DishImageCarouselProps) {
   const validImages = images.filter((img) => typeof img === "string" && img.trim() !== "");
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [prevImages, setPrevImages] = useState(images);
-  if (prevImages !== images) {
-    setPrevImages(images);
+  const imagesKey = images.join("|");
+  const [prevImagesKey, setPrevImagesKey] = useState(imagesKey);
+  if (prevImagesKey !== imagesKey) {
+    setPrevImagesKey(imagesKey);
     setCurrentIndex(0);
   }
   const touchStartX = useRef<number | null>(null);

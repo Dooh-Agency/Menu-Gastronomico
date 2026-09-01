@@ -555,16 +555,29 @@ export async function updateMenuItem(formData: FormData) {
       ? [item.image_path]
       : [];
 
-  const rawImages = (formData.getAll("images") as (File | null)[]).concat(formData.getAll("image") as (File | null)[]);
+  const keptPaths = formData
+    .getAll("kept_image_paths")
+    .filter((p): p is string => typeof p === "string" && p.trim() !== "");
+  const hasKeptField = formData.has("kept_image_paths");
+  const basePaths = hasKeptField ? keptPaths : currentPaths;
+
+  const rawImages = (formData.getAll("images") as (File | null)[]).concat(
+    formData.getAll("image") as (File | null)[]
+  );
   const validNewFiles = rawImages.filter((f): f is File => f instanceof File && f.size > 0);
 
-  let finalPaths = currentPaths;
+  let uploadedPaths: string[] = [];
   if (validNewFiles.length > 0) {
-    finalPaths = await uploadItemImages(itemId, restaurantId, validNewFiles, currentPaths, supabase);
-    for (const oldPath of currentPaths) {
-      if (oldPath?.startsWith(`${restaurantId}/`)) {
-        await supabase.storage.from("menu-images").remove([oldPath]);
-      }
+    uploadedPaths = await uploadItemImages(itemId, restaurantId, validNewFiles, [], supabase);
+  }
+
+  const finalPaths = [...basePaths, ...uploadedPaths];
+
+  // Remove old files from storage that were discarded
+  const removedPaths = currentPaths.filter((p) => !finalPaths.includes(p));
+  for (const oldPath of removedPaths) {
+    if (oldPath?.startsWith(`${restaurantId}/`)) {
+      await supabase.storage.from("menu-images").remove([oldPath]);
     }
   }
 

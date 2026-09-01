@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AdminDialog } from "../admin-dialog";
 import { createMenuItem, deleteMenuItem, reorderMenuItems, updateMenuItem } from "../actions";
 import { LocalizationFields } from "../localization-fields";
+import { DishImagesUploader } from "../dish-images-uploader";
 
 type Category = { id: string; name: string };
 type Item = {
@@ -148,10 +149,7 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
               <input defaultChecked name="is_available" type="checkbox" />
               Disponible
             </label>
-            <label>
-              Imagen <span className="field-optional">JPG, PNG o WebP; máximo 5 MB</span>
-              <input accept="image/jpeg,image/png,image/webp" name="image" type="file" />
-            </label>
+            <DishImagesUploader />
             <label>
               Etiquetas dietéticas <span className="field-optional">Separadas por comas</span>
               <input name="dietary_tags" placeholder="vegetariano, vegano" />
@@ -206,10 +204,15 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
                 </select>
               </label>
             </div>
-            <label>
-              Reemplazar imagen <span className="field-optional">JPG, PNG o WebP; máximo 5 MB</span>
-              <input accept="image/jpeg,image/png,image/webp" name="image" type="file" />
-            </label>
+            <DishImagesUploader
+              initialImages={
+                editingItem.image_paths?.length
+                  ? editingItem.image_paths
+                  : editingItem.image_path
+                  ? [editingItem.image_path]
+                  : []
+              }
+            />
             <label>
               Etiquetas dietéticas <span className="field-optional">Separadas por comas</span>
               <input defaultValue={editingItem.dietary_tags.join(", ")} name="dietary_tags" />

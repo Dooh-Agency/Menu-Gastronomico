@@ -16,10 +16,12 @@ export interface DishCardProps {
 }
 
 export function translateItem(item: MenuItem, locale: string) {
-  const found = item.translations?.find((t) => t.locale === locale);
+  const found = Array.isArray(item?.translations)
+    ? item.translations.find((t) => t.locale === locale)
+    : null;
   return {
-    name: found?.name || item.name,
-    description: found?.description !== undefined ? found.description : item.description,
+    name: found?.name || item?.name || "",
+    description: found?.description !== undefined ? found.description : item?.description ?? null,
   };
 }
 

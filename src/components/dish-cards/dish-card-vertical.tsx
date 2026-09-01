@@ -26,8 +26,22 @@ export function DishCardVertical({
 
   return (
     <article
+      aria-label={`${localized.name}, ${priceFormatted}`}
       className={`menu-card ${!item.is_available ? "is-unavailable" : ""} ${className}`}
       key={item.id}
+      onClick={onSelect ? () => onSelect(item) : undefined}
+      onKeyDown={
+        onSelect
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect(item);
+              }
+            }
+          : undefined
+      }
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
     >
       {item.image_path || (item.image_paths && item.image_paths.length > 0) ? (() => {
         const thumbPath = item.image_paths?.[0] || item.image_path;

@@ -1,8 +1,9 @@
 "use client";
 
-import { type CSSProperties, type UIEvent, useEffect, useRef, useState } from "react";
+import { type CSSProperties, type UIEvent, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import type { PublicMenu, PublicMenuSchedule } from "@/lib/supabase/public-menu";
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
 import { DishCardHorizontal } from "@/components/dish-cards";
@@ -178,25 +179,26 @@ export function MenuPublico({
   locale,
   initialMenuId,
 }: MenuPublicoProps) {
-  const activeMenus = menu.menus.filter((m) => m.is_active);
+  const activeMenus = useMemo(() => menu.menus.filter((m) => m.is_active), [menu.menus]);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const menuQueryParam = searchParams.get("menu");
 
-  // If initialMenuId is explicitly provided (or if there's only 1 menu), select it; otherwise null
-  const [selectedMenuId, setSelectedMenuId] = useState<string | null>(
-    initialMenuId !== undefined
-      ? initialMenuId
-      : activeMenus.length === 1
-      ? activeMenus[0]?.id ?? null
-      : null
-  );
+  const selectedMenuId = useMemo(() => {
+    if (activeMenus.length === 1) return activeMenus[0]?.id ?? null;
+    if (menuQueryParam) {
+      const found = activeMenus.find((m) => m.id === menuQueryParam);
+      if (found) return found.id;
+    }
+    return initialMenuId ?? null;
+  }, [activeMenus, menuQueryParam, initialMenuId]);
 
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>("all");
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const categoryNav = useRef<HTMLElement>(null);
   const categoryScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
   const copy = copyFor(locale);
 
   const branding = brandingFor(menu.restaurant.branding);
@@ -219,8 +221,10 @@ export function MenuPublico({
   }
 
   function handleSelectMenu(menuId: string | null) {
-    setSelectedMenuId(menuId);
     setSelectedCategoryId("all");
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
     const params = new URLSearchParams(searchParams.toString());
     if (!menuId || (activeMenus.length <= 1 && menuId === activeMenus[0]?.id)) {
       params.delete("menu");
@@ -228,7 +232,8 @@ export function MenuPublico({
       params.set("menu", menuId);
     }
     const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    const nextUrl = query ? `${pathname}?${query}` : pathname;
+    router.push(nextUrl);
   }
 
   useEffect(() => () => {
@@ -271,19 +276,20 @@ export function MenuPublico({
       const bannerPath = m.banner_path || branding.cover_image_path;
       const scheduleText = formatMenuSchedule(m.schedules, locale);
 
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("menu", m.id);
+      const menuHref = `${pathname}?${params.toString()}`;
+
       return (
-        <article
+        <Link
+          aria-label={`Ver carta ${m.name}`}
           className={`public-menu-card ${!isAvailable ? "is-outside-hours" : ""}`}
+          href={menuHref}
           key={m.id}
-          onClick={() => handleSelectMenu(m.id)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              handleSelectMenu(m.id);
-            }
+          onClick={(e) => {
+            e.preventDefault();
+            handleSelectMenu(m.id);
           }}
-          role="button"
-          tabIndex={0}
         >
           <div className="public-menu-card-cover">
             {bannerPath ? (
@@ -372,18 +378,13 @@ export function MenuPublico({
               </div>
             </div>
 
-            <button
+            <span
               className={`public-menu-card-cta-btn ${!isAvailable ? "is-outside-hours" : ""}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSelectMenu(m.id);
-              }}
-              type="button"
             >
               {copy.viewMenu} →
-            </button>
+            </span>
           </div>
-        </article>
+        </Link>
       );
     }
 

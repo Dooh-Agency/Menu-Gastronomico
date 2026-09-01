@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import Image from "next/image";
 import { menuImageUrl } from "@/lib/restaurant-branding";
 
@@ -17,6 +17,11 @@ export function DishImageCarousel({
 }: DishImageCarouselProps) {
   const validImages = images.filter((img) => typeof img === "string" && img.trim() !== "");
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [prevImages, setPrevImages] = useState(images);
+  if (prevImages !== images) {
+    setPrevImages(images);
+    setCurrentIndex(0);
+  }
   const touchStartX = useRef<number | null>(null);
   const touchEndX = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -71,11 +76,6 @@ export function DishImageCarousel({
     touchStartX.current = null;
     touchEndX.current = null;
   }
-
-  // Reset index if image list changes
-  useEffect(() => {
-    setCurrentIndex(0);
-  }, [images]);
 
   if (total === 0) {
     return null;

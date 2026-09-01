@@ -103,6 +103,7 @@ export function AdminMenuView({
   const [createItemForCategoryId, setCreateItemForCategoryId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [itemImagePreview, setItemImagePreview] = useState<string | null>(null);
+  const [previewItem, setPreviewItem] = useState<MenuItem | null>(null);
 
   const [isPending, startTransition] = useTransition();
 
@@ -745,48 +746,64 @@ export function AdminMenuView({
 
                       return (
                         <article
-                          className={`admin-dish-card ${!item.is_available ? "is-unavailable" : ""}`}
+                          className={`menu-card${item.is_available ? "" : " is-unavailable"}`}
                           key={item.id}
                         >
                           {item.image_path ? (
-                            <div className="admin-dish-image-wrap">
-                              <Image
-                                alt={itemDisplayName}
-                                className="admin-dish-image"
-                                fill
-                                sizes="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 33vw"
-                                src={menuImageUrl(item.image_path)}
-                              />
-                              {!item.is_available && (
-                                <span className="dish-sold-out-badge">Agotado</span>
-                              )}
-                            </div>
+                            <Image
+                              alt=""
+                              className="menu-image"
+                              height={720}
+                              sizes="(max-width: 34rem) 100vw, 33vw"
+                              src={menuImageUrl(item.image_path)}
+                              width={1280}
+                            />
                           ) : null}
 
-                          <div className="admin-dish-body">
-                            <div className="admin-dish-header">
-                              <h3 className="admin-dish-name">{itemDisplayName}</h3>
-                              <span className="admin-dish-price">
+                          <div className="menu-card-content">
+                            <div className="menu-card-heading">
+                              <h3>{itemDisplayName}</h3>
+                              <strong>
                                 {formatPrice(item.price_cents, item.currency_code, selectedLocale)}
-                              </span>
+                              </strong>
                             </div>
 
                             {itemDisplayDesc ? (
-                              <p className="admin-dish-desc">{itemDisplayDesc}</p>
+                              <p>{itemDisplayDesc}</p>
                             ) : null}
 
                             {/* Tags dietéticos */}
                             {item.dietary_tags.length > 0 ? (
-                              <div className="admin-dish-tags">
+                              <ul className="tag-list" aria-label="Etiquetas dietéticas">
                                 {item.dietary_tags.map((tag) => (
-                                  <span className="dietary-tag" key={tag}>
-                                    {tag}
-                                  </span>
+                                  <li key={tag}>{tag}</li>
                                 ))}
-                              </div>
+                              </ul>
                             ) : null}
 
-                            {/* Acciones del plato */}
+                            {/* Alérgenos */}
+                            {item.allergens.length > 0 ? (
+                              <details className="menu-allergens-details">
+                                <summary>Alérgenos</summary>
+                                <p>
+                                  <b>Alérgenos:</b> {item.allergens.join(", ")}
+                                </p>
+                              </details>
+                            ) : null}
+
+                            <button
+                              className="item-detail-button"
+                              onClick={() => setPreviewItem(item)}
+                              type="button"
+                            >
+                              Ver detalle
+                            </button>
+
+                            {!item.is_available ? (
+                              <span className="sold-out">Agotado</span>
+                            ) : null}
+
+                            {/* Acciones del plato para el administrador */}
                             <div className="admin-dish-actions">
                               <button
                                 className={`admin-availability-toggle ${item.is_available ? "is-available" : "is-paused"}`}
@@ -1327,6 +1344,71 @@ export function AdminMenuView({
           </form>
         </AdminDialog>
       ) : null}
+
+      {/* Modal: Vista Previa de Detalle del Plato */}
+      {previewItem ? (() => {
+        const itemTranslation = previewItem.menu_item_translations?.find(
+          (t) => t.locale === selectedLocale
+        );
+        const displayName = (selectedLocale !== "es" && itemTranslation?.name) || previewItem.name;
+        const displayDesc = (selectedLocale !== "es" && itemTranslation?.description) || previewItem.description;
+
+        return (
+          <div
+            aria-label={displayName}
+            className="item-dialog-backdrop"
+            onMouseDown={() => setPreviewItem(null)}
+            role="presentation"
+          >
+            <section
+              aria-modal="true"
+              className="item-dialog"
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setPreviewItem(null);
+              }}
+              onMouseDown={(event) => event.stopPropagation()}
+              role="dialog"
+            >
+              <button
+                aria-label="Cerrar"
+                autoFocus
+                className="item-dialog-close"
+                onClick={() => setPreviewItem(null)}
+                type="button"
+              >
+                ×
+              </button>
+              {previewItem.image_path ? (
+                <Image
+                  alt=""
+                  className="item-dialog-image"
+                  height={720}
+                  src={menuImageUrl(previewItem.image_path)}
+                  width={1280}
+                />
+              ) : null}
+              <div className="item-dialog-content">
+                <h2>{displayName}</h2>
+                <strong>
+                  {formatPrice(previewItem.price_cents, previewItem.currency_code, selectedLocale)}
+                </strong>
+                {displayDesc ? <p>{displayDesc}</p> : null}
+                {previewItem.dietary_tags.length > 0 ? (
+                  <p>
+                    <b>Etiquetas dietéticas:</b> {previewItem.dietary_tags.join(", ")}
+                  </p>
+                ) : null}
+                {previewItem.allergens.length > 0 ? (
+                  <p>
+                    <b>Alérgenos:</b> {previewItem.allergens.join(", ")}
+                  </p>
+                ) : null}
+                {!previewItem.is_available ? <span className="sold-out">Agotado</span> : null}
+              </div>
+            </section>
+          </div>
+        );
+      })() : null}
     </div>
   );
 }

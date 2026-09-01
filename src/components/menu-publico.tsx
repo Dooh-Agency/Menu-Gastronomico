@@ -393,8 +393,8 @@ export function MenuPublico({
                             </ul>
                           ) : null}
                           {item.allergens.length ? (
-                            <details>
-                              <summary>{copy.details}</summary>
+                            <details className="menu-allergens-details">
+                              <summary>{copy.allergens}</summary>
                               <p><b>{copy.allergens}:</b> {item.allergens.join(", ")}</p>
                             </details>
                           ) : null}

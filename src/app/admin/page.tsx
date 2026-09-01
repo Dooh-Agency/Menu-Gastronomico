@@ -1,10 +1,79 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { AdminMenuView } from "./admin-menu-view";
 
 export default async function AdminHomePage() {
-  const s = await createSupabaseServerClient(); const { data: { user } } = await s.auth.getUser();
-  const { data: p } = user ? await s.from("profiles").select("restaurant_id").eq("id", user.id).maybeSingle<{ restaurant_id: string | null }>() : { data: null };
-  if (!p?.restaurant_id) return <main className="admin-content"><h1>Sin restaurante asignado</h1></main>;
-  const [c, i] = await Promise.all([s.from("menu_categories").select("id", { count: "exact", head: true }).eq("restaurant_id", p.restaurant_id), s.from("menu_items").select("is_available").eq("restaurant_id", p.restaurant_id)]);
-  const items = i.data ?? [];
-  return <main className="admin-content"><p className="eyebrow">Administración</p><h1>Tu menú</h1><p className="admin-intro">Usá la navegación superior para gestionar categorías y platos.</p><section className="admin-stats"><div><strong>{c.count ?? 0}</strong><span>Categorías</span></div><div><strong>{items.length}</strong><span>Platos</span></div><div><strong>{items.filter(x => x.is_available).length}</strong><span>Disponibles</span></div></section></main>;
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { data: profile } = user
+    ? await supabase
+        .from("profiles")
+        .select("restaurant_id")
+        .eq("id", user.id)
+        .maybeSingle<{ restaurant_id: string | null }>()
+    : { data: null };
+
+  if (!profile?.restaurant_id) {
+    return (
+      <main className="admin-content">
+        <h1>Sin restaurante asignado</h1>
+      </main>
+    );
+  }
+
+  const [restaurantResult, settingsResult, daypartsResult, categoriesResult] = await Promise.all([
+    supabase
+      .from("restaurants")
+      .select("id, name, slug, timezone, supported_locales, default_locale, branding")
+      .eq("id", profile.restaurant_id)
+      .maybeSingle(),
+    supabase
+      .from("restaurant_settings")
+      .select("unavailable_item_behavior, uses_dayparts")
+      .eq("restaurant_id", profile.restaurant_id)
+      .maybeSingle(),
+    supabase
+      .from("dayparts")
+      .select("id, name, starts_at, ends_at, sort_order")
+      .eq("restaurant_id", profile.restaurant_id)
+      .order("sort_order"),
+    supabase
+      .from("menu_categories")
+      .select(
+        "id, name, description, sort_order, is_active, menu_category_translations(locale, name, description), menu_category_dayparts(daypart_id)"
+      )
+      .eq("restaurant_id", profile.restaurant_id)
+      .order("sort_order"),
+  ]);
+
+  const restaurant = restaurantResult.data;
+  if (!restaurant) {
+    return (
+      <main className="admin-content">
+        <h1>Restaurante no encontrado</h1>
+      </main>
+    );
+  }
+
+  const settings = settingsResult.data ?? {
+    unavailable_item_behavior: "show_sold_out" as const,
+    uses_dayparts: false,
+  };
+
+  const dayparts = daypartsResult.data ?? [];
+  const categories = categoriesResult.data ?? [];
+
+  return (
+    <main className="admin-content-full">
+      <AdminMenuView
+        categories={categories}
+        dayparts={dayparts}
+        restaurant={restaurant}
+        settings={settings}
+      />
+    </main>
+  );
 }
+

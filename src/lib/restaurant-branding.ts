@@ -58,3 +58,13 @@ export function contactFor(value: Record<string, unknown> | null | undefined): R
     ["phone", "email", "address", "website"].flatMap((key) => typeof candidate[key] === "string" ? [[key, candidate[key]]] : []),
   ) as RestaurantContact;
 }
+
+export function menuImageUrl(imagePath?: string | null): string {
+  if (!imagePath) return "";
+  if (imagePath.startsWith("/")) return imagePath;
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
+  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!baseUrl) return imagePath;
+  return `${baseUrl}/storage/v1/object/public/menu-images/${imagePath.split("/").map(encodeURIComponent).join("/")}`;
+}
+

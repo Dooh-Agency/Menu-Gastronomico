@@ -117,6 +117,38 @@ async function uploadBrandImage(kind: "logo" | "cover", restaurantId: string, im
   return path;
 }
 
+export async function updateCoverImage(formData: FormData) {
+  const { supabase, restaurantId, slug } = await context();
+  const { data: restaurant } = await supabase
+    .from("restaurants")
+    .select("branding")
+    .eq("id", restaurantId)
+    .maybeSingle<{ branding: Record<string, unknown> }>();
+  if (!restaurant) throw new Error("Restaurante no encontrado.");
+
+  const oldBranding = brandingFor(restaurant.branding);
+
+  if (formData.get("remove") === "true") {
+    if (oldBranding.cover_image_path?.startsWith(`${restaurantId}/branding/`)) {
+      await supabase.storage.from("menu-images").remove([oldBranding.cover_image_path]);
+    }
+    const newBranding = { ...oldBranding, cover_image_path: undefined };
+    const { error } = await supabase.from("restaurants").update({ branding: newBranding }).eq("id", restaurantId);
+    if (error) throw error;
+    invalidate(slug);
+    return;
+  }
+
+  const image = formData.get("cover_image");
+  if (image instanceof File && image.size > 0) {
+    const cover_image_path = await uploadBrandImage("cover", restaurantId, image, oldBranding.cover_image_path, supabase);
+    const newBranding = { ...oldBranding, cover_image_path };
+    const { error } = await supabase.from("restaurants").update({ branding: newBranding }).eq("id", restaurantId);
+    if (error) throw error;
+    invalidate(slug);
+  }
+}
+
 export async function createCategory(formData: FormData) {
   const { supabase, restaurantId, slug } = await context();
   const { data: last } = await supabase.from("menu_categories").select("sort_order").eq("restaurant_id", restaurantId).order("sort_order", { ascending: false }).limit(1).maybeSingle<{ sort_order: number }>();

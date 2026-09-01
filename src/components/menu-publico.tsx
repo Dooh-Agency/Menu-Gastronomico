@@ -4,7 +4,8 @@ import { type CSSProperties, type UIEvent, useEffect, useRef, useState } from "r
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import type { PublicMenu } from "@/lib/supabase/public-menu";
-import { brandingFor, restaurantFonts } from "@/lib/restaurant-branding";
+import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
+
 
 type MenuPublicoProps = {
   menu: PublicMenu;
@@ -64,14 +65,6 @@ function formatPrice(cents: number, currency: string, locale: string) {
     currency,
     maximumFractionDigits: 0,
   }).format(cents / 100);
-}
-
-function menuImageUrl(imagePath: string) {
-  if (imagePath.startsWith("/")) return imagePath;
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!baseUrl) return imagePath;
-  return `${baseUrl}/storage/v1/object/public/menu-images/${imagePath.split("/").map(encodeURIComponent).join("/")}`;
 }
 
 export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps) {

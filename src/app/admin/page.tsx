@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AdminMenuView } from "./admin-menu-view";
+import type { Category, Daypart, Menu, MenuItem, MenuSchedule } from "./types";
 
 export default async function AdminHomePage() {
   const supabase = await createSupabaseServerClient();
@@ -23,7 +24,15 @@ export default async function AdminHomePage() {
     );
   }
 
-  const [restaurantResult, settingsResult, daypartsResult, categoriesResult, itemsResult] = await Promise.all([
+  const [
+    restaurantResult,
+    settingsResult,
+    daypartsResult,
+    categoriesResult,
+    itemsResult,
+    menusResult,
+    schedulesResult,
+  ] = await Promise.all([
     supabase
       .from("restaurants")
       .select("id, name, slug, timezone, supported_locales, default_locale, branding")
@@ -42,7 +51,7 @@ export default async function AdminHomePage() {
     supabase
       .from("menu_categories")
       .select(
-        "id, name, description, sort_order, is_active, menu_category_translations(locale, name, description), menu_category_dayparts(daypart_id)"
+        "id, menu_id, name, description, sort_order, is_active, menu_category_translations(locale, name, description), menu_category_dayparts(daypart_id)"
       )
       .eq("restaurant_id", profile.restaurant_id)
       .order("sort_order"),
@@ -51,6 +60,16 @@ export default async function AdminHomePage() {
       .select(
         "id, category_id, name, description, price_cents, currency_code, image_path, dietary_tags, allergens, is_available, sort_order, menu_item_translations(locale, name, description)"
       )
+      .eq("restaurant_id", profile.restaurant_id)
+      .order("sort_order"),
+    supabase
+      .from("menus")
+      .select("id, restaurant_id, name, description, banner_path, is_active, sort_order")
+      .eq("restaurant_id", profile.restaurant_id)
+      .order("sort_order"),
+    supabase
+      .from("menu_schedules")
+      .select("id, menu_id, day_of_week, starts_at, ends_at, sort_order")
       .eq("restaurant_id", profile.restaurant_id)
       .order("sort_order"),
   ]);
@@ -69,9 +88,40 @@ export default async function AdminHomePage() {
     uses_dayparts: false,
   };
 
-  const dayparts = daypartsResult.data ?? [];
-  const categories = categoriesResult.data ?? [];
-  const items = itemsResult.data ?? [];
+  const dayparts = (daypartsResult.data ?? []) as Daypart[];
+  const rawCategories = (categoriesResult.data ?? []) as Category[];
+  const items = (itemsResult.data ?? []) as MenuItem[];
+  const schedules = (schedulesResult.data ?? []) as MenuSchedule[];
+
+  // Prepare menus: if no menus exist yet (or migration pending), create a virtual default menu
+  let menus = (menusResult.data ?? []) as Menu[];
+  if (menus.length === 0) {
+    const defaultMenuId = "default-main-menu";
+    menus = [
+      {
+        id: defaultMenuId,
+        restaurant_id: restaurant.id,
+        name: "Carta Principal",
+        description: "Nuestra selección de platos y especialidades de la casa.",
+        banner_path: (restaurant.branding as Record<string, unknown>)?.cover_image_path as string | null ?? null,
+        is_active: true,
+        sort_order: 0,
+      },
+    ];
+  }
+
+  // Attach schedules to menus
+  const menusWithSchedules = menus.map((menu) => ({
+    ...menu,
+    schedules: schedules.filter((s) => s.menu_id === menu.id),
+  }));
+
+  // Ensure all categories have a valid menu_id (fallback to first menu if null)
+  const defaultMenuId = menus[0]?.id;
+  const categories = rawCategories.map((c) => ({
+    ...c,
+    menu_id: c.menu_id || defaultMenuId,
+  }));
 
   return (
     <main className="admin-content-full">
@@ -79,10 +129,10 @@ export default async function AdminHomePage() {
         categories={categories}
         dayparts={dayparts}
         items={items}
+        menus={menusWithSchedules}
         restaurant={restaurant}
         settings={settings}
       />
     </main>
   );
 }
-

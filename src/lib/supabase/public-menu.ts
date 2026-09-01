@@ -25,8 +25,29 @@ type DaypartRow = {
   sort_order: number;
 };
 
+export type PublicMenuSchedule = {
+  id: string;
+  menu_id: string;
+  day_of_week: number | null;
+  starts_at: string;
+  ends_at: string;
+  sort_order: number;
+};
+
+export type PublicMenuRecord = {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  description: string | null;
+  banner_path: string | null;
+  is_active: boolean;
+  sort_order: number;
+  schedules: PublicMenuSchedule[];
+};
+
 type CategoryRow = {
   id: string;
+  menu_id: string | null;
   daypart_id: string | null;
   daypart_ids: string[];
   name: string;
@@ -66,6 +87,7 @@ export type PublicMenu = {
   restaurant: RestaurantRow;
   settings: SettingsRow;
   dayparts: DaypartRow[];
+  menus: PublicMenuRecord[];
   categories: Array<CategoryRow & { translations: CategoryTranslationRow[] }>;
   items: Array<ItemRow & { translations: TranslationRow[] }>;
 };
@@ -94,10 +116,17 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
   if (restaurantError) throw restaurantError;
   if (!restaurant) return null;
 
-  const [settingsResult, daypartsResult, categoriesResult, itemsResult] = await Promise.all([
+  const [
+    settingsResult,
+    daypartsResult,
+    categoriesResult,
+    itemsResult,
+    menusResult,
+    schedulesResult,
+  ] = await Promise.all([
     supabase
       .from("restaurant_settings")
-    .select("unavailable_item_behavior, uses_dayparts, contact")
+      .select("unavailable_item_behavior, uses_dayparts, contact")
       .eq("restaurant_id", restaurant.id)
       .maybeSingle<SettingsRow>(),
     supabase
@@ -107,12 +136,24 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
       .order("sort_order"),
     supabase
       .from("menu_categories")
-      .select("id, daypart_id, name, description, sort_order")
+      .select("id, menu_id, daypart_id, name, description, sort_order")
       .eq("restaurant_id", restaurant.id)
       .order("sort_order"),
     supabase
       .from("menu_items")
-      .select("id, category_id, name, description, price_cents, currency_code, image_path, dietary_tags, allergens, is_available, sort_order")
+      .select(
+        "id, category_id, name, description, price_cents, currency_code, image_path, dietary_tags, allergens, is_available, sort_order"
+      )
+      .eq("restaurant_id", restaurant.id)
+      .order("sort_order"),
+    supabase
+      .from("menus")
+      .select("id, restaurant_id, name, description, banner_path, is_active, sort_order")
+      .eq("restaurant_id", restaurant.id)
+      .order("sort_order"),
+    supabase
+      .from("menu_schedules")
+      .select("id, menu_id, day_of_week, starts_at, ends_at, sort_order")
       .eq("restaurant_id", restaurant.id)
       .order("sort_order"),
   ]);
@@ -124,55 +165,99 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
 
   const categories = (categoriesResult.data ?? []) as CategoryRow[];
   const items = (itemsResult.data ?? []) as ItemRow[];
-  const [itemTranslationsResult, categoryTranslationsResult, categoryDaypartsResult] = await Promise.all([
-    items.length
-      ? supabase
-          .from("menu_item_translations")
-          .select("menu_item_id, locale, name, description")
-          .in("menu_item_id", items.map((item) => item.id))
-      : Promise.resolve({ data: [], error: null }),
-    categories.length
-      ? supabase
-          .from("menu_category_translations")
-          .select("menu_category_id, locale, name, description")
-          .in("menu_category_id", categories.map((category) => category.id))
-      : Promise.resolve({ data: [], error: null }),
-    categories.length
-      ? supabase
-          .from("menu_category_dayparts")
-          .select("menu_category_id, daypart_id")
-          .in("menu_category_id", categories.map((category) => category.id))
-      : Promise.resolve({ data: [], error: null }),
-  ]);
+  const rawMenus = (menusResult.data ?? []) as PublicMenuRecord[];
+  const rawSchedules = (schedulesResult.data ?? []) as PublicMenuSchedule[];
 
-  // The table is introduced in the Stage 1 migration. This makes the page still
-  // render its default-language categories during the short deploy/migration gap.
+  const [itemTranslationsResult, categoryTranslationsResult, categoryDaypartsResult] =
+    await Promise.all([
+      items.length
+        ? supabase
+            .from("menu_item_translations")
+            .select("menu_item_id, locale, name, description")
+            .in("menu_item_id", items.map((item) => item.id))
+        : Promise.resolve({ data: [], error: null }),
+      categories.length
+        ? supabase
+            .from("menu_category_translations")
+            .select("menu_category_id, locale, name, description")
+            .in("menu_category_id", categories.map((category) => category.id))
+        : Promise.resolve({ data: [], error: null }),
+      categories.length
+        ? supabase
+            .from("menu_category_dayparts")
+            .select("menu_category_id, daypart_id")
+            .in("menu_category_id", categories.map((category) => category.id))
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
   const categoryTranslations = categoryTranslationsResult.error
     ? []
     : ((categoryTranslationsResult.data ?? []) as CategoryTranslationRow[]);
   if (itemTranslationsResult.error) throw itemTranslationsResult.error;
 
-  // The category/daypart mapping was added after the original Stage 1 schema.
-  // During the short migration window, legacy `daypart_id` keeps the menu usable.
   const categoryDayparts = categoryDaypartsResult.error
     ? []
-    : ((categoryDaypartsResult.data ?? []) as Array<{ menu_category_id: string; daypart_id: string }>);
+    : ((categoryDaypartsResult.data ?? []) as Array<{
+        menu_category_id: string;
+        daypart_id: string;
+      }>);
+
+  // Build menus list with schedules
+  let menus: PublicMenuRecord[] = rawMenus.filter((m) => m.is_active);
+  if (menus.length === 0) {
+    menus = [
+      {
+        id: "default-main-menu",
+        restaurant_id: restaurant.id,
+        name: "Carta Principal",
+        description: "Nuestra selección de platos y especialidades de la casa.",
+        banner_path: (restaurant.branding as Record<string, unknown>)?.cover_image_path as string | null ?? null,
+        is_active: true,
+        sort_order: 0,
+        schedules: [
+          {
+            id: "default-schedule",
+            menu_id: "default-main-menu",
+            day_of_week: null,
+            starts_at: "00:00:00",
+            ends_at: "23:59:59",
+            sort_order: 0,
+          },
+        ],
+      },
+    ];
+  } else {
+    menus = menus.map((m) => ({
+      ...m,
+      schedules: rawSchedules.filter((s) => s.menu_id === m.id),
+    }));
+  }
+
+  const defaultMenuId = menus[0]?.id;
 
   return {
     restaurant,
-    settings: settingsResult.data ?? { unavailable_item_behavior: "show_sold_out", uses_dayparts: false, contact: {} },
+    settings: settingsResult.data ?? {
+      unavailable_item_behavior: "show_sold_out",
+      uses_dayparts: false,
+      contact: {},
+    },
     dayparts: (daypartsResult.data ?? []) as DaypartRow[],
+    menus,
     categories: categories.map((category) => ({
       ...category,
+      menu_id: category.menu_id || defaultMenuId,
       daypart_ids: categoryDayparts
         .filter((mapping) => mapping.menu_category_id === category.id)
         .map((mapping) => mapping.daypart_id),
-      translations: categoryTranslations.filter((translation) => translation.menu_category_id === category.id),
+      translations: categoryTranslations.filter(
+        (translation) => translation.menu_category_id === category.id
+      ),
     })),
     items: items.map((item) => ({
       ...item,
       translations: ((itemTranslationsResult.data ?? []) as TranslationRow[]).filter(
-        (translation) => translation.menu_item_id === item.id,
+        (translation) => translation.menu_item_id === item.id
       ),
     })),
   };

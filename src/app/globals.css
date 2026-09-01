@@ -234,7 +234,86 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
 .admin-menu-brand {
   align-items: center;
   display: inline-flex;
-  gap: 0.65rem;
+  gap: 0.75rem;
+}
+
+.admin-logo-avatar-btn {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 0.65rem;
+  cursor: pointer;
+  display: inline-flex;
+  padding: 0;
+  position: relative;
+  transition: transform 0.15s ease;
+}
+
+.admin-logo-avatar-btn:hover {
+  transform: scale(1.05);
+}
+
+.admin-logo-avatar-btn .brand-logo {
+  border-radius: 0.65rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  height: 3rem;
+  object-fit: cover;
+  width: 3rem;
+}
+
+.avatar-edit-badge {
+  align-items: center;
+  background: var(--color-accent, #ae4c2c);
+  border: 2px solid white;
+  border-radius: 50%;
+  bottom: -4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  color: white;
+  display: flex;
+  height: 1.25rem;
+  justify-content: center;
+  position: absolute;
+  right: -4px;
+  width: 1.25rem;
+}
+
+.admin-logo-placeholder-btn {
+  align-items: center;
+  background: white;
+  border: 2px dashed #c8c2b9;
+  border-radius: 0.65rem;
+  color: var(--color-accent, #ae4c2c);
+  cursor: pointer;
+  display: inline-flex;
+  height: 3rem;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.15s ease;
+  width: 3rem;
+}
+
+.admin-logo-placeholder-btn:hover {
+  background: var(--color-secondary, #f3e5df);
+  border-color: var(--color-accent, #ae4c2c);
+  transform: scale(1.05);
+}
+
+.logo-preview-box {
+  align-items: center;
+  background: #f9f7f4;
+  border: 1px solid #e7e1d8;
+  border-radius: 0.5rem;
+  display: flex;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.logo-preview-img {
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  height: 96px;
+  object-fit: contain;
+  width: 96px;
 }
 
 .admin-menu-title {
@@ -243,6 +322,7 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
   font-weight: 800;
   letter-spacing: -0.01em;
 }
+
 
 .admin-menu-header-actions {
   align-items: center;
@@ -516,9 +596,8 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
   transform: scale(1.08);
 }
 
-/* Tab "Todo" style */
+/* Tab "Inicio" style */
 .admin-tab-all {
-  margin-left: auto;
   border-style: solid;
 }
 
@@ -534,13 +613,26 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
 }
 
 .admin-category-block-header {
-  align-items: baseline;
+  align-items: center;
   border-bottom: 2px solid #e7e1d8;
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
   justify-content: space-between;
   margin-bottom: 1.25rem;
   padding-bottom: 0.65rem;
+}
+
+.admin-category-block-title-group {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.admin-category-title-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
 }
 
 .admin-category-block-title {
@@ -553,7 +645,7 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
 .admin-category-block-desc {
   color: var(--color-muted);
   font-size: 0.92rem;
-  margin: 0.25rem 0 0;
+  margin: 0;
 }
 
 .admin-category-count-badge {
@@ -564,6 +656,17 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
   font-weight: 700;
   padding: 0.25rem 0.65rem;
   white-space: nowrap;
+}
+
+.admin-category-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.35rem;
+}
+
+.admin-category-actions .icon-button {
+  height: 2.15rem;
+  width: 2.15rem;
 }
 
 /* Dish Grid */
@@ -832,6 +935,654 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
   object-fit: cover;
 }
 
+/* =========================================================================
+   DASHBOARD DE CARTAS (MIS CARTAS)
+   ========================================================================= */
+
+.admin-menus-dashboard {
+  width: 100%;
+  max-width: 84rem;
+  margin: 0 auto;
+  padding: 1.5rem 0 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.admin-dashboard-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #e7e1d8;
+  padding-bottom: 1.5rem;
+}
+
+.admin-dashboard-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.admin-dashboard-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-accent, #ae4c2c);
+  background: #fdf3ef;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  width: fit-content;
+}
+
+.admin-dashboard-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-ink, #26211c);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.admin-dashboard-subtitle {
+  font-size: 0.95rem;
+  color: var(--color-muted, #72685d);
+  margin: 0;
+}
+
+.admin-dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* Grilla de Cartas */
+.admin-menus-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  gap: 1.75rem;
+}
+
+.admin-menu-card {
+  background: white;
+  border: 1px solid #e7e1d8;
+  border-radius: 1rem;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-menu-card:hover {
+  border-color: #cbbfae;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.admin-menu-card.is-inactive {
+  opacity: 0.8;
+  background: #faf8f5;
+}
+
+/* Portada de la tarjeta de carta */
+.admin-menu-card-cover {
+  position: relative;
+  width: 100%;
+  height: 11rem;
+  background: #f0eae1;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.admin-menu-card-image {
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.admin-menu-card:hover .admin-menu-card-image {
+  transform: scale(1.04);
+}
+
+.admin-menu-card-placeholder-banner {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a89f91;
+  background: linear-gradient(135deg, #f5f0e8 0%, #ebe3d5 100%);
+}
+
+.admin-menu-card-badges {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 2;
+}
+
+.admin-badge-active {
+  background: rgba(255, 255, 255, 0.94);
+  color: #2b7a1f;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.admin-badge-inactive {
+  background: rgba(255, 255, 255, 0.94);
+  color: #dc2626;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+
+.admin-menu-card-hover-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 3;
+}
+
+.admin-menu-card-cover:hover .admin-menu-card-hover-overlay {
+  opacity: 1;
+}
+
+.admin-menu-card-enter-btn {
+  background: white;
+  color: var(--color-ink);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(4px);
+  transition: transform 0.2s ease;
+}
+
+.admin-menu-card-cover:hover .admin-menu-card-enter-btn {
+  transform: translateY(0);
+}
+
+/* Cuerpo de la tarjeta */
+.admin-menu-card-body {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.admin-menu-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.admin-menu-card-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--color-ink);
+  margin: 0;
+  line-height: 1.3;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.admin-menu-card-name:hover {
+  color: var(--color-accent, #ae4c2c);
+}
+
+.admin-menu-card-desc {
+  font-size: 0.88rem;
+  color: var(--color-muted);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.admin-menu-card-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  background: #fbf9f6;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.65rem;
+  border: 1px solid #f0eae1;
+}
+
+.admin-menu-card-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+}
+
+.admin-menu-card-meta-item svg {
+  color: var(--color-accent, #ae4c2c);
+  flex-shrink: 0;
+}
+
+.admin-menu-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f0eae1;
+}
+
+.admin-menu-open-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border-radius: 0.55rem;
+}
+
+.admin-menu-card-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Tarjeta vacía para Crear Carta */
+.admin-create-menu-card {
+  background: #fbf9f6;
+  border: 2px dashed #d5cec5;
+  border-radius: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 20rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.admin-create-menu-card:hover {
+  background: #fdf6f2;
+  border-color: var(--color-accent, #ae4c2c);
+  transform: translateY(-3px);
+}
+
+.admin-create-menu-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 18rem;
+}
+
+.admin-create-menu-plus-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: white;
+  border: 2px dashed var(--color-accent, #ae4c2c);
+  color: var(--color-accent, #ae4c2c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.35rem;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.admin-create-menu-card:hover .admin-create-menu-plus-icon {
+  background: var(--color-secondary, #f3e5df);
+  transform: scale(1.1);
+}
+
+.admin-create-menu-card strong {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-ink);
+}
+
+.admin-create-menu-card p {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* =========================================================================
+   LAYOUT DEL EDITOR DE CARTA ACTIVA
+   ========================================================================= */
+
+.admin-menu-editor-layout {
+  width: 100%;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1rem 0 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.admin-editor-top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #ede7df;
+}
+
+.admin-back-to-menus-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border: 1px solid #d5cec5;
+  color: var(--color-ink);
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.55rem 1rem;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.admin-back-to-menus-btn:hover {
+  background: #f7f4ee;
+  border-color: #beb6ab;
+}
+
+.admin-editor-menu-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  color: var(--color-muted);
+}
+
+.admin-editor-menu-switcher select {
+  background: white;
+  border: 1px solid #d5cec5;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.admin-active-menu-info {
+  background: white;
+  border: 1px solid #e7e1d8;
+  border-radius: 0.75rem;
+  padding: 1.1rem 1.4rem;
+  margin-top: 0.75rem;
+}
+
+.admin-active-menu-header-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.admin-active-menu-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.admin-menu-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: #f7f4ee;
+  border: 1px solid #ded6c9;
+  color: var(--color-ink);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-left: auto;
+}
+
+.admin-menu-edit-btn:hover {
+  background: #ece5d9;
+}
+
+.admin-active-menu-description {
+  font-size: 0.92rem;
+  color: var(--color-muted);
+  margin: 0.35rem 0 0;
+  line-height: 1.4;
+}
+
+/* Control de Horarios en la barra de controles */
+.admin-schedule-control {
+  min-width: 14rem;
+}
+
+.admin-schedule-trigger-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: white;
+  border: 1px solid #d5cec5;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  text-align: left;
+  color: var(--color-ink);
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.admin-schedule-trigger-btn:hover {
+  border-color: var(--color-accent, #ae4c2c);
+  background: #fdfbf9;
+}
+
+.admin-schedule-summary-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-schedule-edit-badge {
+  font-size: 0.72rem;
+  background: #f3efe9;
+  color: var(--color-accent, #ae4c2c);
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+/* Modal de horarios */
+.admin-schedules-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.admin-schedule-row-card {
+  background: #f9f7f4;
+  border: 1px solid #e7e1d8;
+  border-radius: 0.65rem;
+  padding: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-schedule-row-inputs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.admin-schedule-remove-btn {
+  background: transparent;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 0.35rem;
+  transition: background 0.15s ease;
+}
+
+.admin-schedule-remove-btn:hover {
+  background: #fee2e2;
+}
+
+.admin-add-schedule-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  padding: 0.5rem 0.85rem;
+}
+
+.admin-form-row {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.admin-radio-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.35rem;
+}
+
+.admin-radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: var(--color-ink);
+}
+
+.admin-image-preview-box {
+  margin-top: 0.5rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #e7e1d8;
+  max-height: 120px;
+  background: #f5f2eb;
+}
+
+.admin-banner-preview-img {
+  width: 100%;
+  max-height: 120px;
+  object-fit: cover;
+}
+
+.admin-form-divider {
+  height: 1px;
+  background: #f0eae1;
+  margin: 0.5rem 0;
+}
+
+.admin-empty-menu-state {
+  background: white;
+  border: 2px dashed #dcd5cc;
+  border-radius: 1rem;
+  padding: 3rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.admin-empty-menu-icon {
+  color: var(--color-accent, #ae4c2c);
+  background: #fcf4f0;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.admin-empty-menu-state h3 {
+  font-size: 1.3rem;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.admin-empty-menu-state p {
+  color: var(--color-muted);
+  max-width: 28rem;
+  font-size: 0.92rem;
+  margin: 0 0 0.5rem;
+}
+
+/* Vista Pública - Cabecera de Carta Activa */
+.menu-info-header {
+  text-align: center;
+  padding: 1rem 1rem 0.5rem;
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.menu-active-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--color-ink);
+  margin: 0;
+}
+
+.menu-active-description {
+  font-size: 0.95rem;
+  color: var(--color-muted);
+  margin: 0.35rem 0 0;
+  line-height: 1.45;
+}
+
+@media (max-width: 48rem) {
+  .admin-dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .admin-menus-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-editor-top-nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
 @media (max-width: 34rem) {
   .admin-menu-view {
     padding-inline: 0.85rem;
@@ -840,11 +1591,8 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
     align-items: stretch;
   }
   .admin-menu-control {
-    flex-basis: calc(50% - 0.4rem);
-    max-width: none;
-  }
-  .admin-menu-control-lang {
     flex-basis: 100%;
+    max-width: none;
   }
   .admin-dish-grid {
     grid-template-columns: 1fr;
@@ -854,6 +1602,8 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+
 
 
 

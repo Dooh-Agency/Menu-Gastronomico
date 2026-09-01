@@ -6,11 +6,11 @@ import Image from "next/image";
 import type { PublicMenu } from "@/lib/supabase/public-menu";
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
 
-
 type MenuPublicoProps = {
   menu: PublicMenu;
   locale: string;
   currentDaypartId: string | null;
+  initialMenuId?: string | null;
 };
 
 type MenuItem = PublicMenu["items"][number];
@@ -19,7 +19,7 @@ const labels = {
   es: {
     menu: "Menú",
     filters: "Filtrar por preferencias",
-    all: "Todo",
+    all: "Inicio",
     details: "Ver detalle",
     close: "Cerrar",
     qr: "Ver QR",
@@ -34,7 +34,7 @@ const labels = {
   en: {
     menu: "Menu",
     filters: "Filter by dietary preference",
-    all: "All",
+    all: "Inicio",
     details: "View details",
     close: "Close",
     qr: "View QR",
@@ -67,10 +67,20 @@ function formatPrice(cents: number, currency: string, locale: string) {
   }).format(cents / 100);
 }
 
-export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps) {
+export function MenuPublico({
+  menu,
+  locale,
+  currentDaypartId,
+  initialMenuId,
+}: MenuPublicoProps) {
+  const [selectedMenuId, setSelectedMenuId] = useState<string>(
+    initialMenuId || menu.menus[0]?.id || "default"
+  );
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null);
-  const [selectedDaypartId, setSelectedDaypartId] = useState(currentDaypartId ?? menu.dayparts[0]?.id ?? null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [selectedDaypartId, setSelectedDaypartId] = useState(
+    currentDaypartId ?? menu.dayparts[0]?.id ?? null
+  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>("all");
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const categoryNav = useRef<HTMLElement>(null);
   const categoryScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -78,6 +88,7 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const copy = copyFor(locale);
+
   const branding = brandingFor(menu.restaurant.branding);
   const brandStyle = {
     "--color-accent": branding.primary_color,
@@ -89,8 +100,28 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
     "--radius-card": branding.radius === "soft" ? ".65rem" : branding.radius === "square" ? ".15rem" : "1rem",
   } as CSSProperties;
 
+  // Active menu object
+  const currentMenu =
+    menu.menus.find((m) => m.id === selectedMenuId) ||
+    menu.menus[0] || {
+      id: "default",
+      restaurant_id: menu.restaurant.id,
+      name: "Carta Principal",
+      description: null,
+      banner_path: null,
+      is_active: true,
+      sort_order: 0,
+      schedules: [],
+    };
+
+  const activeBannerPath = currentMenu.banner_path || branding.cover_image_path;
+
   const dietaryTags = Array.from(new Set(menu.items.flatMap((item) => item.dietary_tags))).sort();
-  const categories = menu.categories.filter((category) => {
+
+  // Filter categories by selected menu
+  const menuCategories = menu.categories.filter((c) => c.menu_id === currentMenu.id);
+
+  const categories = menuCategories.filter((category) => {
     if (!menu.settings.uses_dayparts) return true;
     const daypartIds = category.daypart_ids.length ? category.daypart_ids : category.daypart_id ? [category.daypart_id] : [];
     return daypartIds.length === 0 || daypartIds.includes(selectedDaypartId ?? "");
@@ -105,7 +136,6 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
   }
 
   const activeDaypart = menu.dayparts.find((daypart) => daypart.id === selectedDaypartId);
-  const selectedCategory = categories.find((category) => category.id === selectedCategoryId) ?? categories[0];
   const isActiveMenu = selectedDaypartId === currentDaypartId;
 
   useEffect(() => () => {
@@ -130,33 +160,165 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
     }, 120);
   }
 
+  const categoriesToRender = !selectedCategoryId || selectedCategoryId === "all"
+    ? categories
+    : categories.filter((c) => c.id === selectedCategoryId);
+
   return (
     <main className="menu-shell" style={brandStyle}>
       <header className="menu-header">
         <a className="brand" href="#menu-content" aria-label={`${menu.restaurant.name}, ${copy.menu}`}>
-          {branding.logo_path ? <Image alt="" className="brand-logo" height={72} src={menuImageUrl(branding.logo_path)} width={72} /> : <span className="brand-mark" aria-hidden="true" />}
+          {branding.logo_path ? (
+            <Image
+              alt=""
+              className="brand-logo"
+              height={72}
+              src={menuImageUrl(branding.logo_path)}
+              width={72}
+            />
+          ) : (
+            <span className="brand-mark" aria-hidden="true" />
+          )}
           {menu.restaurant.name}
         </a>
         <a className="qr-link" href={`/${menu.restaurant.slug}/qr`}>{copy.qr}</a>
       </header>
 
-      {branding.cover_image_path ? <div aria-hidden="true" className="menu-cover"><Image alt="" className="menu-cover-image" fill priority sizes="(max-width: 72rem) 100vw, 72rem" src={menuImageUrl(branding.cover_image_path)} /></div> : null}
+      {/* Banner de la Carta Activa */}
+      {activeBannerPath ? (
+        <div aria-hidden="true" className="menu-cover">
+          <Image
+            alt={`Banner ${currentMenu.name}`}
+            className="menu-cover-image"
+            fill
+            priority
+            sizes="(max-width: 72rem) 100vw, 72rem"
+            src={menuImageUrl(activeBannerPath)}
+          />
+        </div>
+      ) : null}
 
-      {menu.settings.uses_dayparts || dietaryTags.length || menu.restaurant.supported_locales.length > 1 ? <section className="menu-controls" aria-label={copy.menu}>
-        {menu.settings.uses_dayparts && menu.dayparts.length ? <label className="menu-control"><span>{copy.menus}</span><select aria-label={copy.menus} onChange={(event) => { setSelectedDaypartId(event.target.value); setSelectedCategoryId(null); }} value={selectedDaypartId ?? ""}>{menu.dayparts.map((daypart) => <option key={daypart.id} value={daypart.id}>{daypart.name}</option>)}</select></label> : null}
-        {dietaryTags.length ? <label className="menu-control"><span>{copy.filters}</span><select aria-label={copy.filters} onChange={(event) => setDietaryFilter(event.target.value || null)} value={dietaryFilter ?? ""}><option value="">{copy.all}</option>{dietaryTags.map((tag) => <option key={tag} value={tag}>{tag}</option>)}</select></label> : null}
-        {menu.restaurant.supported_locales.length > 1 ? <label className="menu-control language-control"><span>{copy.languages}</span><select aria-label={copy.languages} onChange={(event) => selectLocale(event.target.value)} value={locale}>{menu.restaurant.supported_locales.map((supportedLocale) => <option key={supportedLocale} value={supportedLocale}>{supportedLocale.toUpperCase()}</option>)}</select></label> : null}
-      </section> : null}
+      {/* Título y descripción de la carta si hay múltiples cartas o si tiene descripción */}
+      {(menu.menus.length > 1 || currentMenu.description) && (
+        <div className="menu-info-header">
+          <h1 className="menu-active-title">{currentMenu.name}</h1>
+          {currentMenu.description && (
+            <p className="menu-active-description">{currentMenu.description}</p>
+          )}
+        </div>
+      )}
 
-      {activeDaypart && !isActiveMenu ? <p className="menu-availability">{copy.unavailableMenu} {activeDaypart.starts_at.slice(0, 5)}–{activeDaypart.ends_at.slice(0, 5)}.</p> : null}
+      {/* Selector de Cartas (si hay más de una) y Controles */}
+      {(menu.menus.length > 1 || menu.settings.uses_dayparts || dietaryTags.length || menu.restaurant.supported_locales.length > 1) ? (
+        <section className="menu-controls" aria-label={copy.menu}>
+          {/* Selector de Carta si hay múltiples */}
+          {menu.menus.length > 1 ? (
+            <label className="menu-control">
+              <span>{copy.menus}</span>
+              <select
+                aria-label={copy.menus}
+                onChange={(event) => {
+                  setSelectedMenuId(event.target.value);
+                  setSelectedCategoryId("all");
+                }}
+                value={selectedMenuId}
+              >
+                {menu.menus.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
 
-      {categories.length > 1 ? (
-        <nav className="category-nav" aria-label={copy.menu} onScroll={selectCategoryFromNavScroll} ref={categoryNav} role="tablist">
+          {menu.settings.uses_dayparts && menu.dayparts.length ? (
+            <label className="menu-control">
+              <span>{copy.menus}</span>
+              <select
+                aria-label={copy.menus}
+                onChange={(event) => {
+                  setSelectedDaypartId(event.target.value);
+                  setSelectedCategoryId("all");
+                }}
+                value={selectedDaypartId ?? ""}
+              >
+                {menu.dayparts.map((daypart) => (
+                  <option key={daypart.id} value={daypart.id}>
+                    {daypart.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
+          {dietaryTags.length ? (
+            <label className="menu-control">
+              <span>{copy.filters}</span>
+              <select
+                aria-label={copy.filters}
+                onChange={(event) => setDietaryFilter(event.target.value || null)}
+                value={dietaryFilter ?? ""}
+              >
+                <option value="">{copy.all}</option>
+                {dietaryTags.map((tag) => (
+                  <option key={tag} value={tag}>
+                    {tag}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+
+          {menu.restaurant.supported_locales.length > 1 ? (
+            <label className="menu-control language-control">
+              <span>{copy.languages}</span>
+              <select
+                aria-label={copy.languages}
+                onChange={(event) => selectLocale(event.target.value)}
+                value={locale}
+              >
+                {menu.restaurant.supported_locales.map((supportedLocale) => (
+                  <option key={supportedLocale} value={supportedLocale}>
+                    {supportedLocale.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+        </section>
+      ) : null}
+
+      {activeDaypart && !isActiveMenu ? (
+        <p className="menu-availability">
+          {copy.unavailableMenu} {activeDaypart.starts_at.slice(0, 5)}–{activeDaypart.ends_at.slice(0, 5)}.
+        </p>
+      ) : null}
+
+      {categories.length > 0 ? (
+        <nav
+          className="category-nav"
+          aria-label={copy.menu}
+          onScroll={selectCategoryFromNavScroll}
+          ref={categoryNav}
+          role="tablist"
+        >
+          <button
+            aria-selected={!selectedCategoryId || selectedCategoryId === "all"}
+            className={!selectedCategoryId || selectedCategoryId === "all" ? "is-active" : ""}
+            data-category-id="all"
+            id="tab-all"
+            onClick={() => selectCategory("all")}
+            role="tab"
+            type="button"
+          >
+            {copy.all}
+          </button>
           {categories.map((category) => (
             <button
               aria-controls={`category-${category.id}`}
-              aria-selected={selectedCategory?.id === category.id}
-              className={selectedCategory?.id === category.id ? "is-active" : ""}
+              aria-selected={selectedCategoryId === category.id}
+              className={selectedCategoryId === category.id ? "is-active" : ""}
               data-category-id={category.id}
               id={`tab-${category.id}`}
               key={category.id}
@@ -171,66 +333,102 @@ export function MenuPublico({ menu, locale, currentDaypartId }: MenuPublicoProps
       ) : null}
 
       <section className="menu-content" id="menu-content" aria-live="polite">
-        {selectedCategory ? (() => {
-          const category = selectedCategory;
-          const localizedCategory = translated(category, locale);
-          const items = menu.items.filter((item) => {
-            const matchesCategory = item.category_id === category.id;
-            const matchesAvailability = menu.settings.unavailable_item_behavior === "show_sold_out" || item.is_available;
-            const matchesFilter = !dietaryFilter || item.dietary_tags.includes(dietaryFilter);
-            return matchesCategory && matchesAvailability && matchesFilter;
+        {categoriesToRender.length > 0 ? (() => {
+          let hasRenderedAnyItem = false;
+          const renderedSections = categoriesToRender.map((category) => {
+            const localizedCategory = translated(category, locale);
+            const items = menu.items.filter((item) => {
+              const matchesCategory = item.category_id === category.id;
+              const matchesAvailability = menu.settings.unavailable_item_behavior === "show_sold_out" || item.is_available;
+              const matchesFilter = !dietaryFilter || item.dietary_tags.includes(dietaryFilter);
+              return matchesCategory && matchesAvailability && matchesFilter;
+            });
+
+            if (items.length > 0) {
+              hasRenderedAnyItem = true;
+            } else if (selectedCategoryId !== "all" && selectedCategoryId !== null) {
+              return (
+                <section aria-labelledby={`tab-${category.id}`} className="menu-section" id={`category-${category.id}`} key={category.id} role="tabpanel">
+                  <div className="section-heading">
+                    <h2>{localizedCategory.name}</h2>
+                    {localizedCategory.description ? <p>{localizedCategory.description}</p> : null}
+                  </div>
+                  <p className="empty-state">{copy.noItems}</p>
+                </section>
+              );
+            } else {
+              return null;
+            }
+
+            return (
+              <section aria-labelledby={`tab-${category.id}`} className="menu-section" id={`category-${category.id}`} key={category.id} role="tabpanel">
+                <div className="section-heading">
+                  <h2>{localizedCategory.name}</h2>
+                  {localizedCategory.description ? <p>{localizedCategory.description}</p> : null}
+                </div>
+                <div className="menu-grid">
+                  {items.map((item) => {
+                    const localizedItem = translated(item, locale);
+                    return (
+                      <article className={`menu-card${item.is_available ? "" : " is-unavailable"}`} key={item.id}>
+                        {item.image_path ? (
+                          <Image
+                            alt=""
+                            className="menu-image"
+                            height={720}
+                            sizes="(max-width: 34rem) 100vw, 33vw"
+                            src={menuImageUrl(item.image_path)}
+                            width={1280}
+                          />
+                        ) : null}
+                        <div className="menu-card-content">
+                          <div className="menu-card-heading">
+                            <h3>{localizedItem.name}</h3>
+                            <strong>{formatPrice(item.price_cents, item.currency_code, locale)}</strong>
+                          </div>
+                          {localizedItem.description ? <p>{localizedItem.description}</p> : null}
+                          {item.dietary_tags.length ? (
+                            <ul className="tag-list" aria-label={copy.filters}>
+                              {item.dietary_tags.map((tag) => <li key={tag}>{tag}</li>)}
+                            </ul>
+                          ) : null}
+                          {item.allergens.length ? (
+                            <details>
+                              <summary>{copy.details}</summary>
+                              <p><b>{copy.allergens}:</b> {item.allergens.join(", ")}</p>
+                            </details>
+                          ) : null}
+                          <button className="item-detail-button" onClick={() => setSelectedItem(item)} type="button">{copy.details}</button>
+                          {!item.is_available ? <span className="sold-out">{copy.soldOut}</span> : null}
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            );
           });
 
-          return (
-            <section aria-labelledby={`tab-${category.id}`} className="menu-section" id={`category-${category.id}`} key={category.id} role="tabpanel">
-              <div className="section-heading">
-                <h2>{localizedCategory.name}</h2>
-                {localizedCategory.description ? <p>{localizedCategory.description}</p> : null}
-              </div>
-              {items.length ? <div className="menu-grid">
-                {items.map((item) => {
-                  const localizedItem = translated(item, locale);
-                  return (
-                    <article className={`menu-card${item.is_available ? "" : " is-unavailable"}`} key={item.id}>
-                      {item.image_path ? (
-                        <Image
-                          alt=""
-                          className="menu-image"
-                          height={720}
-                          sizes="(max-width: 34rem) 100vw, 33vw"
-                          src={menuImageUrl(item.image_path)}
-                          width={1280}
-                        />
-                      ) : null}
-                      <div className="menu-card-content">
-                        <div className="menu-card-heading">
-                          <h3>{localizedItem.name}</h3>
-                          <strong>{formatPrice(item.price_cents, item.currency_code, locale)}</strong>
-                        </div>
-                        {localizedItem.description ? <p>{localizedItem.description}</p> : null}
-                        {item.dietary_tags.length ? (
-                          <ul className="tag-list" aria-label={copy.filters}>
-                            {item.dietary_tags.map((tag) => <li key={tag}>{tag}</li>)}
-                          </ul>
-                        ) : null}
-                        {item.allergens.length ? (
-                          <details>
-                            <summary>{copy.details}</summary>
-                            <p><b>{copy.allergens}:</b> {item.allergens.join(", ")}</p>
-                          </details>
-                        ) : null}
-                        <button className="item-detail-button" onClick={() => setSelectedItem(item)} type="button">{copy.details}</button>
-                        {!item.is_available ? <span className="sold-out">{copy.soldOut}</span> : null}
-                      </div>
-                    </article>
-                  );
-                })}
-              </div> : <p className="empty-state">{copy.noItems}</p>}
-            </section>
-          );
+          return hasRenderedAnyItem || (selectedCategoryId !== "all" && selectedCategoryId !== null)
+            ? renderedSections
+            : <p className="empty-state">{copy.noItems}</p>;
         })() : <p className="empty-state">{copy.noItems}</p>}
       </section>
-      {menu.settings.contact.phone || menu.settings.contact.email || menu.settings.contact.address || menu.settings.contact.website ? <footer className="menu-contact" aria-label="Contacto"><h2>{menu.restaurant.name}</h2>{menu.settings.contact.address ? <p>{menu.settings.contact.address}</p> : null}{menu.settings.contact.phone ? <a href={`tel:${menu.settings.contact.phone}`}>{menu.settings.contact.phone}</a> : null}{menu.settings.contact.email ? <a href={`mailto:${menu.settings.contact.email}`}>{menu.settings.contact.email}</a> : null}{menu.settings.contact.website ? <a href={menu.settings.contact.website} rel="noreferrer" target="_blank">Sitio web</a> : null}</footer> : null}
+
+      {menu.settings.contact.phone || menu.settings.contact.email || menu.settings.contact.address || menu.settings.contact.website ? (
+        <footer className="menu-contact" aria-label="Contacto">
+          <h2>{menu.restaurant.name}</h2>
+          {menu.settings.contact.address ? <p>{menu.settings.contact.address}</p> : null}
+          {menu.settings.contact.phone ? <a href={`tel:${menu.settings.contact.phone}`}>{menu.settings.contact.phone}</a> : null}
+          {menu.settings.contact.email ? <a href={`mailto:${menu.settings.contact.email}`}>{menu.settings.contact.email}</a> : null}
+          {menu.settings.contact.website ? (
+            <a href={menu.settings.contact.website} rel="noreferrer" target="_blank">
+              Sitio web
+            </a>
+          ) : null}
+        </footer>
+      ) : null}
+
       {selectedItem ? (() => {
         const localizedItem = translated(selectedItem, locale);
         return (

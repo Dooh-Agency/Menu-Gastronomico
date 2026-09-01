@@ -16,21 +16,38 @@ function minutes(value: string) {
   return hour * 60 + minute;
 }
 
-function restaurantMinutes(timezone: string) {
+function restaurantNowInfo(timezone: string) {
+  const date = new Date();
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: timezone,
     hour: "2-digit",
     minute: "2-digit",
+    weekday: "short",
     hourCycle: "h23",
-  }).formatToParts(new Date());
+  }).formatToParts(date);
+
   const hour = Number(parts.find((part) => part.type === "hour")?.value ?? 0);
   const minute = Number(parts.find((part) => part.type === "minute")?.value ?? 0);
-  return hour * 60 + minute;
+  const dayStr = parts.find((part) => part.type === "weekday")?.value?.toLowerCase() ?? "";
+
+  const dayMap: Record<string, number> = {
+    sun: 0,
+    mon: 1,
+    tue: 2,
+    wed: 3,
+    thu: 4,
+    fri: 5,
+    sat: 6,
+  };
+  const dayOfWeek = dayMap[dayStr] ?? date.getDay();
+  const currentMinutes = hour * 60 + minute;
+
+  return { currentMinutes, dayOfWeek };
 }
 
 function activeDaypartId(menu: NonNullable<Awaited<ReturnType<typeof getPublicMenu>>>) {
   if (!menu.settings.uses_dayparts) return null;
-  const now = restaurantMinutes(menu.restaurant.timezone);
+  const { currentMinutes: now } = restaurantNowInfo(menu.restaurant.timezone);
   const match = menu.dayparts.find((daypart) => {
     const start = minutes(daypart.starts_at);
     const end = minutes(daypart.ends_at);
@@ -39,14 +56,41 @@ function activeDaypartId(menu: NonNullable<Awaited<ReturnType<typeof getPublicMe
   return match?.id ?? null;
 }
 
+function activeMenuId(menu: NonNullable<Awaited<ReturnType<typeof getPublicMenu>>>) {
+  if (!menu.menus || menu.menus.length === 0) return null;
+  const { currentMinutes, dayOfWeek } = restaurantNowInfo(menu.restaurant.timezone);
+
+  const match = menu.menus.find((m) => {
+    if (!m.schedules || m.schedules.length === 0) return true;
+    return m.schedules.some((s) => {
+      if (s.day_of_week !== null && s.day_of_week !== dayOfWeek) return false;
+      const start = minutes(s.starts_at);
+      const end = minutes(s.ends_at);
+      return start < end
+        ? currentMinutes >= start && currentMinutes <= end
+        : currentMinutes >= start || currentMinutes <= end;
+    });
+  });
+
+  return match?.id ?? menu.menus[0]?.id ?? null;
+}
+
 function preferredLocale(acceptLanguage: string | null, supportedLocales: string[], fallback: string) {
   const requestedLocales = (acceptLanguage ?? "")
     .split(",")
     .map((value) => value.trim().split(";")[0]?.toLowerCase())
     .filter(Boolean);
-  return requestedLocales
-    .map((requested) => supportedLocales.find((supported) => supported.toLowerCase() === requested || supported.toLowerCase() === requested?.split("-")[0]))
-    .find((locale): locale is string => Boolean(locale)) ?? fallback;
+  return (
+    requestedLocales
+      .map((requested) =>
+        supportedLocales.find(
+          (supported) =>
+            supported.toLowerCase() === requested ||
+            supported.toLowerCase() === requested?.split("-")[0]
+        )
+      )
+      .find((locale): locale is string => Boolean(locale)) ?? fallback
+  );
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -64,8 +108,20 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
   const menu = await getPublicMenu(slug);
   if (!menu) notFound();
   const requestHeaders = await headers();
-  const locale = lang && menu.restaurant.supported_locales.includes(lang)
-    ? lang
-    : preferredLocale(requestHeaders.get("accept-language"), menu.restaurant.supported_locales, menu.restaurant.default_locale);
-  return <MenuPublico currentDaypartId={activeDaypartId(menu)} locale={locale} menu={menu} />;
+  const locale =
+    lang && menu.restaurant.supported_locales.includes(lang)
+      ? lang
+      : preferredLocale(
+          requestHeaders.get("accept-language"),
+          menu.restaurant.supported_locales,
+          menu.restaurant.default_locale
+        );
+  return (
+    <MenuPublico
+      currentDaypartId={activeDaypartId(menu)}
+      initialMenuId={activeMenuId(menu)}
+      locale={locale}
+      menu={menu}
+    />
+  );
 }

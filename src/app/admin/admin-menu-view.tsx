@@ -4,64 +4,26 @@ import { type CSSProperties, useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AdminDialog } from "./admin-dialog";
+import { MenusDashboard } from "./menus-dashboard";
+import {
+  EditMenuDialog,
+  MenuBannerDialog,
+  MenuSchedulesDialog,
+} from "./menu-dialogs";
 import {
   createCategory,
   createMenuItem,
+  deleteCategory,
   deleteMenuItem,
   toggleMenuItemAvailability,
-  updateCoverImage,
+  updateCategory,
+  updateLogoImage,
+  updateMenuBanner,
   updateMenuItem,
 } from "./actions";
 import { LocalizationFields } from "./localization-fields";
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
-
-type Daypart = {
-  id: string;
-  name: string;
-  starts_at: string;
-  ends_at: string;
-  sort_order: number;
-};
-
-type Category = {
-  id: string;
-  name: string;
-  description: string | null;
-  sort_order: number;
-  is_active: boolean;
-  menu_category_dayparts?: Array<{ daypart_id: string }>;
-  menu_category_translations?: Array<{ locale: string; name: string; description: string | null }>;
-};
-
-type MenuItem = {
-  id: string;
-  category_id: string;
-  name: string;
-  description: string | null;
-  price_cents: number;
-  currency_code: string;
-  image_path: string | null;
-  dietary_tags: string[];
-  allergens: string[];
-  is_available: boolean;
-  sort_order: number;
-  menu_item_translations?: Array<{ locale: string; name: string; description: string | null }>;
-};
-
-type RestaurantData = {
-  id: string;
-  name: string;
-  slug: string;
-  timezone: string;
-  supported_locales: string[];
-  default_locale: string;
-  branding: Record<string, unknown>;
-};
-
-type SettingsData = {
-  unavailable_item_behavior: "hide" | "show_sold_out";
-  uses_dayparts: boolean;
-};
+import type { Category, Daypart, Menu, MenuItem, RestaurantData, SettingsData } from "./types";
 
 type AdminMenuViewProps = {
   restaurant: RestaurantData;
@@ -69,6 +31,7 @@ type AdminMenuViewProps = {
   dayparts: Daypart[];
   categories: Category[];
   items: MenuItem[];
+  menus: Menu[];
 };
 
 function formatPrice(cents: number, currency: string, locale: string) {
@@ -79,27 +42,98 @@ function formatPrice(cents: number, currency: string, locale: string) {
   }).format(cents / 100);
 }
 
+function getScheduleSummaryText(menu: Menu) {
+  if (!menu.schedules || menu.schedules.length === 0) {
+    return "Disponible todo el día";
+  }
+  if (menu.schedules.length === 1) {
+    const s = menu.schedules[0];
+    const start = s.starts_at.slice(0, 5);
+    const end = s.ends_at.slice(0, 5);
+    if (start === "00:00" && (end === "23:59" || end === "00:00")) {
+      return "Disponible todo el día";
+    }
+    const daysLabel =
+      s.day_of_week === null
+        ? "Todos los días"
+        : s.day_of_week === 1
+        ? "Lunes"
+        : s.day_of_week === 2
+        ? "Martes"
+        : s.day_of_week === 3
+        ? "Miércoles"
+        : s.day_of_week === 4
+        ? "Jueves"
+        : s.day_of_week === 5
+        ? "Viernes"
+        : s.day_of_week === 6
+        ? "Sábado"
+        : "Domingo";
+    return `${daysLabel} (${start} - ${end})`;
+  }
+  return `${menu.schedules.length} franjas configuradas`;
+}
+
 export function AdminMenuView({
   restaurant,
   settings,
   dayparts,
   categories,
   items,
+  menus,
 }: AdminMenuViewProps) {
+  // Navigation state: null = Cartas Dashboard; string = Editing specific menu
+  const [selectedMenuId, setSelectedMenuId] = useState<string | null>(null);
+
   const [selectedDaypartId, setSelectedDaypartId] = useState<string>(dayparts[0]?.id ?? "");
   const [selectedLocale, setSelectedLocale] = useState<string>(restaurant.default_locale || "es");
   const [selectedDietary, setSelectedDietary] = useState<string>("");
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
 
-  // Modals state
-  const [isBannerDialogOpen, setIsBannerDialogOpen] = useState(false);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  // Dialogs state
+  const [isLogoDialogOpen, setIsLogoDialogOpen] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  const [isMenuBannerDialogOpen, setIsMenuBannerDialogOpen] = useState(false);
+  const [isMenuEditDialogOpen, setIsMenuEditDialogOpen] = useState(false);
+  const [isMenuSchedulesDialogOpen, setIsMenuSchedulesDialogOpen] = useState(false);
+
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [createItemForCategoryId, setCreateItemForCategoryId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [itemImagePreview, setItemImagePreview] = useState<string | null>(null);
 
   const [isPending, startTransition] = useTransition();
+
+  // If no menu is currently selected, show the MenusDashboard
+  if (!selectedMenuId) {
+    return (
+      <MenusDashboard
+        categories={categories}
+        items={items}
+        menus={menus}
+        onSelectMenu={(menuId) => {
+          setSelectedMenuId(menuId);
+          setSelectedCategoryId("all");
+        }}
+        restaurant={restaurant}
+      />
+    );
+  }
+
+  const currentMenu =
+    menus.find((m) => m.id === selectedMenuId) ||
+    menus[0] || {
+      id: "default",
+      restaurant_id: restaurant.id,
+      name: "Carta Principal",
+      description: null,
+      banner_path: null,
+      is_active: true,
+      sort_order: 0,
+      schedules: [],
+    };
 
   const branding = brandingFor(restaurant.branding);
   const brandStyle = {
@@ -117,8 +151,11 @@ export function AdminMenuView({
     new Set(["Sin TACC / Celíaco", "Vegano", "Vegetariano", "Sin lactosa", ...items.flatMap((i) => i.dietary_tags)])
   ).filter(Boolean);
 
+  // Categories belonging to the active menu
+  const menuCategories = categories.filter((c) => c.menu_id === currentMenu.id);
+
   // Filter categories by selected daypart if dayparts are enabled
-  const visibleCategories = categories.filter((category) => {
+  const visibleCategories = menuCategories.filter((category) => {
     if (!settings.uses_dayparts || !selectedDaypartId) return true;
     const daypartIds = category.menu_category_dayparts?.map((d) => d.daypart_id) ?? [];
     return daypartIds.length === 0 || daypartIds.includes(selectedDaypartId);
@@ -132,10 +169,13 @@ export function AdminMenuView({
 
   const activeCategoryForNewItem = categories.find((c) => c.id === createItemForCategoryId);
 
-  function handleBannerFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+  // Active banner: menu specific banner or fallback to restaurant cover image
+  const activeBannerPath = currentMenu.banner_path || branding.cover_image_path;
+
+  function handleLogoFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    if (file) setBannerPreview(URL.createObjectURL(file));
-    else setBannerPreview(null);
+    if (file) setLogoPreview(URL.createObjectURL(file));
+    else setLogoPreview(null);
   }
 
   function handleItemImageChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -144,22 +184,34 @@ export function AdminMenuView({
     else setItemImagePreview(null);
   }
 
-  function handleBannerSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function handleLogoSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     startTransition(async () => {
-      await updateCoverImage(formData);
-      setIsBannerDialogOpen(false);
-      setBannerPreview(null);
+      await updateLogoImage(formData);
+      setIsLogoDialogOpen(false);
+      setLogoPreview(null);
     });
   }
 
-  function handleRemoveBanner() {
-    if (!confirm("¿Deseas quitar la imagen de portada?")) return;
+  function handleRemoveLogo() {
+    if (!confirm("¿Deseas quitar la foto de perfil / logo?")) return;
     const formData = new FormData();
     formData.set("remove", "true");
     startTransition(async () => {
-      await updateCoverImage(formData);
+      await updateLogoImage(formData);
+      setIsLogoDialogOpen(false);
+      setLogoPreview(null);
+    });
+  }
+
+  function handleRemoveMenuBanner() {
+    if (!confirm(`¿Deseas quitar la foto de portada de la carta "${currentMenu.name}"?`)) return;
+    const formData = new FormData();
+    formData.set("menu_id", currentMenu.id);
+    formData.set("remove", "true");
+    startTransition(async () => {
+      await updateMenuBanner(formData);
     });
   }
 
@@ -181,534 +233,784 @@ export function AdminMenuView({
     });
   }
 
-  return (
-    <div className="admin-menu-view" style={brandStyle}>
-      {/* 1. Header de la carta */}
-      <header className="admin-menu-header">
-        <div className="admin-menu-brand">
-          {branding.logo_path ? (
-            <Image
-              alt=""
-              className="brand-logo"
-              height={48}
-              src={menuImageUrl(branding.logo_path)}
-              width={48}
-            />
-          ) : (
-            <span className="brand-mark" aria-hidden="true" />
-          )}
-          <span className="admin-menu-title">{restaurant.name}</span>
-        </div>
-        <div className="admin-menu-header-actions">
-          <Link
-            className="secondary-link admin-preview-link"
-            href={`/${restaurant.slug}`}
-            rel="noreferrer"
-            target="_blank"
-          >
-            <svg
-              aria-hidden="true"
-              fill="none"
-              height="16"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              width="16"
-            >
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-            Ver menú comensal
-          </Link>
-        </div>
-      </header>
+  function handleDeleteCategory(category: Category) {
+    const count = items.filter((i) => i.category_id === category.id).length;
+    const warningText =
+      count > 0
+        ? `¿Eliminar la categoría "${category.name}"? Contiene ${count} plato${count === 1 ? "" : "s"} que también se eliminarán.`
+        : `¿Eliminar la categoría "${category.name}"?`;
+    if (!confirm(warningText)) return;
+    const formData = new FormData();
+    formData.set("category_id", category.id);
+    startTransition(async () => {
+      await deleteCategory(formData);
+      if (selectedCategoryId === category.id) {
+        setSelectedCategoryId("all");
+      }
+    });
+  }
 
-      {/* 2. Banner / Portada */}
-      <section className="admin-menu-cover-section" aria-label="Banner de portada">
-        {branding.cover_image_path ? (
-          <div className="admin-menu-cover">
-            <Image
-              alt="Banner de portada"
-              className="admin-menu-cover-image"
-              fill
-              priority
-              sizes="(max-width: 72rem) 100vw, 72rem"
-              src={menuImageUrl(branding.cover_image_path)}
-            />
-            <div className="admin-cover-overlay">
-              <button
-                className="admin-cover-action-btn"
-                onClick={() => {
-                  setBannerPreview(null);
-                  setIsBannerDialogOpen(true);
-                }}
-                type="button"
-              >
-                <svg
-                  aria-hidden="true"
-                  fill="none"
-                  height="15"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  width="15"
-                >
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                  <circle cx="12" cy="13" r="4" />
-                </svg>
-                Cambiar banner
-              </button>
-              <button
-                className="admin-cover-action-btn btn-danger"
-                disabled={isPending}
-                onClick={handleRemoveBanner}
-                title="Quitar banner"
-                type="button"
-              >
-                <svg
-                  aria-hidden="true"
-                  fill="none"
-                  height="15"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  width="15"
-                >
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                </svg>
-                Quitar
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            className="admin-cover-placeholder"
-            onClick={() => {
-              setBannerPreview(null);
-              setIsBannerDialogOpen(true);
-            }}
-            type="button"
+  return (
+    <div className="admin-menu-editor-layout">
+      {/* Barra superior de navegación de vuelta a Mis Cartas */}
+      <div className="admin-editor-top-nav">
+        <button
+          className="admin-back-to-menus-btn"
+          onClick={() => setSelectedMenuId(null)}
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            fill="none"
+            height="16"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.5"
+            viewBox="0 0 24 24"
+            width="16"
           >
-            <div className="admin-cover-placeholder-content">
-              <div className="admin-cover-placeholder-plus" aria-hidden="true">
+            <line x1="19" x2="5" y1="12" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+          Volver a Mis Cartas
+        </button>
+
+        {menus.length > 1 && (
+          <div className="admin-editor-menu-switcher">
+            <span>Carta actual:</span>
+            <select
+              onChange={(e) => {
+                setSelectedMenuId(e.target.value);
+                setSelectedCategoryId("all");
+              }}
+              value={currentMenu.id}
+            >
+              {menus.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name} {!m.is_active ? "(Oculta)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* Lienzo de la Carta */}
+      <div className="admin-menu-view" style={brandStyle}>
+        {/* 1. Header general del restaurante */}
+        <header className="admin-menu-header">
+          <div className="admin-menu-brand">
+            {branding.logo_path ? (
+              <button
+                className="admin-logo-avatar-btn"
+                onClick={() => {
+                  setLogoPreview(null);
+                  setIsLogoDialogOpen(true);
+                }}
+                title="Cambiar foto de perfil / logo"
+                type="button"
+              >
+                <Image
+                  alt=""
+                  className="brand-logo"
+                  height={52}
+                  src={menuImageUrl(branding.logo_path)}
+                  width={52}
+                />
+                <span className="avatar-edit-badge" aria-hidden="true">
+                  <svg
+                    fill="none"
+                    height="12"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    width="12"
+                  >
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                </span>
+              </button>
+            ) : (
+              <button
+                className="admin-logo-placeholder-btn"
+                onClick={() => {
+                  setLogoPreview(null);
+                  setIsLogoDialogOpen(true);
+                }}
+                title="Agregar foto de perfil / logo"
+                type="button"
+              >
                 <svg
+                  aria-hidden="true"
                   fill="none"
-                  height="22"
+                  height="18"
                   stroke="currentColor"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth="2.5"
                   viewBox="0 0 24 24"
-                  width="22"
+                  width="18"
                 >
                   <line x1="12" x2="12" y1="5" y2="19" />
                   <line x1="5" x2="19" y1="12" y2="12" />
                 </svg>
-              </div>
-              <strong>Agregar banner de portada</strong>
-              <p>Hacé clic para cargar una foto de cabecera (Recomendado: 1200 × 400 px, máx 5 MB)</p>
-            </div>
-          </button>
-        )}
-      </section>
+              </button>
+            )}
+            <span className="admin-menu-title">{restaurant.name}</span>
+          </div>
 
-      {/* 3. Controles: Menú (Cartas), Preferencias e Idioma */}
-      <section className="admin-menu-controls" aria-label="Controles del menú">
-        {/* Selector de Carta / Turno */}
-        <label className="admin-menu-control">
-          <span>Menú / Carta</span>
-          {settings.uses_dayparts && dayparts.length > 0 ? (
-            <select
-              aria-label="Seleccionar carta"
-              onChange={(e) => setSelectedDaypartId(e.target.value)}
-              value={selectedDaypartId}
+          <div className="admin-menu-header-actions">
+            <Link
+              className="secondary-link admin-preview-link"
+              href={`/${restaurant.slug}`}
+              rel="noreferrer"
+              target="_blank"
             >
-              {dayparts.map((dp) => (
-                <option key={dp.id} value={dp.id}>
-                  {dp.name} ({dp.starts_at.slice(0, 5)} - {dp.ends_at.slice(0, 5)})
-                </option>
-              ))}
-            </select>
-          ) : (
-            <select aria-label="Carta única" disabled value="default">
-              <option value="default">Carta principal (Todo el día)</option>
-            </select>
-          )}
-        </label>
+              <svg
+                aria-hidden="true"
+                fill="none"
+                height="16"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                width="16"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              Ver menú comensal
+            </Link>
+          </div>
+        </header>
 
-        {/* Selector de Preferencias / Filtros */}
-        <label className="admin-menu-control">
-          <span>Preferencias</span>
-          <select
-            aria-label="Filtrar por preferencia"
-            onChange={(e) => setSelectedDietary(e.target.value)}
-            value={selectedDietary}
-          >
-            <option value="">Todo el menú</option>
-            {allDietaryTags.map((tag) => (
-              <option key={tag} value={tag}>
-                {tag}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        {/* Selector de Idioma */}
-        <label className="admin-menu-control admin-menu-control-lang">
-          <span>Idioma</span>
-          <select
-            aria-label="Seleccionar idioma"
-            onChange={(e) => setSelectedLocale(e.target.value)}
-            value={selectedLocale}
-          >
-            {restaurant.supported_locales.map((loc) => (
-              <option key={loc} value={loc}>
-                {loc.toUpperCase()}
-              </option>
-            ))}
-          </select>
-        </label>
-      </section>
-
-      {/* 4. Sección de Categorías con botón circular + y botón Todo a la derecha */}
-      <section className="admin-category-section" aria-label="Categorías del menú">
-        <div className="admin-category-header">
-          <div className="admin-category-tabs" role="tablist">
-            {visibleCategories.map((category) => {
-              const isActive = selectedCategoryId === category.id;
-              const translation = category.menu_category_translations?.find(
-                (t) => t.locale === selectedLocale
-              );
-              const displayName = (selectedLocale !== "es" && translation?.name) || category.name;
-
-              return (
+        {/* 2. Banner de la Carta Activa */}
+        <section className="admin-menu-cover-section" aria-label="Banner de portada de la carta">
+          {activeBannerPath ? (
+            <div className="admin-menu-cover">
+              <Image
+                alt={`Banner de ${currentMenu.name}`}
+                className="admin-menu-cover-image"
+                fill
+                priority
+                sizes="(max-width: 72rem) 100vw, 72rem"
+                src={menuImageUrl(activeBannerPath)}
+              />
+              <div className="admin-cover-overlay">
                 <button
-                  aria-selected={isActive}
-                  className={`admin-category-tab ${isActive ? "is-active" : ""}`}
-                  key={category.id}
-                  onClick={() => setSelectedCategoryId(category.id)}
-                  role="tab"
+                  className="admin-cover-action-btn"
+                  onClick={() => setIsMenuBannerDialogOpen(true)}
                   type="button"
                 >
-                  {displayName}
-                  {!category.is_active ? <span className="tab-paused-dot" title="Categoría pausada" /> : null}
+                  <svg
+                    aria-hidden="true"
+                    fill="none"
+                    height="15"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    width="15"
+                  >
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                    <circle cx="12" cy="13" r="4" />
+                  </svg>
+                  Cambiar banner de la carta
                 </button>
-              );
-            })}
-
-            {/* Botón circular con bordes alternados y + para agregar categorías */}
+                {currentMenu.banner_path && (
+                  <button
+                    className="admin-cover-action-btn btn-danger"
+                    disabled={isPending}
+                    onClick={handleRemoveMenuBanner}
+                    title="Quitar banner de la carta"
+                    type="button"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      fill="none"
+                      height="15"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      width="15"
+                    >
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                    Quitar
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
             <button
-              aria-label="Agregar nueva categoría"
-              className="admin-add-category-circle-btn"
-              onClick={() => setIsCategoryDialogOpen(true)}
-              title="Agregar nueva categoría"
+              className="admin-cover-placeholder"
+              onClick={() => setIsMenuBannerDialogOpen(true)}
+              type="button"
+            >
+              <div className="admin-cover-placeholder-content">
+                <div className="admin-cover-placeholder-plus" aria-hidden="true">
+                  <svg
+                    fill="none"
+                    height="22"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2.5"
+                    viewBox="0 0 24 24"
+                    width="22"
+                  >
+                    <line x1="12" x2="12" y1="5" y2="19" />
+                    <line x1="5" x2="19" y1="12" y2="12" />
+                  </svg>
+                </div>
+                <strong>Agregar banner para &quot;{currentMenu.name}&quot;</strong>
+                <p>Hacé clic para cargar una foto de cabecera propia para esta carta (1200 × 400 px)</p>
+              </div>
+            </button>
+          )}
+        </section>
+
+        {/* 3. Datos de la Carta (Nombre, Descripción, Botón Editar) */}
+        <section className="admin-active-menu-info">
+          <div className="admin-active-menu-meta">
+            <div className="admin-active-menu-header-row">
+              <h1 className="admin-active-menu-title">{currentMenu.name}</h1>
+              {!currentMenu.is_active && (
+                <span className="status-badge is-inactive">Carta Oculta / Inactiva</span>
+              )}
+              <button
+                className="admin-menu-edit-btn"
+                onClick={() => setIsMenuEditDialogOpen(true)}
+                title="Editar nombre y descripción de la carta"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  height="14"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  width="14"
+                >
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+                Editar carta
+              </button>
+            </div>
+            {currentMenu.description && (
+              <p className="admin-active-menu-description">{currentMenu.description}</p>
+            )}
+          </div>
+        </section>
+
+        {/* 4. Controles: Horarios Disponibles de la Carta, Preferencias e Idioma */}
+        <section className="admin-menu-controls" aria-label="Controles del menú">
+          {/* Horarios disponibles de la carta */}
+          <div className="admin-menu-control admin-schedule-control">
+            <span>Horarios disponibles</span>
+            <button
+              className="admin-schedule-trigger-btn"
+              onClick={() => setIsMenuSchedulesDialogOpen(true)}
+              title="Configurar días y horarios de esta carta"
               type="button"
             >
               <svg
                 aria-hidden="true"
                 fill="none"
-                height="18"
+                height="16"
                 stroke="currentColor"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth="2.5"
+                strokeWidth="2"
                 viewBox="0 0 24 24"
-                width="18"
+                width="16"
               >
-                <line x1="12" x2="12" y1="5" y2="19" />
-                <line x1="5" x2="19" y1="12" y2="12" />
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
               </svg>
-            </button>
-
-            {/* Botón Todo a la derecha para ver/scrollear por todas las categorías */}
-            <button
-              aria-selected={selectedCategoryId === "all"}
-              className={`admin-category-tab admin-tab-all ${selectedCategoryId === "all" ? "is-active" : ""}`}
-              onClick={() => setSelectedCategoryId("all")}
-              role="tab"
-              type="button"
-            >
-              Todo
+              <span className="admin-schedule-summary-text">
+                {getScheduleSummaryText(currentMenu)}
+              </span>
+              <span className="admin-schedule-edit-badge">Modificar</span>
             </button>
           </div>
-        </div>
-      </section>
 
-      {/* 5. Secciones de Categorías con Grilla de Platos y Tarjeta Punteada para Agregar Plato */}
-      <section className="admin-menu-content-area" aria-label="Platos por categoría">
-        {displayCategories.length > 0 ? (
-          displayCategories.map((category) => {
-            const translation = category.menu_category_translations?.find(
-              (t) => t.locale === selectedLocale
-            );
-            const displayName = (selectedLocale !== "es" && translation?.name) || category.name;
-            const categoryDescription =
-              (selectedLocale !== "es" && translation?.description) || category.description;
+          {/* Selector de Preferencias / Filtros */}
+          <label className="admin-menu-control">
+            <span>Preferencias</span>
+            <select
+              aria-label="Filtrar por preferencia"
+              onChange={(e) => setSelectedDietary(e.target.value)}
+              value={selectedDietary}
+            >
+              <option value="">Todo el menú</option>
+              {allDietaryTags.map((tag) => (
+                <option key={tag} value={tag}>
+                  {tag}
+                </option>
+              ))}
+            </select>
+          </label>
 
-            // Dishes in this category (filtered by dietary if selected)
-            const categoryItems = items.filter((item) => {
-              const matchesCategory = item.category_id === category.id;
-              const matchesDietary = !selectedDietary || item.dietary_tags.includes(selectedDietary);
-              return matchesCategory && matchesDietary;
-            });
+          {/* Selector de Idioma */}
+          <label className="admin-menu-control admin-menu-control-lang">
+            <span>Idioma</span>
+            <select
+              aria-label="Seleccionar idioma"
+              onChange={(e) => setSelectedLocale(e.target.value)}
+              value={selectedLocale}
+            >
+              {restaurant.supported_locales.map((loc) => (
+                <option key={loc} value={loc}>
+                  {loc.toUpperCase()}
+                </option>
+              ))}
+            </select>
+          </label>
+        </section>
 
-            return (
-              <section
-                className="admin-category-block"
-                id={`cat-${category.id}`}
-                key={category.id}
+        {/* 5. Sección de Categorías de la Carta */}
+        <section className="admin-category-section" aria-label="Categorías del menú">
+          <div className="admin-category-header">
+            <div className="admin-category-tabs" role="tablist">
+              {/* Botón Inicio */}
+              <button
+                aria-selected={selectedCategoryId === "all"}
+                className={`admin-category-tab admin-tab-all ${selectedCategoryId === "all" ? "is-active" : ""}`}
+                onClick={() => setSelectedCategoryId("all")}
+                role="tab"
+                type="button"
               >
-                <div className="admin-category-block-header">
-                  <div>
-                    <h2 className="admin-category-block-title">{displayName}</h2>
-                    {categoryDescription ? (
-                      <p className="admin-category-block-desc">{categoryDescription}</p>
-                    ) : null}
-                  </div>
-                  <span className="admin-category-count-badge">
-                    {categoryItems.length} {categoryItems.length === 1 ? "plato" : "platos"}
-                  </span>
-                </div>
+                Inicio
+              </button>
 
-                <div className="admin-dish-grid">
-                  {/* Platos existentes en esta categoría */}
-                  {categoryItems.map((item) => {
-                    const itemTranslation = item.menu_item_translations?.find(
-                      (t) => t.locale === selectedLocale
-                    );
-                    const itemDisplayName =
-                      (selectedLocale !== "es" && itemTranslation?.name) || item.name;
-                    const itemDisplayDesc =
-                      (selectedLocale !== "es" && itemTranslation?.description) || item.description;
+              {visibleCategories.map((category) => {
+                const isActive = selectedCategoryId === category.id;
+                const translation = category.menu_category_translations?.find(
+                  (t) => t.locale === selectedLocale
+                );
+                const displayName = (selectedLocale !== "es" && translation?.name) || category.name;
 
-                    return (
-                      <article
-                        className={`admin-dish-card ${!item.is_available ? "is-unavailable" : ""}`}
-                        key={item.id}
-                      >
-                        {item.image_path ? (
-                          <div className="admin-dish-image-wrap">
-                            <Image
-                              alt=""
-                              className="admin-dish-image"
-                              height={360}
-                              sizes="(max-width: 34rem) 100vw, 25vw"
-                              src={menuImageUrl(item.image_path)}
-                              width={640}
-                            />
-                          </div>
-                        ) : null}
-
-                        <div className="admin-dish-card-body">
-                          <div className="admin-dish-card-header">
-                            <h3 className="admin-dish-name">{itemDisplayName}</h3>
-                            <strong className="admin-dish-price">
-                              {formatPrice(item.price_cents, item.currency_code, selectedLocale)}
-                            </strong>
-                          </div>
-
-                          {itemDisplayDesc ? (
-                            <p className="admin-dish-desc">{itemDisplayDesc}</p>
-                          ) : null}
-
-                          {item.dietary_tags.length > 0 ? (
-                            <ul className="admin-dish-tags">
-                              {item.dietary_tags.map((tag) => (
-                                <li key={tag}>{tag}</li>
-                              ))}
-                            </ul>
-                          ) : null}
-
-                          <div className="admin-dish-card-footer">
-                            <button
-                              className={`admin-availability-btn ${
-                                item.is_available ? "is-available" : "is-sold-out"
-                              }`}
-                              disabled={isPending}
-                              onClick={() => handleToggleAvailability(item)}
-                              title={item.is_available ? "Marcar como agotado" : "Marcar como disponible"}
-                              type="button"
-                            >
-                              <span className="status-dot" aria-hidden="true" />
-                              {item.is_available ? "Disponible" : "Agotado"}
-                            </button>
-
-                            <div className="admin-dish-actions">
-                              <button
-                                aria-label={`Editar ${item.name}`}
-                                className="icon-button"
-                                onClick={() => {
-                                  setItemImagePreview(null);
-                                  setEditingItem(item);
-                                }}
-                                title="Editar plato"
-                                type="button"
-                              >
-                                <svg
-                                  fill="none"
-                                  height="15"
-                                  stroke="currentColor"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  viewBox="0 0 24 24"
-                                  width="15"
-                                >
-                                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
-                                </svg>
-                              </button>
-                              <button
-                                aria-label={`Eliminar ${item.name}`}
-                                className="icon-button icon-button-danger"
-                                disabled={isPending}
-                                onClick={() => handleDeleteItem(item)}
-                                title="Eliminar plato"
-                                type="button"
-                              >
-                                <svg
-                                  fill="none"
-                                  height="15"
-                                  stroke="currentColor"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  viewBox="0 0 24 24"
-                                  width="15"
-                                >
-                                  <polyline points="3 6 5 6 21 6" />
-                                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })}
-
-                  {/* Cuadrado con borde alternado (dashed) y + en el medio para agregar plato en esta categoría */}
+                return (
                   <button
-                    className="admin-add-item-card"
-                    onClick={() => {
-                      setItemImagePreview(null);
-                      setCreateItemForCategoryId(category.id);
-                    }}
+                    aria-selected={isActive}
+                    className={`admin-category-tab ${isActive ? "is-active" : ""}`}
+                    key={category.id}
+                    onClick={() => setSelectedCategoryId(category.id)}
+                    role="tab"
                     type="button"
                   >
-                    <div className="admin-add-item-plus-circle" aria-hidden="true">
-                      <svg
-                        fill="none"
-                        height="24"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2.5"
-                        viewBox="0 0 24 24"
-                        width="24"
-                      >
-                        <line x1="12" x2="12" y1="5" y2="19" />
-                        <line x1="5" x2="19" y1="12" y2="12" />
-                      </svg>
-                    </div>
-                    <strong>Agregar plato</strong>
-                    <span>en {displayName}</span>
+                    {displayName}
+                    {!category.is_active ? <span className="tab-paused-dot" title="Categoría pausada" /> : null}
                   </button>
-                </div>
-              </section>
-            );
-          })
-        ) : (
-          <div className="admin-empty-categories-card">
-            <div className="placeholder-card-icon" aria-hidden="true">
-              <svg
-                fill="none"
-                height="40"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1.75"
-                viewBox="0 0 24 24"
-                width="40"
-              >
-                <path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2" />
-                <path d="M15 2v18" />
-                <path d="M6 2v6a3 3 0 0 0 3 3 3 3 0 0 0 3-3V2" />
-                <path d="M9 2v18" />
-              </svg>
-            </div>
-            <h3>Tu menú aún no tiene categorías</h3>
-            <p>Hacé clic en el botón circular (+) de arriba para crear tu primera sección (ej: Entradas, Principales, Postres).</p>
-            <button
-              className="primary-link"
-              onClick={() => setIsCategoryDialogOpen(true)}
-              type="button"
-            >
-              + Crear primera categoría
-            </button>
-          </div>
-        )}
-      </section>
+                );
+              })}
 
-      {/* Modal: Cargar / Cambiar Banner */}
-      {isBannerDialogOpen ? (
-        <AdminDialog onClose={() => setIsBannerDialogOpen(false)}>
-          <form className="admin-modal-form" onSubmit={handleBannerSubmit}>
+              {/* Botón circular + para agregar categorías */}
+              <button
+                aria-label="Agregar nueva categoría a esta carta"
+                className="admin-add-category-circle-btn"
+                onClick={() => setIsCategoryDialogOpen(true)}
+                title="Agregar nueva categoría a esta carta"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  height="18"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  viewBox="0 0 24 24"
+                  width="18"
+                >
+                  <line x1="12" x2="12" y1="5" y2="19" />
+                  <line x1="5" x2="19" y1="12" y2="12" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* 6. Grilla de Platos y Categorías de la Carta */}
+        <section className="admin-menu-content-area" aria-label="Platos por categoría">
+          {displayCategories.length > 0 ? (
+            displayCategories.map((category) => {
+              const translation = category.menu_category_translations?.find(
+                (t) => t.locale === selectedLocale
+              );
+              const displayName = (selectedLocale !== "es" && translation?.name) || category.name;
+              const categoryDescription =
+                (selectedLocale !== "es" && translation?.description) || category.description;
+
+              // Dishes in this category
+              const categoryItems = items.filter((item) => {
+                const matchesCategory = item.category_id === category.id;
+                const matchesDietary = !selectedDietary || item.dietary_tags.includes(selectedDietary);
+                return matchesCategory && matchesDietary;
+              });
+
+              return (
+                <section
+                  className="admin-category-block"
+                  id={`cat-${category.id}`}
+                  key={category.id}
+                >
+                  <div className="admin-category-block-header">
+                    <div className="admin-category-block-title-group">
+                      <div className="admin-category-title-row">
+                        <h2 className="admin-category-block-title">{displayName}</h2>
+                        {!category.is_active ? (
+                          <span className="status-badge is-inactive">Pausada</span>
+                        ) : null}
+                        <span className="admin-category-count-badge">
+                          {categoryItems.length} {categoryItems.length === 1 ? "plato" : "platos"}
+                        </span>
+                      </div>
+                      {categoryDescription ? (
+                        <p className="admin-category-block-desc">{categoryDescription}</p>
+                      ) : null}
+                    </div>
+
+                    <div className="admin-category-actions">
+                      <button
+                        aria-label={`Editar categoría ${category.name}`}
+                        className="icon-button"
+                        onClick={() => setEditingCategory(category)}
+                        title="Editar categoría"
+                        type="button"
+                      >
+                        <svg
+                          fill="none"
+                          height="15"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          width="15"
+                        >
+                          <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                        </svg>
+                      </button>
+                      <button
+                        aria-label={`Eliminar categoría ${category.name}`}
+                        className="icon-button icon-button-danger"
+                        disabled={isPending}
+                        onClick={() => handleDeleteCategory(category)}
+                        title="Eliminar categoría"
+                        type="button"
+                      >
+                        <svg
+                          fill="none"
+                          height="15"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          width="15"
+                        >
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="admin-dish-grid">
+                    {/* Platos existentes */}
+                    {categoryItems.map((item) => {
+                      const itemTranslation = item.menu_item_translations?.find(
+                        (t) => t.locale === selectedLocale
+                      );
+                      const itemDisplayName =
+                        (selectedLocale !== "es" && itemTranslation?.name) || item.name;
+                      const itemDisplayDesc =
+                        (selectedLocale !== "es" && itemTranslation?.description) || item.description;
+
+                      return (
+                        <article
+                          className={`admin-dish-card ${!item.is_available ? "is-unavailable" : ""}`}
+                          key={item.id}
+                        >
+                          {item.image_path ? (
+                            <div className="admin-dish-image-wrap">
+                              <Image
+                                alt={itemDisplayName}
+                                className="admin-dish-image"
+                                fill
+                                sizes="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 33vw"
+                                src={menuImageUrl(item.image_path)}
+                              />
+                              {!item.is_available && (
+                                <span className="dish-sold-out-badge">Agotado</span>
+                              )}
+                            </div>
+                          ) : null}
+
+                          <div className="admin-dish-body">
+                            <div className="admin-dish-header">
+                              <h3 className="admin-dish-name">{itemDisplayName}</h3>
+                              <span className="admin-dish-price">
+                                {formatPrice(item.price_cents, item.currency_code, selectedLocale)}
+                              </span>
+                            </div>
+
+                            {itemDisplayDesc ? (
+                              <p className="admin-dish-desc">{itemDisplayDesc}</p>
+                            ) : null}
+
+                            {/* Tags dietéticos */}
+                            {item.dietary_tags.length > 0 ? (
+                              <div className="admin-dish-tags">
+                                {item.dietary_tags.map((tag) => (
+                                  <span className="dietary-tag" key={tag}>
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : null}
+
+                            {/* Acciones del plato */}
+                            <div className="admin-dish-actions">
+                              <button
+                                className={`admin-availability-toggle ${item.is_available ? "is-available" : "is-paused"}`}
+                                disabled={isPending}
+                                onClick={() => handleToggleAvailability(item)}
+                                title={item.is_available ? "Pausar plato" : "Reactivar plato"}
+                                type="button"
+                              >
+                                <span className="toggle-dot" />
+                                {item.is_available ? "Disponible" : "Agotado"}
+                              </button>
+
+                              <div className="admin-dish-btn-group">
+                                <button
+                                  aria-label={`Editar plato ${item.name}`}
+                                  className="icon-button"
+                                  onClick={() => {
+                                    setItemImagePreview(null);
+                                    setEditingItem(item);
+                                  }}
+                                  title="Editar plato"
+                                  type="button"
+                                >
+                                  <svg
+                                    fill="none"
+                                    height="15"
+                                    stroke="currentColor"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    viewBox="0 0 24 24"
+                                    width="15"
+                                  >
+                                    <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  aria-label={`Eliminar plato ${item.name}`}
+                                  className="icon-button icon-button-danger"
+                                  disabled={isPending}
+                                  onClick={() => handleDeleteItem(item)}
+                                  title="Eliminar plato"
+                                  type="button"
+                                >
+                                  <svg
+                                    fill="none"
+                                    height="15"
+                                    stroke="currentColor"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    viewBox="0 0 24 24"
+                                    width="15"
+                                  >
+                                    <polyline points="3 6 5 6 21 6" />
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+
+                    {/* Tarjeta punteada para agregar plato */}
+                    <button
+                      className="admin-add-dish-card"
+                      onClick={() => {
+                        setItemImagePreview(null);
+                        setCreateItemForCategoryId(category.id);
+                      }}
+                      type="button"
+                    >
+                      <div className="admin-add-dish-card-content">
+                        <div className="admin-add-dish-plus-icon" aria-hidden="true">
+                          <svg
+                            fill="none"
+                            height="20"
+                            stroke="currentColor"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2.5"
+                            viewBox="0 0 24 24"
+                            width="20"
+                          >
+                            <line x1="12" x2="12" y1="5" y2="19" />
+                            <line x1="5" x2="19" y1="12" y2="12" />
+                          </svg>
+                        </div>
+                        <strong className="admin-add-dish-label">Agregar plato</strong>
+                        <span className="admin-add-dish-category-hint">a {displayName}</span>
+                      </div>
+                    </button>
+                  </div>
+                </section>
+              );
+            })
+          ) : (
+            <div className="admin-empty-menu-state">
+              <div className="admin-empty-menu-icon">
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  height="36"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
+                  viewBox="0 0 24 24"
+                  width="36"
+                >
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              </div>
+              <h3>Esta carta todavía no tiene categorías</h3>
+              <p>
+                Creá la primera categoría (ej: Entradas, Principales, Bebidas) para comenzar a
+                agregar platos en <strong>&quot;{currentMenu.name}&quot;</strong>.
+              </p>
+              <button
+                className="primary-button"
+                onClick={() => setIsCategoryDialogOpen(true)}
+                type="button"
+              >
+                + Crear primera categoría
+              </button>
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* =========================================================================
+          MODALES
+          ========================================================================= */}
+
+      {/* Modal: Banner de la carta */}
+      {isMenuBannerDialogOpen && (
+        <MenuBannerDialog
+          isOpen={isMenuBannerDialogOpen}
+          menu={currentMenu}
+          onClose={() => setIsMenuBannerDialogOpen(false)}
+        />
+      )}
+
+      {/* Modal: Editar metadatos de la carta */}
+      {isMenuEditDialogOpen && (
+        <EditMenuDialog
+          isOpen={isMenuEditDialogOpen}
+          menu={currentMenu}
+          onClose={() => setIsMenuEditDialogOpen(false)}
+        />
+      )}
+
+      {/* Modal: Horarios de la carta */}
+      {isMenuSchedulesDialogOpen && (
+        <MenuSchedulesDialog
+          isOpen={isMenuSchedulesDialogOpen}
+          menu={currentMenu}
+          onClose={() => setIsMenuSchedulesDialogOpen(false)}
+          schedules={currentMenu.schedules || []}
+        />
+      )}
+
+      {/* Modal: Logo / Foto de Perfil */}
+      {isLogoDialogOpen ? (
+        <AdminDialog onClose={() => setIsLogoDialogOpen(false)}>
+          <form className="admin-modal-form" onSubmit={handleLogoSubmit}>
             <div>
               <p className="eyebrow">Personalización</p>
-              <h2>{branding.cover_image_path ? "Cambiar banner de portada" : "Cargar banner de portada"}</h2>
-              <p>Seleccioná una imagen en formato JPG, PNG o WebP de hasta 5 MB.</p>
+              <h2>Foto de perfil / Logo del restaurante</h2>
+              <p>Esta imagen identifica a tu local en la cabecera del menú digital.</p>
             </div>
 
-            {bannerPreview ? (
-              <div className="banner-preview-box">
+            {logoPreview ? (
+              <div className="banner-preview-box" style={{ maxWidth: "160px" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img alt="Vista previa del banner" className="banner-preview-img" src={bannerPreview} />
+                <img alt="Vista previa del logo" className="banner-preview-img" src={logoPreview} />
               </div>
-            ) : branding.cover_image_path ? (
-              <div className="banner-preview-box">
+            ) : branding.logo_path ? (
+              <div className="banner-preview-box" style={{ maxWidth: "160px" }}>
                 <Image
-                  alt="Banner actual"
+                  alt=""
                   className="banner-preview-img"
-                  height={140}
-                  src={menuImageUrl(branding.cover_image_path)}
-                  width={420}
+                  height={120}
+                  src={menuImageUrl(branding.logo_path)}
+                  width={120}
                 />
               </div>
             ) : null}
 
             <label>
-              Seleccionar archivo de imagen
+              Seleccionar archivo de imagen <span className="field-optional">JPG, PNG o WebP; máx 5 MB</span>
               <input
                 accept="image/jpeg,image/png,image/webp"
-                autoFocus
-                name="cover_image"
-                onChange={handleBannerFileChange}
+                name="logo_image"
+                onChange={handleLogoFileChange}
                 required
                 type="file"
               />
             </label>
 
             <div className="admin-modal-actions">
+              {branding.logo_path ? (
+                <button
+                  className="secondary-link"
+                  disabled={isPending}
+                  onClick={handleRemoveLogo}
+                  style={{ color: "#ef4444", marginRight: "auto" }}
+                  type="button"
+                >
+                  Quitar logo
+                </button>
+              ) : null}
               <button
                 className="secondary-link"
-                disabled={isPending}
-                onClick={() => {
-                  setIsBannerDialogOpen(false);
-                  setBannerPreview(null);
-                }}
+                onClick={() => setIsLogoDialogOpen(false)}
                 type="button"
               >
                 Cancelar
               </button>
               <button className="primary-link" disabled={isPending} type="submit">
-                {isPending ? "Guardando..." : "Guardar banner"}
+                {isPending ? "Guardando..." : "Guardar logo"}
               </button>
             </div>
           </form>
@@ -720,39 +1022,32 @@ export function AdminMenuView({
         <AdminDialog onClose={() => setIsCategoryDialogOpen(false)}>
           <form
             action={async (formData) => {
+              formData.set("menu_id", currentMenu.id);
               await createCategory(formData);
               setIsCategoryDialogOpen(false);
             }}
             className="admin-modal-form"
           >
             <div>
-              <p className="eyebrow">Menú</p>
-              <h2>Nueva categoría</h2>
-              <p>Creá una sección para organizar los platos de tu carta.</p>
+              <p className="eyebrow">Nueva categoría para &quot;{currentMenu.name}&quot;</p>
+              <h2>Crear categoría</h2>
+              <p>Las categorías agrupan los platos dentro de esta carta.</p>
             </div>
 
             <label>
               Nombre de la categoría
-              <input autoFocus name="name" placeholder="Ej: Entradas, Principales, Postres, Bebidas..." required />
+              <input
+                autoFocus
+                name="name"
+                placeholder="Ej: Entradas, Pastas, Postres, Vinos Tintos..."
+                required
+              />
             </label>
 
             <label>
               Descripción <span className="field-optional">Opcional</span>
-              <input name="description" placeholder="Breve detalle de la sección..." />
+              <input name="description" placeholder="Aclaraciones sobre esta sección..." />
             </label>
-
-            {dayparts.length > 0 ? (
-              <fieldset className="daypart-fields">
-                <legend>Cartas donde se muestra</legend>
-                <p>Si no seleccionás ninguna, se mostrará en todas las cartas.</p>
-                {dayparts.map((daypart) => (
-                  <label className="checkbox-label" key={daypart.id}>
-                    <input name="daypart_ids" type="checkbox" value={daypart.id} />
-                    {daypart.name}
-                  </label>
-                ))}
-              </fieldset>
-            ) : null}
 
             <LocalizationFields locales={restaurant.supported_locales} translations={[]} />
 
@@ -772,26 +1067,77 @@ export function AdminMenuView({
         </AdminDialog>
       ) : null}
 
-      {/* Modal: Crear Nuevo Plato (directo en la categoría seleccionada) */}
-      {createItemForCategoryId ? (
+      {/* Modal: Editar Categoría Existente */}
+      {editingCategory ? (
+        <AdminDialog onClose={() => setEditingCategory(null)}>
+          <form
+            action={async (formData) => {
+              formData.set("menu_id", currentMenu.id);
+              await updateCategory(formData);
+              setEditingCategory(null);
+            }}
+            className="admin-modal-form"
+          >
+            <input name="category_id" type="hidden" value={editingCategory.id} />
+            <input name="sort_order" type="hidden" value={editingCategory.sort_order} />
+
+            <div>
+              <p className="eyebrow">Editar categoría</p>
+              <h2>{editingCategory.name}</h2>
+            </div>
+
+            <label>
+              Nombre de la categoría
+              <input autoFocus defaultValue={editingCategory.name} name="name" required />
+            </label>
+
+            <label>
+              Descripción <span className="field-optional">Opcional</span>
+              <input defaultValue={editingCategory.description ?? ""} name="description" />
+            </label>
+
+            <LocalizationFields
+              locales={restaurant.supported_locales}
+              translations={editingCategory.menu_category_translations ?? []}
+            />
+
+            <label className="checkbox-label">
+              <input defaultChecked={editingCategory.is_active} name="is_active" type="checkbox" />
+              Categoría activa (visible para comensales)
+            </label>
+
+            <div className="admin-modal-actions">
+              <button
+                className="secondary-link"
+                onClick={() => setEditingCategory(null)}
+                type="button"
+              >
+                Cancelar
+              </button>
+              <button className="primary-link" type="submit">
+                Guardar cambios
+              </button>
+            </div>
+          </form>
+        </AdminDialog>
+      ) : null}
+
+      {/* Modal: Crear Plato en Categoría */}
+      {createItemForCategoryId && activeCategoryForNewItem ? (
         <AdminDialog onClose={() => setCreateItemForCategoryId(null)}>
           <form
             action={async (formData) => {
               await createMenuItem(formData);
               setCreateItemForCategoryId(null);
+              setItemImagePreview(null);
             }}
             className="admin-modal-form"
           >
             <input name="category_id" type="hidden" value={createItemForCategoryId} />
+
             <div>
-              <p className="eyebrow">
-                {activeCategoryForNewItem ? `Categoría: ${activeCategoryForNewItem.name}` : "Menú"}
-              </p>
-              <h2>Agregar nuevo plato</h2>
-              <p>
-                Este plato se agregará automáticamente en la categoría{" "}
-                <strong>{activeCategoryForNewItem?.name}</strong>.
-              </p>
+              <p className="eyebrow">Agregar plato en {activeCategoryForNewItem.name}</p>
+              <h2>Nuevo plato</h2>
             </div>
 
             <label>
@@ -908,7 +1254,7 @@ export function AdminMenuView({
               <label>
                 Categoría
                 <select defaultValue={editingItem.category_id} name="category_id">
-                  {categories.map((cat) => (
+                  {menuCategories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
                     </option>

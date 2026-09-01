@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ lang?: string }>;
+  searchParams: Promise<{ lang?: string; menu?: string }>;
 };
 
 function minutes(value: string) {
@@ -56,25 +56,6 @@ function activeDaypartId(menu: NonNullable<Awaited<ReturnType<typeof getPublicMe
   return match?.id ?? null;
 }
 
-function activeMenuId(menu: NonNullable<Awaited<ReturnType<typeof getPublicMenu>>>) {
-  if (!menu.menus || menu.menus.length === 0) return null;
-  const { currentMinutes, dayOfWeek } = restaurantNowInfo(menu.restaurant.timezone);
-
-  const match = menu.menus.find((m) => {
-    if (!m.schedules || m.schedules.length === 0) return true;
-    return m.schedules.some((s) => {
-      if (s.day_of_week !== null && s.day_of_week !== dayOfWeek) return false;
-      const start = minutes(s.starts_at);
-      const end = minutes(s.ends_at);
-      return start < end
-        ? currentMinutes >= start && currentMinutes <= end
-        : currentMinutes >= start || currentMinutes <= end;
-    });
-  });
-
-  return match?.id ?? menu.menus[0]?.id ?? null;
-}
-
 function preferredLocale(acceptLanguage: string | null, supportedLocales: string[], fallback: string) {
   const requestedLocales = (acceptLanguage ?? "")
     .split(",")
@@ -104,7 +85,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function PublicMenuPage({ params, searchParams }: PageProps) {
-  const [{ slug }, { lang }] = await Promise.all([params, searchParams]);
+  const [{ slug }, { lang, menu: menuParam }] = await Promise.all([params, searchParams]);
   const menu = await getPublicMenu(slug);
   if (!menu) notFound();
   const requestHeaders = await headers();
@@ -116,10 +97,21 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
           menu.restaurant.supported_locales,
           menu.restaurant.default_locale
         );
+
+  const activeMenus = menu.menus.filter((m) => m.is_active);
+
+  let initialMenuId: string | null = null;
+  if (menuParam) {
+    const matched = activeMenus.find((m) => m.id === menuParam);
+    if (matched) initialMenuId = matched.id;
+  } else if (activeMenus.length === 1) {
+    initialMenuId = activeMenus[0].id;
+  }
+
   return (
     <MenuPublico
       currentDaypartId={activeDaypartId(menu)}
-      initialMenuId={activeMenuId(menu)}
+      initialMenuId={initialMenuId}
       locale={locale}
       menu={menu}
     />

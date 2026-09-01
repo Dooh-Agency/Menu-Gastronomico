@@ -3,7 +3,7 @@
 import { type CSSProperties, type UIEvent, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import type { PublicMenu } from "@/lib/supabase/public-menu";
+import type { PublicMenu, PublicMenuSchedule } from "@/lib/supabase/public-menu";
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
 
 type MenuPublicoProps = {
@@ -18,6 +18,17 @@ type MenuItem = PublicMenu["items"][number];
 const labels = {
   es: {
     menu: "Menú",
+    chooseMenu: "Nuestras cartas",
+    chooseMenuTitle: "¿Qué te gustaría ver hoy?",
+    chooseMenuSubtitle: "Seleccioná la carta que querés ver para descubrir nuestros platos",
+    allMenus: "Ver todas las cartas",
+    changeMenu: "Cambiar de carta",
+    viewMenu: "Ver carta",
+    category: "categoría",
+    categories: "categorías",
+    dish: "plato",
+    dishes: "platos",
+    availableAllDay: "Disponible todo el día",
     filters: "Filtrar por preferencias",
     all: "Inicio",
     details: "Ver detalle",
@@ -33,8 +44,19 @@ const labels = {
   },
   en: {
     menu: "Menu",
+    chooseMenu: "Our menus",
+    chooseMenuTitle: "What would you like to see today?",
+    chooseMenuSubtitle: "Select a menu to explore our dishes and drinks",
+    allMenus: "View all menus",
+    changeMenu: "Change menu",
+    viewMenu: "View menu",
+    category: "category",
+    categories: "categories",
+    dish: "dish",
+    dishes: "dishes",
+    availableAllDay: "Available all day",
     filters: "Filter by dietary preference",
-    all: "Inicio",
+    all: "Home",
     details: "View details",
     close: "Close",
     qr: "View QR",
@@ -62,9 +84,35 @@ function translated<T extends { translations: Array<{ locale: string; name: stri
 function formatPrice(cents: number, currency: string, locale: string) {
   return new Intl.NumberFormat(locale.startsWith("en") ? "en-US" : "es-AR", {
     style: "currency",
-    currency,
+    currency: currency || "ARS",
     maximumFractionDigits: 0,
   }).format(cents / 100);
+}
+
+function formatMenuSchedule(schedules: PublicMenuSchedule[], locale: string) {
+  if (!schedules || schedules.length === 0) {
+    return locale.startsWith("en") ? "Available all day" : "Disponible todo el día";
+  }
+  if (schedules.length === 1) {
+    const s = schedules[0];
+    const start = s.starts_at.slice(0, 5);
+    const end = s.ends_at.slice(0, 5);
+    if (start === "00:00" && (end === "23:59" || end === "00:00")) {
+      return locale.startsWith("en") ? "Available all day" : "Disponible todo el día";
+    }
+    const daysEs = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const daysEn = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const daysLabel =
+      s.day_of_week === null
+        ? locale.startsWith("en") ? "Every day" : "Todos los días"
+        : locale.startsWith("en")
+        ? daysEn[s.day_of_week]
+        : daysEs[s.day_of_week];
+    return `${daysLabel} (${start} - ${end})`;
+  }
+  return locale.startsWith("en")
+    ? `${schedules.length} configured time slots`
+    : `${schedules.length} franjas horarias`;
 }
 
 export function MenuPublico({
@@ -73,9 +121,17 @@ export function MenuPublico({
   currentDaypartId,
   initialMenuId,
 }: MenuPublicoProps) {
-  const [selectedMenuId, setSelectedMenuId] = useState<string>(
-    initialMenuId || menu.menus[0]?.id || "default"
+  const activeMenus = menu.menus.filter((m) => m.is_active);
+
+  // If initialMenuId is explicitly provided (or if there's only 1 menu), select it; otherwise null
+  const [selectedMenuId, setSelectedMenuId] = useState<string | null>(
+    initialMenuId !== undefined
+      ? initialMenuId
+      : activeMenus.length === 1
+      ? activeMenus[0]?.id ?? null
+      : null
   );
+
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null);
   const [selectedDaypartId, setSelectedDaypartId] = useState(
     currentDaypartId ?? menu.dayparts[0]?.id ?? null
@@ -100,33 +156,6 @@ export function MenuPublico({
     "--radius-card": branding.radius === "soft" ? ".65rem" : branding.radius === "square" ? ".15rem" : "1rem",
   } as CSSProperties;
 
-  // Active menu object
-  const currentMenu =
-    menu.menus.find((m) => m.id === selectedMenuId) ||
-    menu.menus[0] || {
-      id: "default",
-      restaurant_id: menu.restaurant.id,
-      name: "Carta Principal",
-      description: null,
-      banner_path: null,
-      is_active: true,
-      sort_order: 0,
-      schedules: [],
-    };
-
-  const activeBannerPath = currentMenu.banner_path || branding.cover_image_path;
-
-  const dietaryTags = Array.from(new Set(menu.items.flatMap((item) => item.dietary_tags))).sort();
-
-  // Filter categories by selected menu
-  const menuCategories = menu.categories.filter((c) => c.menu_id === currentMenu.id);
-
-  const categories = menuCategories.filter((category) => {
-    if (!menu.settings.uses_dayparts) return true;
-    const daypartIds = category.daypart_ids.length ? category.daypart_ids : category.daypart_id ? [category.daypart_id] : [];
-    return daypartIds.length === 0 || daypartIds.includes(selectedDaypartId ?? "");
-  });
-
   function selectLocale(nextLocale: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (nextLocale === menu.restaurant.default_locale) params.delete("lang");
@@ -135,8 +164,18 @@ export function MenuPublico({
     router.push(query ? `${pathname}?${query}` : pathname);
   }
 
-  const activeDaypart = menu.dayparts.find((daypart) => daypart.id === selectedDaypartId);
-  const isActiveMenu = selectedDaypartId === currentDaypartId;
+  function handleSelectMenu(menuId: string | null) {
+    setSelectedMenuId(menuId);
+    setSelectedCategoryId("all");
+    const params = new URLSearchParams(searchParams.toString());
+    if (!menuId || (activeMenus.length <= 1 && menuId === activeMenus[0]?.id)) {
+      params.delete("menu");
+    } else {
+      params.set("menu", menuId);
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }
 
   useEffect(() => () => {
     if (categoryScrollTimeout.current) clearTimeout(categoryScrollTimeout.current);
@@ -160,9 +199,235 @@ export function MenuPublico({
     }, 120);
   }
 
-  const categoriesToRender = !selectedCategoryId || selectedCategoryId === "all"
-    ? categories
-    : categories.filter((c) => c.id === selectedCategoryId);
+  // =========================================================================
+  // VISTA 1: Selector de Cartas (Landing previa cuando no hay carta seleccionada)
+  // =========================================================================
+  if (!selectedMenuId) {
+    return (
+      <main className="menu-shell public-menus-landing" style={brandStyle}>
+        {/* Header con marca y controles */}
+        <header className="menu-header">
+          <div className="brand" aria-label={`${menu.restaurant.name}, ${copy.menu}`}>
+            {branding.logo_path ? (
+              <Image
+                alt=""
+                className="brand-logo"
+                height={72}
+                src={menuImageUrl(branding.logo_path)}
+                width={72}
+              />
+            ) : (
+              <span className="brand-mark" aria-hidden="true" />
+            )}
+            {menu.restaurant.name}
+          </div>
+
+          <div className="menu-header-actions">
+            {menu.restaurant.supported_locales.length > 1 ? (
+              <label className="menu-control language-control" style={{ margin: 0 }}>
+                <span className="visually-hidden">{copy.languages}</span>
+                <select
+                  aria-label={copy.languages}
+                  onChange={(event) => selectLocale(event.target.value)}
+                  value={locale}
+                >
+                  {menu.restaurant.supported_locales.map((supportedLocale) => (
+                    <option key={supportedLocale} value={supportedLocale}>
+                      {supportedLocale.toUpperCase()}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
+            <a className="qr-link" href={`/${menu.restaurant.slug}/qr`}>
+              {copy.qr}
+            </a>
+          </div>
+        </header>
+
+        {/* Hero de Selección de Cartas */}
+        <section className="public-menus-hero">
+          <span className="public-menus-hero-badge">{copy.chooseMenu}</span>
+          <h1 className="public-menus-hero-title">{copy.chooseMenuTitle}</h1>
+          <p className="public-menus-hero-subtitle">{copy.chooseMenuSubtitle}</p>
+        </section>
+
+        {/* Grilla de Cartas Disponibles */}
+        <section aria-label={copy.chooseMenu} className="public-menus-section">
+          <div className="public-menus-grid">
+            {activeMenus.map((m) => {
+              const menuCats = menu.categories.filter((c) => c.menu_id === m.id);
+              const menuCatIds = new Set(menuCats.map((c) => c.id));
+              const menuDishCount = menu.items.filter((i) => menuCatIds.has(i.category_id)).length;
+              const bannerPath = m.banner_path || branding.cover_image_path;
+              const scheduleText = formatMenuSchedule(m.schedules, locale);
+
+              return (
+                <article
+                  className="public-menu-card"
+                  key={m.id}
+                  onClick={() => handleSelectMenu(m.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleSelectMenu(m.id);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="public-menu-card-cover">
+                    {bannerPath ? (
+                      <Image
+                        alt={`Portada ${m.name}`}
+                        className="public-menu-card-image"
+                        fill
+                        sizes="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 33vw"
+                        src={menuImageUrl(bannerPath)}
+                      />
+                    ) : (
+                      <div className="public-menu-card-placeholder-banner">
+                        <span className="public-menu-placeholder-mark" />
+                      </div>
+                    )}
+                    <div className="public-menu-card-overlay">
+                      <span className="public-menu-card-enter-btn">{copy.viewMenu} →</span>
+                    </div>
+                  </div>
+
+                  <div className="public-menu-card-body">
+                    <div className="public-menu-card-info">
+                      <h2 className="public-menu-card-name">{m.name}</h2>
+                      {m.description ? (
+                        <p className="public-menu-card-desc">{m.description}</p>
+                      ) : null}
+                    </div>
+
+                    <div className="public-menu-card-meta-list">
+                      <div className="public-menu-card-meta-item">
+                        <svg
+                          aria-hidden="true"
+                          fill="none"
+                          height="14"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          width="14"
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                        <span>{scheduleText}</span>
+                      </div>
+                      <div className="public-menu-card-meta-item">
+                        <svg
+                          aria-hidden="true"
+                          fill="none"
+                          height="14"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          width="14"
+                        >
+                          <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                          <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                          <line x1="6" x2="6" y1="1" y2="4" />
+                          <line x1="10" x2="10" y1="1" y2="4" />
+                          <line x1="14" x2="14" y1="1" y2="4" />
+                        </svg>
+                        <span>
+                          {menuCats.length} {menuCats.length === 1 ? copy.category : copy.categories} · {menuDishCount}{" "}
+                          {menuDishCount === 1 ? copy.dish : copy.dishes}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      className="public-menu-card-cta-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectMenu(m.id);
+                      }}
+                      type="button"
+                    >
+                      {copy.viewMenu} →
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Footer con información de contacto */}
+        {menu.settings.contact.phone ||
+        menu.settings.contact.email ||
+        menu.settings.contact.address ||
+        menu.settings.contact.website ? (
+          <footer className="menu-contact" aria-label="Contacto">
+            <h2>{menu.restaurant.name}</h2>
+            {menu.settings.contact.address ? <p>{menu.settings.contact.address}</p> : null}
+            {menu.settings.contact.phone ? (
+              <a href={`tel:${menu.settings.contact.phone}`}>{menu.settings.contact.phone}</a>
+            ) : null}
+            {menu.settings.contact.email ? (
+              <a href={`mailto:${menu.settings.contact.email}`}>{menu.settings.contact.email}</a>
+            ) : null}
+            {menu.settings.contact.website ? (
+              <a href={menu.settings.contact.website} rel="noreferrer" target="_blank">
+                Sitio web
+              </a>
+            ) : null}
+          </footer>
+        ) : null}
+      </main>
+    );
+  }
+
+  // =========================================================================
+  // VISTA 2: Detalle de la Carta Seleccionada (Platos por categoría)
+  // =========================================================================
+  const currentMenu =
+    activeMenus.find((m) => m.id === selectedMenuId) ||
+    activeMenus[0] || {
+      id: "default",
+      restaurant_id: menu.restaurant.id,
+      name: "Carta Principal",
+      description: null,
+      banner_path: null,
+      is_active: true,
+      sort_order: 0,
+      schedules: [],
+    };
+
+  const activeBannerPath = currentMenu.banner_path || branding.cover_image_path;
+
+  const dietaryTags = Array.from(new Set(menu.items.flatMap((item) => item.dietary_tags))).sort();
+
+  // Categorías de la carta seleccionada
+  const menuCategories = menu.categories.filter((c) => c.menu_id === currentMenu.id);
+
+  const categories = menuCategories.filter((category) => {
+    if (!menu.settings.uses_dayparts) return true;
+    const daypartIds = category.daypart_ids.length
+      ? category.daypart_ids
+      : category.daypart_id
+      ? [category.daypart_id]
+      : [];
+    return daypartIds.length === 0 || daypartIds.includes(selectedDaypartId ?? "");
+  });
+
+  const activeDaypart = menu.dayparts.find((daypart) => daypart.id === selectedDaypartId);
+  const isActiveMenu = selectedDaypartId === currentDaypartId;
+
+  const categoriesToRender =
+    !selectedCategoryId || selectedCategoryId === "all"
+      ? categories
+      : categories.filter((c) => c.id === selectedCategoryId);
 
   return (
     <main className="menu-shell" style={brandStyle}>
@@ -181,7 +446,34 @@ export function MenuPublico({
           )}
           {menu.restaurant.name}
         </a>
-        <a className="qr-link" href={`/${menu.restaurant.slug}/qr`}>{copy.qr}</a>
+
+        <div className="menu-header-actions">
+          {activeMenus.length > 1 ? (
+            <button
+              className="back-to-menus-header-btn"
+              onClick={() => handleSelectMenu(null)}
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                fill="none"
+                height="14"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                viewBox="0 0 24 24"
+                width="14"
+              >
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+              {copy.allMenus}
+            </button>
+          ) : null}
+          <a className="qr-link" href={`/${menu.restaurant.slug}/qr`}>
+            {copy.qr}
+          </a>
+        </div>
       </header>
 
       {/* Banner de la Carta Activa */}
@@ -198,36 +490,52 @@ export function MenuPublico({
         </div>
       ) : null}
 
-      {/* Título y descripción de la carta si hay múltiples cartas o si tiene descripción */}
-      {(menu.menus.length > 1 || currentMenu.description) && (
-        <div className="menu-info-header">
+      {/* Título y descripción de la carta activa */}
+      <div className="menu-info-header">
+        <div className="menu-info-header-top">
+          {activeMenus.length > 1 ? (
+            <button
+              className="back-to-menus-badge-btn"
+              onClick={() => handleSelectMenu(null)}
+              type="button"
+            >
+              ← {copy.allMenus}
+            </button>
+          ) : null}
           <h1 className="menu-active-title">{currentMenu.name}</h1>
-          {currentMenu.description && (
-            <p className="menu-active-description">{currentMenu.description}</p>
-          )}
         </div>
-      )}
+        {currentMenu.description && (
+          <p className="menu-active-description">{currentMenu.description}</p>
+        )}
+      </div>
 
-      {/* Selector de Cartas (si hay más de una) y Controles */}
-      {(menu.menus.length > 1 || menu.settings.uses_dayparts || dietaryTags.length || menu.restaurant.supported_locales.length > 1) ? (
+      {/* Selector de Cartas y Controles */}
+      {activeMenus.length > 1 ||
+      menu.settings.uses_dayparts ||
+      dietaryTags.length ||
+      menu.restaurant.supported_locales.length > 1 ? (
         <section className="menu-controls" aria-label={copy.menu}>
           {/* Selector de Carta si hay múltiples */}
-          {menu.menus.length > 1 ? (
+          {activeMenus.length > 1 ? (
             <label className="menu-control">
               <span>{copy.menus}</span>
               <select
                 aria-label={copy.menus}
                 onChange={(event) => {
-                  setSelectedMenuId(event.target.value);
-                  setSelectedCategoryId("all");
+                  if (event.target.value === "all_menus") {
+                    handleSelectMenu(null);
+                  } else {
+                    handleSelectMenu(event.target.value);
+                  }
                 }}
                 value={selectedMenuId}
               >
-                {menu.menus.map((m) => (
+                {activeMenus.map((m) => (
                   <option key={m.id} value={m.id}>
                     {m.name}
                   </option>
                 ))}
+                <option value="all_menus">← {copy.allMenus}</option>
               </select>
             </label>
           ) : null}
@@ -339,7 +647,8 @@ export function MenuPublico({
             const localizedCategory = translated(category, locale);
             const items = menu.items.filter((item) => {
               const matchesCategory = item.category_id === category.id;
-              const matchesAvailability = menu.settings.unavailable_item_behavior === "show_sold_out" || item.is_available;
+              const matchesAvailability =
+                menu.settings.unavailable_item_behavior === "show_sold_out" || item.is_available;
               const matchesFilter = !dietaryFilter || item.dietary_tags.includes(dietaryFilter);
               return matchesCategory && matchesAvailability && matchesFilter;
             });
@@ -348,7 +657,13 @@ export function MenuPublico({
               hasRenderedAnyItem = true;
             } else if (selectedCategoryId !== "all" && selectedCategoryId !== null) {
               return (
-                <section aria-labelledby={`tab-${category.id}`} className="menu-section" id={`category-${category.id}`} key={category.id} role="tabpanel">
+                <section
+                  aria-labelledby={`tab-${category.id}`}
+                  className="menu-section"
+                  id={`category-${category.id}`}
+                  key={category.id}
+                  role="tabpanel"
+                >
                   <div className="section-heading">
                     <h2>{localizedCategory.name}</h2>
                     {localizedCategory.description ? <p>{localizedCategory.description}</p> : null}
@@ -361,7 +676,13 @@ export function MenuPublico({
             }
 
             return (
-              <section aria-labelledby={`tab-${category.id}`} className="menu-section" id={`category-${category.id}`} key={category.id} role="tabpanel">
+              <section
+                aria-labelledby={`tab-${category.id}`}
+                className="menu-section"
+                id={`category-${category.id}`}
+                key={category.id}
+                role="tabpanel"
+              >
                 <div className="section-heading">
                   <h2>{localizedCategory.name}</h2>
                   {localizedCategory.description ? <p>{localizedCategory.description}</p> : null}
@@ -370,7 +691,10 @@ export function MenuPublico({
                   {items.map((item) => {
                     const localizedItem = translated(item, locale);
                     return (
-                      <article className={`menu-card${item.is_available ? "" : " is-unavailable"}`} key={item.id}>
+                      <article
+                        className={`menu-card${item.is_available ? "" : " is-unavailable"}`}
+                        key={item.id}
+                      >
                         {item.image_path ? (
                           <Image
                             alt=""
@@ -389,16 +713,26 @@ export function MenuPublico({
                           {localizedItem.description ? <p>{localizedItem.description}</p> : null}
                           {item.dietary_tags.length ? (
                             <ul className="tag-list" aria-label={copy.filters}>
-                              {item.dietary_tags.map((tag) => <li key={tag}>{tag}</li>)}
+                              {item.dietary_tags.map((tag) => (
+                                <li key={tag}>{tag}</li>
+                              ))}
                             </ul>
                           ) : null}
                           {item.allergens.length ? (
                             <details className="menu-allergens-details">
                               <summary>{copy.allergens}</summary>
-                              <p><b>{copy.allergens}:</b> {item.allergens.join(", ")}</p>
+                              <p>
+                                <b>{copy.allergens}:</b> {item.allergens.join(", ")}
+                              </p>
                             </details>
                           ) : null}
-                          <button className="item-detail-button" onClick={() => setSelectedItem(item)} type="button">{copy.details}</button>
+                          <button
+                            className="item-detail-button"
+                            onClick={() => setSelectedItem(item)}
+                            type="button"
+                          >
+                            {copy.details}
+                          </button>
                           {!item.is_available ? <span className="sold-out">{copy.soldOut}</span> : null}
                         </div>
                       </article>
@@ -411,16 +745,27 @@ export function MenuPublico({
 
           return hasRenderedAnyItem || (selectedCategoryId !== "all" && selectedCategoryId !== null)
             ? renderedSections
-            : <p className="empty-state">{copy.noItems}</p>;
-        })() : <p className="empty-state">{copy.noItems}</p>}
+            : (
+              <p className="empty-state">{copy.noItems}</p>
+            );
+        })() : (
+          <p className="empty-state">{copy.noItems}</p>
+        )}
       </section>
 
-      {menu.settings.contact.phone || menu.settings.contact.email || menu.settings.contact.address || menu.settings.contact.website ? (
+      {menu.settings.contact.phone ||
+      menu.settings.contact.email ||
+      menu.settings.contact.address ||
+      menu.settings.contact.website ? (
         <footer className="menu-contact" aria-label="Contacto">
           <h2>{menu.restaurant.name}</h2>
           {menu.settings.contact.address ? <p>{menu.settings.contact.address}</p> : null}
-          {menu.settings.contact.phone ? <a href={`tel:${menu.settings.contact.phone}`}>{menu.settings.contact.phone}</a> : null}
-          {menu.settings.contact.email ? <a href={`mailto:${menu.settings.contact.email}`}>{menu.settings.contact.email}</a> : null}
+          {menu.settings.contact.phone ? (
+            <a href={`tel:${menu.settings.contact.phone}`}>{menu.settings.contact.phone}</a>
+          ) : null}
+          {menu.settings.contact.email ? (
+            <a href={`mailto:${menu.settings.contact.email}`}>{menu.settings.contact.email}</a>
+          ) : null}
           {menu.settings.contact.website ? (
             <a href={menu.settings.contact.website} rel="noreferrer" target="_blank">
               Sitio web
@@ -432,16 +777,55 @@ export function MenuPublico({
       {selectedItem ? (() => {
         const localizedItem = translated(selectedItem, locale);
         return (
-          <div aria-label={localizedItem.name} className="item-dialog-backdrop" onMouseDown={() => setSelectedItem(null)} role="presentation">
-            <section aria-modal="true" className="item-dialog" onKeyDown={(event) => { if (event.key === "Escape") setSelectedItem(null); }} onMouseDown={(event) => event.stopPropagation()} role="dialog">
-              <button aria-label={copy.close} autoFocus className="item-dialog-close" onClick={() => setSelectedItem(null)} type="button">×</button>
-              {selectedItem.image_path ? <Image alt="" className="item-dialog-image" height={720} src={menuImageUrl(selectedItem.image_path)} width={1280} /> : null}
+          <div
+            aria-label={localizedItem.name}
+            className="item-dialog-backdrop"
+            onMouseDown={() => setSelectedItem(null)}
+            role="presentation"
+          >
+            <section
+              aria-modal="true"
+              className="item-dialog"
+              onKeyDown={(event) => {
+                if (event.key === "Escape") setSelectedItem(null);
+              }}
+              onMouseDown={(event) => event.stopPropagation()}
+              role="dialog"
+            >
+              <button
+                aria-label={copy.close}
+                autoFocus
+                className="item-dialog-close"
+                onClick={() => setSelectedItem(null)}
+                type="button"
+              >
+                ×
+              </button>
+              {selectedItem.image_path ? (
+                <Image
+                  alt=""
+                  className="item-dialog-image"
+                  height={720}
+                  src={menuImageUrl(selectedItem.image_path)}
+                  width={1280}
+                />
+              ) : null}
               <div className="item-dialog-content">
                 <h2>{localizedItem.name}</h2>
-                <strong>{formatPrice(selectedItem.price_cents, selectedItem.currency_code, locale)}</strong>
+                <strong>
+                  {formatPrice(selectedItem.price_cents, selectedItem.currency_code, locale)}
+                </strong>
                 {localizedItem.description ? <p>{localizedItem.description}</p> : null}
-                {selectedItem.dietary_tags.length ? <p><b>{copy.filters}:</b> {selectedItem.dietary_tags.join(", ")}</p> : null}
-                {selectedItem.allergens.length ? <p><b>{copy.allergens}:</b> {selectedItem.allergens.join(", ")}</p> : null}
+                {selectedItem.dietary_tags.length ? (
+                  <p>
+                    <b>{copy.filters}:</b> {selectedItem.dietary_tags.join(", ")}
+                  </p>
+                ) : null}
+                {selectedItem.allergens.length ? (
+                  <p>
+                    <b>{copy.allergens}:</b> {selectedItem.allergens.join(", ")}
+                  </p>
+                ) : null}
                 {!selectedItem.is_available ? <span className="sold-out">{copy.soldOut}</span> : null}
               </div>
             </section>

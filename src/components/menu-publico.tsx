@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import type { PublicMenu, PublicMenuSchedule } from "@/lib/supabase/public-menu";
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
+import { DishCardHorizontal } from "@/components/dish-cards";
 
 type MenuPublicoProps = {
   menu: PublicMenu;
@@ -425,9 +426,6 @@ export function MenuPublico({
                 </select>
               </label>
             ) : null}
-            <a className="qr-link" href={`/${menu.restaurant.slug}/qr`}>
-              {copy.qr}
-            </a>
           </div>
         </header>
 
@@ -586,9 +584,6 @@ export function MenuPublico({
               {copy.allMenus}
             </button>
           ) : null}
-          <a className="qr-link" href={`/${menu.restaurant.slug}/qr`}>
-            {copy.qr}
-          </a>
         </div>
       </header>
 
@@ -773,57 +768,21 @@ export function MenuPublico({
                   <h2>{localizedCategory.name}</h2>
                   {localizedCategory.description ? <p>{localizedCategory.description}</p> : null}
                 </div>
-                <div className="menu-grid">
-                  {items.map((item) => {
-                    const localizedItem = translated(item, locale);
-                    return (
-                      <article
-                        className={`menu-card${item.is_available ? "" : " is-unavailable"}`}
-                        key={item.id}
-                      >
-                        {item.image_path ? (
-                          <Image
-                            alt=""
-                            className="menu-image"
-                            height={720}
-                            sizes="(max-width: 34rem) 100vw, 33vw"
-                            src={menuImageUrl(item.image_path)}
-                            width={1280}
-                          />
-                        ) : null}
-                        <div className="menu-card-content">
-                          <div className="menu-card-heading">
-                            <h3>{localizedItem.name}</h3>
-                            <strong>{formatPrice(item.price_cents, item.currency_code, locale)}</strong>
-                          </div>
-                          {localizedItem.description ? <p>{localizedItem.description}</p> : null}
-                          {item.dietary_tags.length ? (
-                            <ul className="tag-list" aria-label={copy.filters}>
-                              {item.dietary_tags.map((tag) => (
-                                <li key={tag}>{tag}</li>
-                              ))}
-                            </ul>
-                          ) : null}
-                          {item.allergens.length ? (
-                            <details className="menu-allergens-details">
-                              <summary>{copy.allergens}</summary>
-                              <p>
-                                <b>{copy.allergens}:</b> {item.allergens.join(", ")}
-                              </p>
-                            </details>
-                          ) : null}
-                          <button
-                            className="item-detail-button"
-                            onClick={() => setSelectedItem(item)}
-                            type="button"
-                          >
-                            {copy.details}
-                          </button>
-                          {!item.is_available ? <span className="sold-out">{copy.soldOut}</span> : null}
-                        </div>
-                      </article>
-                    );
-                  })}
+                <div className="menu-items-horizontal-list">
+                  {items.map((item) => (
+                    <DishCardHorizontal
+                      key={item.id}
+                      item={item}
+                      labels={{
+                        allergens: copy.allergens,
+                        details: copy.details,
+                        filters: copy.filters,
+                        soldOut: copy.soldOut,
+                      }}
+                      locale={locale}
+                      onSelect={setSelectedItem}
+                    />
+                  ))}
                 </div>
               </section>
             );

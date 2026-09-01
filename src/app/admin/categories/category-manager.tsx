@@ -19,15 +19,16 @@ type Category = {
 type Daypart = { id: string; name: string };
 
 export function CategoryManager({ categories: initialCategories, dayparts, locales }: { categories: Category[]; dayparts: Daypart[]; locales: string[] }) {
+  const [prevCategories, setPrevCategories] = useState(initialCategories);
   const [categories, setCategories] = useState(initialCategories);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [draggedCategoryId, setDraggedCategoryId] = useState<string | null>(null);
 
-  // Sync state whenever initialCategories updates from server revalidation
-  useEffect(() => {
+  if (initialCategories !== prevCategories) {
+    setPrevCategories(initialCategories);
     setCategories(initialCategories);
-  }, [initialCategories]);
+  }
 
   function moveCategory(destinationId: string) {
     if (!draggedCategoryId || draggedCategoryId === destinationId) return;

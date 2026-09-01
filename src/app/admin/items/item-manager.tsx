@@ -34,15 +34,16 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
   const searchParams = useSearchParams();
   const [, startTransition] = useTransition();
 
+  const [prevItems, setPrevItems] = useState(items);
   const [orderedItems, setOrderedItems] = useState(items);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
 
-  // Sync state whenever items prop updates from server revalidation
-  useEffect(() => {
+  if (items !== prevItems) {
+    setPrevItems(items);
     setOrderedItems(items);
-  }, [items]);
+  }
 
   const selectedCategoryParam = searchParams.get("category");
   const rawCategoryId = selectedCategoryParam ?? initialCategoryId;

@@ -473,21 +473,64 @@ export async function createCategory(formData: FormData) {
 export async function createMenuItem(formData: FormData) {
   const { supabase, restaurantId, slug } = await context();
   const categoryId = required(formData, "category_id");
-  const { data: category } = await supabase.from("menu_categories").select("id").eq("id", categoryId).eq("restaurant_id", restaurantId).maybeSingle();
+  const { data: category } = await supabase
+    .from("menu_categories")
+    .select("id")
+    .eq("id", categoryId)
+    .eq("restaurant_id", restaurantId)
+    .maybeSingle();
   if (!category) throw new Error("Categoría no válida.");
-  const { data: last } = await supabase.from("menu_items").select("sort_order").eq("category_id", categoryId).eq("restaurant_id", restaurantId).order("sort_order", { ascending: false }).limit(1).maybeSingle<{ sort_order: number }>();
-  const { data, error } = await supabase.from("menu_items").insert({ restaurant_id: restaurantId, category_id: categoryId, name: required(formData, "name"), description: (formData.get("description") as string | null)?.trim() || null, price_cents: cents(formData), currency_code: "ARS", dietary_tags: textList(formData, "dietary_tags"), allergens: textList(formData, "allergens"), is_available: formData.get("is_available") === "on", sort_order: (last?.sort_order ?? -1) + 1 }).select("id").single();
+
+  const { data: last } = await supabase
+    .from("menu_items")
+    .select("sort_order")
+    .eq("category_id", categoryId)
+    .eq("restaurant_id", restaurantId)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle<{ sort_order: number }>();
+
+  const insertPayload: Record<string, unknown> = {
+    restaurant_id: restaurantId,
+    category_id: categoryId,
+    name: required(formData, "name"),
+    description: (formData.get("description") as string | null)?.trim() || null,
+    price_cents: cents(formData),
+    currency_code: "ARS",
+    dietary_tags: textList(formData, "dietary_tags"),
+    allergens: textList(formData, "allergens"),
+    is_available: formData.get("is_available") === "on",
+    sort_order: (last?.sort_order ?? -1) + 1,
+  };
+
+  const { data, error } = await supabase
+    .from("menu_items")
+    .insert(insertPayload)
+    .select("id")
+    .single();
   if (error || !data) throw error ?? new Error("No se pudo crear el plato.");
-  const rawImages = (formData.getAll("images") as (File | null)[]).concat(formData.getAll("image") as (File | null)[]);
-  const imagePaths = await uploadItemImages(data.id, restaurantId, rawImages, [], supabase);
+
+  const rawImages = (formData.getAll("images") as (File | null)[]).concat(
+    formData.getAll("image") as (File | null)[]
+  );
+  const validFiles = rawImages.filter((f): f is File => f instanceof File && f.size > 0);
+  const imagePaths = await uploadItemImages(data.id, restaurantId, validFiles, [], supabase);
+
   if (imagePaths.length > 0) {
     const { error: imageError } = await supabase
       .from("menu_items")
       .update({ image_path: imagePaths[0], image_paths: imagePaths })
       .eq("id", data.id)
       .eq("restaurant_id", restaurantId);
-    if (imageError) throw imageError;
+    if (imageError) {
+      await supabase
+        .from("menu_items")
+        .update({ image_path: imagePaths[0] })
+        .eq("id", data.id)
+        .eq("restaurant_id", restaurantId);
+    }
   }
+
   await replaceTranslations("menu_item_translations", "menu_item_id", data.id, formData, supabase);
   invalidate(slug);
 }
@@ -538,15 +581,36 @@ export async function updateMenuItem(formData: FormData) {
   const { supabase, restaurantId, slug } = await context();
   const itemId = required(formData, "item_id");
   const categoryId = required(formData, "category_id");
-  const { data: category } = await supabase.from("menu_categories").select("id").eq("id", categoryId).eq("restaurant_id", restaurantId).maybeSingle();
+  const { data: category } = await supabase
+    .from("menu_categories")
+    .select("id")
+    .eq("id", categoryId)
+    .eq("restaurant_id", restaurantId)
+    .maybeSingle();
   if (!category) throw new Error("Categoría no válida.");
-  const { data: item } = await supabase
+
+  let item: { image_path: string | null; image_paths?: string[] | null } | null = null;
+  const { data: itemData, error: itemError } = await supabase
     .from("menu_items")
     .select("image_path, image_paths")
     .eq("id", itemId)
     .eq("restaurant_id", restaurantId)
     .maybeSingle<{ image_path: string | null; image_paths: string[] | null }>();
-  if (!item) throw new Error("Plato no válido.");
+
+  if (itemError || !itemData) {
+    const { data: fallbackItem, error: fallbackError } = await supabase
+      .from("menu_items")
+      .select("image_path")
+      .eq("id", itemId)
+      .eq("restaurant_id", restaurantId)
+      .maybeSingle<{ image_path: string | null }>();
+    if (fallbackError || !fallbackItem) {
+      throw new Error(`Plato no válido (${itemError?.message || fallbackError?.message || "ID: " + itemId})`);
+    }
+    item = fallbackItem;
+  } else {
+    item = itemData;
+  }
 
   const currentPaths =
     item.image_paths && Array.isArray(item.image_paths) && item.image_paths.length > 0
@@ -558,7 +622,7 @@ export async function updateMenuItem(formData: FormData) {
   const keptPaths = formData
     .getAll("kept_image_paths")
     .filter((p): p is string => typeof p === "string" && p.trim() !== "");
-  const hasKeptField = formData.has("kept_image_paths");
+  const hasKeptField = formData.has("kept_image_paths") || formData.get("has_image_manager") === "true";
   const basePaths = hasKeptField ? keptPaths : currentPaths;
 
   const rawImages = (formData.getAll("images") as (File | null)[]).concat(
@@ -581,7 +645,7 @@ export async function updateMenuItem(formData: FormData) {
     }
   }
 
-  const { error } = await supabase.from("menu_items").update({
+  const updatePayload: Record<string, unknown> = {
     category_id: categoryId,
     name: required(formData, "name"),
     description: (formData.get("description") as string | null)?.trim() || null,
@@ -592,8 +656,28 @@ export async function updateMenuItem(formData: FormData) {
     image_paths: finalPaths,
     is_available: formData.get("is_available") === "on",
     sort_order: order(formData),
-  }).eq("id", itemId).eq("restaurant_id", restaurantId);
-  if (error) throw error;
+  };
+
+  const { error: updateError } = await supabase
+    .from("menu_items")
+    .update(updatePayload)
+    .eq("id", itemId)
+    .eq("restaurant_id", restaurantId);
+
+  if (updateError) {
+    if (updateError.message?.includes("image_paths") || updateError.code === "PGRST204" || updateError.code === "42703") {
+      delete updatePayload.image_paths;
+      const { error: retryError } = await supabase
+        .from("menu_items")
+        .update(updatePayload)
+        .eq("id", itemId)
+        .eq("restaurant_id", restaurantId);
+      if (retryError) throw retryError;
+    } else {
+      throw updateError;
+    }
+  }
+
   await replaceTranslations("menu_item_translations", "menu_item_id", itemId, formData, supabase);
   invalidate(slug);
 }

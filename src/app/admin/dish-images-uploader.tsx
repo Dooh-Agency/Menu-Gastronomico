@@ -54,6 +54,9 @@ export function DishImagesUploader({
       .slice(0, remainingSlots);
 
     setStagedFiles((prev) => [...prev, ...validNewFiles]);
+    if (e.target) {
+      e.target.value = "";
+    }
   }
 
   function handleRemoveExisting(index: number) {
@@ -74,6 +77,9 @@ export function DishImagesUploader({
           </span>
         </span>
       </div>
+
+      {/* Flag indicating the image manager is present */}
+      <input name="has_image_manager" type="hidden" value="true" />
 
       {/* Hidden inputs to pass kept existing images to the server action */}
       {existingImages.map((path) => (

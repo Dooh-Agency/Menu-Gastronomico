@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { menuImageUrl } from "@/lib/restaurant-branding";
 
@@ -17,33 +17,60 @@ export function DishImageCarousel({
 }: DishImageCarouselProps) {
   const validImages = images.filter((img) => typeof img === "string" && img.trim() !== "");
   const [currentIndex, setCurrentIndex] = useState(0);
-  const imagesKey = images.join("|");
-  const [prevImagesKey, setPrevImagesKey] = useState(imagesKey);
-  if (prevImagesKey !== imagesKey) {
-    setPrevImagesKey(imagesKey);
-    setCurrentIndex(0);
-  }
-  const touchStartX = useRef<number | null>(null);
-  const touchEndX = useRef<number | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-
+  const trackRef = useRef<HTMLDivElement>(null);
   const total = validImages.length;
+  const isScrollingRef = useRef(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const imagesKey = images.join("|");
+  useEffect(() => {
+    setCurrentIndex(0);
+    if (trackRef.current) {
+      trackRef.current.scrollLeft = 0;
+    }
+  }, [imagesKey]);
+
+  // Sync scroll position when user swipes or scrolls manually
+  const handleScroll = useCallback(() => {
+    if (!trackRef.current) return;
+    const { scrollLeft, clientWidth } = trackRef.current;
+    if (clientWidth === 0) return;
+
+    const newIndex = Math.round(scrollLeft / clientWidth);
+    if (newIndex >= 0 && newIndex < total && !isScrollingRef.current) {
+      setCurrentIndex(newIndex);
+    }
+  }, [total]);
+
+  const scrollToSlide = useCallback((index: number) => {
+    if (!trackRef.current) return;
+    const clientWidth = trackRef.current.clientWidth;
+    isScrollingRef.current = true;
+    trackRef.current.scrollTo({
+      left: index * clientWidth,
+      behavior: "smooth",
+    });
+    setCurrentIndex(index);
+
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    scrollTimeoutRef.current = setTimeout(() => {
+      isScrollingRef.current = false;
+    }, 450);
+  }, []);
 
   const nextSlide = useCallback(() => {
     if (total <= 1) return;
-    setCurrentIndex((prev) => (prev + 1) % total);
-  }, [total]);
+    const nextIdx = (currentIndex + 1) % total;
+    scrollToSlide(nextIdx);
+  }, [currentIndex, total, scrollToSlide]);
 
   const prevSlide = useCallback(() => {
     if (total <= 1) return;
-    setCurrentIndex((prev) => (prev - 1 + total) % total);
-  }, [total]);
+    const prevIdx = (currentIndex - 1 + total) % total;
+    scrollToSlide(prevIdx);
+  }, [currentIndex, total, scrollToSlide]);
 
-  const goToSlide = useCallback((index: number) => {
-    setCurrentIndex(index);
-  }, []);
-
-  // Keyboard navigation when focusing inside carousel
+  // Keyboard navigation
   function handleKeyDown(event: React.KeyboardEvent) {
     if (total <= 1) return;
     if (event.key === "ArrowLeft") {
@@ -53,29 +80,6 @@ export function DishImageCarousel({
       event.preventDefault();
       nextSlide();
     }
-  }
-
-  // Touch swipe support
-  function handleTouchStart(e: React.TouchEvent) {
-    touchStartX.current = e.targetTouches[0]?.clientX ?? null;
-    touchEndX.current = null;
-  }
-
-  function handleTouchMove(e: React.TouchEvent) {
-    touchEndX.current = e.targetTouches[0]?.clientX ?? null;
-  }
-
-  function handleTouchEnd() {
-    if (touchStartX.current === null || touchEndX.current === null) return;
-    const diff = touchStartX.current - touchEndX.current;
-    const threshold = 40; // min swipe distance in px
-    if (diff > threshold) {
-      nextSlide();
-    } else if (diff < -threshold) {
-      prevSlide();
-    }
-    touchStartX.current = null;
-    touchEndX.current = null;
   }
 
   if (total === 0) {
@@ -104,19 +108,14 @@ export function DishImageCarousel({
       aria-roledescription="carousel"
       className={`dish-carousel ${className}`}
       onKeyDown={handleKeyDown}
-      onTouchEnd={handleTouchEnd}
-      onTouchMove={handleTouchMove}
-      onTouchStart={handleTouchStart}
-      ref={containerRef}
       role="region"
       tabIndex={0}
     >
-      {/* Pistas de imágenes deslizables */}
+      {/* Pistas de imágenes deslizables con scroll snap nativo */}
       <div
         className="dish-carousel-track"
-        style={{
-          transform: `translateX(-${currentIndex * 100}%)`,
-        }}
+        onScroll={handleScroll}
+        ref={trackRef}
       >
         {validImages.map((imgPath, idx) => (
           <div
@@ -139,7 +138,7 @@ export function DishImageCarousel({
         ))}
       </div>
 
-      {/* Botón Anterior */}
+      {/* Botón Flecha Anterior */}
       <button
         aria-label="Foto anterior"
         className="dish-carousel-nav-btn is-prev"
@@ -147,24 +146,25 @@ export function DishImageCarousel({
           e.stopPropagation();
           prevSlide();
         }}
+        title="Ver foto anterior"
         type="button"
       >
         <svg
           aria-hidden="true"
           fill="none"
-          height="18"
+          height="20"
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="2.5"
           viewBox="0 0 24 24"
-          width="18"
+          width="20"
         >
           <polyline points="15 18 9 12 15 6" />
         </svg>
       </button>
 
-      {/* Botón Siguiente */}
+      {/* Botón Flecha Siguiente */}
       <button
         aria-label="Foto siguiente"
         className="dish-carousel-nav-btn is-next"
@@ -172,18 +172,19 @@ export function DishImageCarousel({
           e.stopPropagation();
           nextSlide();
         }}
+        title="Ver foto siguiente"
         type="button"
       >
         <svg
           aria-hidden="true"
           fill="none"
-          height="18"
+          height="20"
           stroke="currentColor"
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="2.5"
           viewBox="0 0 24 24"
-          width="18"
+          width="20"
         >
           <polyline points="9 18 15 12 9 6" />
         </svg>
@@ -204,7 +205,7 @@ export function DishImageCarousel({
             key={idx}
             onClick={(e) => {
               e.stopPropagation();
-              goToSlide(idx);
+              scrollToSlide(idx);
             }}
             role="tab"
             type="button"

@@ -90,8 +90,9 @@ export default async function AdminHomePage() {
 
   const dayparts = (daypartsResult.data ?? []) as Daypart[];
   const rawCategories = (categoriesResult.data ?? []) as Category[];
-  let items = (itemsResult.data ?? []) as MenuItem[];
-  if (itemsResult.error && itemsResult.error.code === "42703") {
+  const rawItems = (itemsResult.data ?? []) as MenuItem[];
+  let itemsList = rawItems;
+  if (itemsResult.error) {
     const fallback = await supabase
       .from("menu_items")
       .select(
@@ -99,8 +100,22 @@ export default async function AdminHomePage() {
       )
       .eq("restaurant_id", profile.restaurant_id)
       .order("sort_order");
-    items = (fallback.data ?? []) as MenuItem[];
+    itemsList = (fallback.data ?? []) as MenuItem[];
   }
+
+  const items: MenuItem[] = itemsList.map((item) => {
+    const itemImages =
+      item.image_paths && Array.isArray(item.image_paths) && item.image_paths.length > 0
+        ? item.image_paths
+        : item.image_path
+        ? [item.image_path]
+        : [];
+    return {
+      ...item,
+      image_path: itemImages[0] ?? item.image_path ?? null,
+      image_paths: itemImages,
+    };
+  });
   const schedules = (schedulesResult.data ?? []) as MenuSchedule[];
 
   // Prepare menus: if no menus exist yet (or migration pending), create a virtual default menu

@@ -88,6 +88,7 @@ async function uploadItemImages(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>
 ) {
   const validFiles = files.filter((f): f is File => f instanceof File && f.size > 0);
+  console.log(`[DEBUG uploadItemImages] itemId=${itemId}, received ${files.length} raw files, ${validFiles.length} valid files:`, validFiles.map(f => ({ name: f.name, size: f.size, type: f.type })));
   if (validFiles.length === 0) return previousPaths;
 
   for (const f of validFiles) {
@@ -100,11 +101,16 @@ async function uploadItemImages(
   for (const image of validFiles) {
     const extension = image.type === "image/png" ? "png" : image.type === "image/webp" ? "webp" : "jpg";
     const path = `${restaurantId}/${itemId}-${crypto.randomUUID()}.${extension}`;
+    console.log(`[DEBUG uploadItemImages] Uploading ${image.name} -> ${path}`);
     const { error } = await supabase.storage.from("menu-images").upload(path, image, { contentType: image.type, upsert: false });
-    if (error) throw error;
+    if (error) {
+      console.error(`[DEBUG uploadItemImages] Storage upload error for ${path}:`, error);
+      throw error;
+    }
     newPaths.push(path);
   }
 
+  console.log(`[DEBUG uploadItemImages] Uploaded paths:`, newPaths);
   return newPaths;
 }
 
@@ -471,6 +477,7 @@ export async function createCategory(formData: FormData) {
 }
 
 export async function createMenuItem(formData: FormData) {
+  console.log("[SERVER DEBUG] createMenuItem called with keys:", Array.from(formData.keys()));
   const { supabase, restaurantId, slug } = await context();
   const categoryId = required(formData, "category_id");
   const { data: category } = await supabase
@@ -514,15 +521,18 @@ export async function createMenuItem(formData: FormData) {
     formData.getAll("image") as (File | null)[]
   );
   const validFiles = rawImages.filter((f): f is File => f instanceof File && f.size > 0);
+  console.log(`[DEBUG createMenuItem] itemId=${data.id}, rawImages=${rawImages.length}, validFiles=${validFiles.length}`);
   const imagePaths = await uploadItemImages(data.id, restaurantId, validFiles, [], supabase);
 
   if (imagePaths.length > 0) {
+    console.log(`[DEBUG createMenuItem] Updating item with image_paths:`, imagePaths);
     const { error: imageError } = await supabase
       .from("menu_items")
       .update({ image_path: imagePaths[0], image_paths: imagePaths })
       .eq("id", data.id)
       .eq("restaurant_id", restaurantId);
     if (imageError) {
+      console.error(`[DEBUG createMenuItem] Error updating image_paths (falling back to image_path):`, imageError);
       await supabase
         .from("menu_items")
         .update({ image_path: imagePaths[0] })
@@ -578,6 +588,7 @@ export async function reorderCategories(formData: FormData) {
 }
 
 export async function updateMenuItem(formData: FormData) {
+  console.log("[SERVER DEBUG] updateMenuItem called with keys:", Array.from(formData.keys()));
   const { supabase, restaurantId, slug } = await context();
   const itemId = required(formData, "item_id");
   const categoryId = required(formData, "category_id");
@@ -629,6 +640,7 @@ export async function updateMenuItem(formData: FormData) {
     formData.getAll("image") as (File | null)[]
   );
   const validNewFiles = rawImages.filter((f): f is File => f instanceof File && f.size > 0);
+  console.log(`[DEBUG updateMenuItem] itemId=${itemId}, keptPaths=${JSON.stringify(keptPaths)}, validNewFiles=${validNewFiles.length}, currentPaths=${JSON.stringify(currentPaths)}`);
 
   let uploadedPaths: string[] = [];
   if (validNewFiles.length > 0) {
@@ -636,6 +648,7 @@ export async function updateMenuItem(formData: FormData) {
   }
 
   const finalPaths = [...basePaths, ...uploadedPaths];
+  console.log(`[DEBUG updateMenuItem] finalPaths=${JSON.stringify(finalPaths)}`);
 
   // Remove old files from storage that were discarded
   const removedPaths = currentPaths.filter((p) => !finalPaths.includes(p));
@@ -665,6 +678,7 @@ export async function updateMenuItem(formData: FormData) {
     .eq("restaurant_id", restaurantId);
 
   if (updateError) {
+    console.error(`[DEBUG updateMenuItem] updateError:`, updateError);
     if (updateError.message?.includes("image_paths") || updateError.code === "PGRST204" || updateError.code === "42703") {
       delete updatePayload.image_paths;
       const { error: retryError } = await supabase

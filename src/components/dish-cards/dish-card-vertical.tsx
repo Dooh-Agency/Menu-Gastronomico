@@ -46,15 +46,42 @@ export function DishCardVertical({
       {item.image_path || (item.image_paths && item.image_paths.length > 0) ? (() => {
         const thumbPath = item.image_paths?.[0] || item.image_path;
         if (!thumbPath) return null;
+        const totalPhotos = item.image_paths?.length ?? 1;
         return (
-          <Image
-            alt=""
-            className="menu-image"
-            height={720}
-            sizes="(max-width: 34rem) 100vw, 33vw"
-            src={menuImageUrl(thumbPath)}
-            width={1280}
-          />
+          <div style={{ position: "relative" }}>
+            <Image
+              alt=""
+              className="menu-image"
+              height={720}
+              sizes="(max-width: 34rem) 100vw, 33vw"
+              src={menuImageUrl(thumbPath)}
+              width={1280}
+            />
+            {totalPhotos > 1 && item.is_available ? (
+              <div
+                aria-label={`${totalPhotos} fotos`}
+                className="dish-card-horizontal-photos-badge"
+                style={{ bottom: "0.5rem", right: "0.5rem" }}
+              >
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  height="11"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.2"
+                  viewBox="0 0 24 24"
+                  width="11"
+                >
+                  <rect height="18" rx="2" ry="2" width="18" x="3" y="3" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                <span>{totalPhotos}</span>
+              </div>
+            ) : null}
+          </div>
         );
       })() : null}
       <div className="menu-card-content">

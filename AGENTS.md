@@ -1,37 +1,63 @@
-# Instrucciones para agentes de IA
+# Instrucciones Globales para Agentes de IA
 
-## Documentos de referencia
+Este archivo es la fuente canónica de verdad para cualquier agente de IA o asistente de código (Claude Code, Antigravity, Cursor, Codex, Copilot, etc.).
 
-- `SPEC.md`: especificación funcional y técnica vigente.
-- `docs/ROADMAP-DESARROLLO.md`: etapas, módulos y criterios de salida.
-- `README.md`: punto de entrada general del repositorio.
+---
 
-## Alcance actual
+## 📚 Documentación del Proyecto (Single Source of Truth)
 
-El proyecto comienza con una demo interna del menú digital usando datos semilla de MUUD. La primera versión debe concentrarse en menú público, configuración multi-tenant, administración, idiomas, franjas horarias, disponibilidad y branding.
+Toda la documentación técnica, funcional y de diseño reside en la carpeta [`/docs`](./docs/README.md):
 
-## Guardrails
+- **[`SPEC.md`](./SPEC.md)**: Especificación funcional y técnica general.
+- **[`CHANGELOG.md`](./CHANGELOG.md)**: Registro acumulativo de cambios, features, correcciones y UI.
+- **[`docs/ROADMAP-DESARROLLO.md`](./docs/ROADMAP-DESARROLLO.md)**: Etapas de desarrollo, módulos y criterios de salida.
+- **[`docs/DECISIONES-UX-MENU.md`](./docs/DECISIONES-UX-MENU.md)**: Decisiones de interacción y navegación del menú público.
+- **[`docs/README.md`](./docs/README.md)**: Índice completo de documentación.
 
-- Implementar por etapas y no construir funcionalidades futuras antes de tiempo.
-- Mantener separación estricta entre restaurantes.
-- No crear código específico de MUUD si puede resolverse mediante configuración.
-- No incorporar pagos, pedidos, reservas, KDS, stock, promociones o IA sin habilitación explícita.
-- No exponer secretos.
-- No borrar ni sobrescribir datos sin confirmación.
-- Mantener accesibilidad, rendimiento móvil y soporte para `prefers-reduced-motion`.
-- No agregar dependencias innecesarias.
-- No realizar pruebas interactivas en el navegador web simulando a un usuario (abrir navegador, clics o navegación web) a menos que el usuario lo solicite textualmente de forma explícita.
-- Verificar los cambios antes de entregarlos.
+---
 
-## Entrega de cada tarea
+## 📂 Jerarquía de Reglas Anidadas (`AGENTS.md`)
 
-Cada tarea debe informar:
+Este repositorio implementa la convención jerárquica de `AGENTS.md`:
+- **Global / Raíz [`/AGENTS.md`](./AGENTS.md)**: Reglas transversales, guardrails y protocolo de entrega.
+- **Frontend [`/src/AGENTS.md`](./src/AGENTS.md)**: Reglas de Next.js App Router, componentes, UI, tokens y accesibilidad.
+- **Base de Datos [`/supabase/AGENTS.md`](./supabase/AGENTS.md)**: Migraciones, políticas RLS, multi-tenant y seguridad.
 
-1. Qué se implementó.
-2. Qué archivos se modificaron.
-3. Qué pruebas se ejecutaron.
-4. Qué queda pendiente.
+*Nota:* Las reglas anidadas complementan y especifican las reglas globales sin contradecirlas.
 
+---
+
+## 🎯 Alcance Actual y Guardrails
+
+1. **Alcance:** Demo interna de menú digital multi-tenant. Enfoque en menú público, administración, multi-idioma, franjas horarias y branding.
+2. **Multi-tenant:** Separación estricta entre restaurantes. `MUUD` es únicamente un conjunto de datos semilla, no lógica hardcodeada.
+3. **No adelantar módulos:** No construir pagos, pedidos, reservas, KDS, stock, promociones o IA sin habilitación explícita en el roadmap.
+4. **Seguridad:** Nunca exponer claves secretas (`SUPABASE_SERVICE_ROLE_KEY`) al navegador.
+5. **Calidad:** TypeScript estricto, accesibilidad (`prefers-reduced-motion`, foco visible, teclado) y optimización móvil.
+6. **Testing Web:** No realizar pruebas interactivas en el navegador simulando usuario (abrir navegador o clics web) a menos que el usuario lo solicite explícitamente.
+
+---
+
+## 🔄 Mantenimiento de Contexto y Documentación
+
+- Si se altera un modelo de datos, arquitectura o alcance: **actualizar [`SPEC.md`](./SPEC.md)**.
+- Si se completa una etapa o hito: **actualizar [`docs/ROADMAP-DESARROLLO.md`](./docs/ROADMAP-DESARROLLO.md)**.
+- Si se establece una nueva convención técnica o regla: **actualizar [`AGENTS.md`](./AGENTS.md)** o su respectivo archivo anidado.
+
+---
+
+## 🚀 Protocolo de Finalización de Tarea
+
+Al finalizar cada tarea, el agente debe:
+
+1. **Actualizar [`CHANGELOG.md`](./CHANGELOG.md)** bajo la sección `[Unreleased]` clasificando los cambios (Nuevas Funcionalidades, UI/Diseño, Correcciones, Backend/DB).
+2. **Actualizar la documentación relevante** (`SPEC.md`, `ROADMAP-DESARROLLO.md` o `AGENTS.md`) si hubo cambios arquitectónicos o de estado.
+3. **Realizar commit de los cambios** con un mensaje claro y descriptivo (o dejarlos listos y validados).
+4. **Informar en la respuesta del chat**:
+   - Qué se implementó.
+   - Qué archivos y documentación se actualizaron.
+   - Qué pruebas se ejecutaron.
+   - Qué queda pendiente.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

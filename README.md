@@ -1,22 +1,38 @@
 # Plataforma de Gestión Gastronómica
 
-Producto SaaS multi-tenant para restaurantes: menú digital, pedidos, comandas, reservas, promociones y herramientas de gestión.
+Producto SaaS multi-tenant para restaurantes: menú digital interactivo, cartas múltiples, branding configurable, administración en tiempo real y arquitectura lista para escalar (pedidos, comandas, reservas y pagos).
 
-## Punto de partida
+---
 
-El desarrollo comienza con un restaurante interno llamado Demo, utilizando datos semilla basados en el menú de MUUD. MUUD será posteriormente un tenant separado y el primer restaurante piloto para validar el producto en condiciones reales.
+## 📍 Punto de partida
 
-## Documentación
+El desarrollo comienza con un restaurante interno de demostración llamado **`Demo`**, utilizando datos semilla de referencia. **`MUUD`** será el primer restaurante piloto para validar el producto en condiciones reales en un tenant aislado.
 
-- [Hoja de ruta de desarrollo](docs/ROADMAP-DESARROLLO.md)
-- [Esquema y puesta en marcha de Supabase](supabase/README.md)
+---
 
-## Desarrollo local
+## 📚 Documentación del Proyecto
 
-1. Copiar `.env.example` como `.env.local` y configurar las credenciales públicas del proyecto Supabase.
-2. Instalar dependencias con `pnpm install`.
-3. Iniciar la aplicación con `pnpm dev`.
+Toda la documentación técnica y de arquitectura está centralizada en [`/docs`](docs/README.md):
 
-Las migraciones SQL y los datos semilla se encuentran en `supabase/`. Demo es el tenant configurado por datos semilla; no hay rutas ni lógica dedicadas para MUUD.
+- **[`SPEC.md`](SPEC.md)**: Especificación funcional, modelo conceptual y roles.
+- **[`docs/README.md`](docs/README.md)**: Índice completo de documentación del equipo.
+- **[`docs/ROADMAP-DESARROLLO.md`](docs/ROADMAP-DESARROLLO.md)**: Hoja de ruta de desarrollo y módulos por etapa.
+- **[`CHANGELOG.md`](CHANGELOG.md)**: Registro acumulativo de cambios y entregas.
+- **[`AGENTS.md`](AGENTS.md)**: Instrucciones globales y reglas para agentes de IA.
+- **[`supabase/README.md`](supabase/README.md)**: Esquema de base de datos, RLS y migraciones.
 
-La regla de trabajo es construir por etapas. Cada etapa debe ser usable, demostrable y validada antes de avanzar a la siguiente.
+---
+
+## 🚀 Desarrollo local
+
+1. Clonar el repositorio.
+2. Copiar `.env.example` como `.env.local` y configurar las credenciales de Supabase.
+3. Instalar dependencias:
+   ```bash
+   pnpm install
+   ```
+4. Iniciar el servidor de desarrollo:
+   ```bash
+   pnpm dev
+   ```
+5. Abrir `http://localhost:3000/demo` para ver el menú público o `http://localhost:3000/admin` para el panel de gestión.

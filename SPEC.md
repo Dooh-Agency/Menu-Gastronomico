@@ -4,10 +4,11 @@
 
 ### Estado del documento
 
-- Estado: definición inicial.
-- Primer objetivo: demo interna con datos semilla de referencia en un tenant llamado Demo.
-- Primer piloto previsto: MUUD.
-- Alcance actual: Etapa 0 y Etapa 1 del [roadmap](docs/ROADMAP-DESARROLLO.md).
+- Estado: desarrollo activo y estabilización de demo.
+- Primer objetivo: demo interna con datos semilla de referencia en el tenant `Demo`.
+- Primer piloto previsto: MUUD (tenant separado en producción).
+- Alcance completado: Etapa 0 (Fundaciones), Etapa 1 (Menú Público), Etapa 2 (Panel Admin) y Etapa 3 (Branding y Cartas).
+- Alcance actual: Etapa 4 (Validación interna y pulido) y preparación de Etapa 5 (Mesas y QR).
 
 ## 1. Visión
 
@@ -22,61 +23,59 @@ Demo será el tenant de demostración interno. MUUD será posteriormente un tena
 Construir una demo interna que permita:
 
 - Mostrar el menú de Demo con datos semilla de referencia.
-- Navegar categorías y platos.
+- Navegar categorías y platos con soporte de múltiples imágenes (carrusel).
 - Mostrar nombres, descripciones, precios, fotos y etiquetas.
-- Cambiar entre español e inglés.
-- Usar una carta única o varias cartas por franja horaria.
-- Activar y desactivar productos.
-- Aplicar branding por restaurante.
-- Administrar el contenido desde un panel.
-- Verificar aislamiento entre tenants.
+- Cambiar entre español e inglés de forma fluida.
+- Usar una carta única o varias cartas por franja horaria / estacionales.
+- Activar y desactivar productos en tiempo real.
+- Aplicar branding configurable por restaurante (colores, fuentes, logos, portadas).
+- Administrar el contenido completo desde el panel de gestión.
+- Verificar aislamiento estricto entre tenants con RLS.
 
 La demo se validará primero dentro de la agencia. Después podrá desplegarse para MUUD como piloto controlado.
 
 ## 3. Alcance de la primera versión usable
 
-### Incluido
+### Incluido (Etapas 0 a 3)
 
-- Menú público mobile-first.
-- URL por restaurante mediante slug o dominio configurado.
-- Categorías y platos.
-- Precios, descripciones, fotos y etiquetas dietéticas.
-- Alérgenos.
-- Español e inglés.
-- Selector manual de idioma y detección inicial del idioma.
-- Carta única o cartas por franja horaria.
-- Horarios configurables por restaurante.
-- Disponibilidad de productos.
+- Menú público mobile-first con navegación horizontal y vista accesible.
+- URL por restaurante mediante slug (`/{slug}`) o dominio configurado.
+- Categorías y platos con ordenamiento drag-and-drop.
+- Precios, descripciones, fotos individuales o carrusel de múltiples fotos (`item_image_paths`).
+- Etiquetas dietéticas y alérgenos.
+- Soporte multi-idioma (Español / Inglés) con traducciones dinámicas.
+- Sistema de cartas múltiples (`menus`) y cartas por franja horaria (`dayparts`).
+- Horarios y zona horaria configurables por restaurante.
+- Disponibilidad de productos en tiempo real.
 - Configuración de productos agotados: ocultar o mostrar como agotados.
-- Panel de administración del menú.
-- Branding configurable por tenant.
+- Panel de administración interactivo con Server Actions y validación de tenant.
+- Branding configurable por tenant (paleta de color, tipografía, radios, logo, portada y redes).
 - Datos semilla del tenant interno Demo.
-- Segundo tenant de prueba para validar aislamiento.
+- Segundo tenant de prueba para validar aislamiento multi-tenant.
 
-### No incluido todavía
+### No incluido todavía (Etapas posteriores)
 
-- Pedidos.
-- Carrito.
-- Mesas y QR funcionales.
-- Comandas y KDS.
+- Pedidos en mesa / Carrito.
+- Mesas y QR dinámicos con sesión de comensal.
+- Comandas y KDS en cocina.
 - Reservas.
 - Take away.
-- Pagos.
-- Stock.
+- Pagos integrados.
+- Stock y control de merma.
 - Promociones dinámicas.
 - Reportes avanzados.
-- Agentes o chatbot de IA.
+- Asistente de IA para comensales.
 - Facturación fiscal.
 
 ## 4. Roadmap de módulos
 
 El desarrollo completo está documentado en [docs/ROADMAP-DESARROLLO.md](docs/ROADMAP-DESARROLLO.md). El orden resumido es:
 
-1. Fundaciones técnicas.
-2. Menú público.
-3. Panel de administración.
-4. Branding y configuración por restaurante.
-5. Validación interna.
+1. Fundaciones técnicas. *(Completado)*
+2. Menú público. *(Completado)*
+3. Panel de administración. *(Completado)*
+4. Branding y configuración por restaurante. *(Completado)*
+5. Validación interna y estabilización. *(En curso)*
 6. Mesas y códigos QR.
 7. Pedido en mesa.
 8. Comandas y KDS.
@@ -98,37 +97,39 @@ El desarrollo completo está documentado en [docs/ROADMAP-DESARROLLO.md](docs/RO
 
 | Rol | Acceso | Responsabilidad |
 |---|---|---|
-| Comensal | Público, sin login | Navegar el menú. |
-| Admin del restaurante | Login | Gestionar menú y configuración del local. |
-| Super-admin | Login | Administrar tenants y la plataforma. |
+| Comensal | Público, sin login | Navegar el menú y consultar detalles. |
+| Admin del restaurante | Login autenticado | Gestionar menú, cartas, horarios y branding del local. |
+| Super-admin | Login autenticado | Administrar tenants y la plataforma global. |
 | Mozo | Futuro | Operar mesas y pedidos. |
 | Cocina | Futuro | Operar el KDS. |
 
-## 6. Modelo conceptual inicial
+## 6. Modelo conceptual
 
-Las entidades principales son:
+Las entidades principales implementadas son:
 
-- `restaurants`: tenant, slug, branding, idiomas y configuración.
-- `users`: usuarios, roles y restaurante asociado.
-- `menu_categories`: categorías y orden.
-- `menu_items`: platos, precios, fotos, disponibilidad y etiquetas.
-- `menu_item_translations`: traducciones por idioma.
-- `dayparts`: franjas horarias configurables.
-- `restaurant_settings`: comportamiento de agotados, idioma y preferencias.
+- `restaurants`: tenant, slug, branding (colores, logo, portada, tipografía), idiomas y configuración.
+- `users` / `profiles`: usuarios autenticados, roles y vinculación estricta a un `restaurant_id`.
+- `menus`: cartas o menús independientes del restaurante (ej. Carta Principal, Menú Ejecutivo).
+- `menu_categories`: categorías de platos y orden dentro del menú.
+- `menu_category_translations`: traducciones de categorías por idioma.
+- `menu_items`: platos, precios, orden, disponibilidad, estado activo y array de imágenes (`item_image_paths`).
+- `menu_item_translations`: traducciones de nombres y descripciones por idioma.
+- `dayparts`: franjas horarias configurables por tenant.
+- `category_dayparts`: relación entre categorías y franjas horarias.
+- `restaurant_settings`: comportamiento de productos agotados, preferencias y redes de contacto.
 
-Entidades posteriores:
+Entidades planificadas para etapas siguientes:
 
-- `modifiers`.
-- `tables`.
-- `orders`.
-- `order_items`.
+- `modifiers` y `modifier_groups`.
+- `tables` y `table_sessions`.
+- `orders` y `order_items`.
 - `reservations`.
-- `promotions` y `rules`.
-- `stock_batches`.
-- `payments`.
-- `subscriptions`.
+- `promotions` y `discount_rules`.
+- `stock_items` y `stock_batches`.
+- `payments` e `invoices`.
+- `subscriptions` y `tenant_plans`.
 
-Toda entidad dependiente de un restaurante debe poder aislarse mediante `restaurant_id` o una relación segura con el tenant correspondiente.
+Toda entidad dependiente de un restaurante debe aislarse mediante `restaurant_id` con políticas RLS de Supabase.
 
 ## 7. Reglas de configuración multi-tenant
 

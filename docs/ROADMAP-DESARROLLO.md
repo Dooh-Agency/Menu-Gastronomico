@@ -39,7 +39,23 @@ La primera versión será utilizada dentro de la agencia para probar:
 
 MUUD se ofreció como primer cliente de prueba. La implementación real se realizará después de validar la demo internamente. El piloto deberá servir para observar el comportamiento de comensales, personal y administración, y para priorizar ajustes.
 
-## 4. Roadmap general
+---
+
+## 4. Estado Actual del Desarrollo
+
+| Etapa | Módulo | Estado | Documento de Validación |
+| :--- | :--- | :--- | :--- |
+| **Etapa 0** | Fundaciones técnicas y Supabase | ✅ **Completada** | `SPEC.md` / `supabase/README.md` |
+| **Etapa 1** | Menú público digital | ✅ **Completada** | [`docs/VALIDACION-ETAPA-1.md`](./VALIDACION-ETAPA-1.md) |
+| **Etapa 2** | Panel de administración del menú | ✅ **Completada** | [`docs/VALIDACION-ETAPA-2.md`](./VALIDACION-ETAPA-2.md) |
+| **Etapa 3** | Branding y configuración por restaurante | ✅ **Completada** | [`docs/VALIDACION-ETAPA-3.md`](./VALIDACION-ETAPA-3.md) |
+| **Etapa 4** | Validación interna y estabilización | 🔄 **En Curso** | — |
+| **Etapa 5** | Mesas y códigos QR | ⏳ *Planificada* | — |
+| **Etapas 6–20** | Pedidos, Comandas/KDS, Reservas, Pagos, IA, etc. | ⏳ *Planificadas* | — |
+
+---
+
+## 5. Roadmap detallado por etapas
 
 ### Etapa 0 — Fundaciones técnicas
 

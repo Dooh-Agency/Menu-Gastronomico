@@ -135,6 +135,12 @@ export function AdminMenuView({
   const [itemImagePreview, setItemImagePreview] = useState<string | null>(null);
   const [previewItem, setPreviewItem] = useState<MenuItem | null>(null);
 
+  // Staged and kept images state for item dialogs to ensure 100% reliable upload
+  const [createStagedFiles, setCreateStagedFiles] = useState<File[]>([]);
+  const [createKeptImages, setCreateKeptImages] = useState<string[]>([]);
+  const [editStagedFiles, setEditStagedFiles] = useState<File[]>([]);
+  const [editKeptImages, setEditKeptImages] = useState<string[]>([]);
+
   const [isPending, startTransition] = useTransition();
 
   // If no menu is currently selected, show the MenusDashboard
@@ -766,16 +772,47 @@ export function AdminMenuView({
                           role="button"
                           tabIndex={0}
                         >
-                          {item.image_path ? (
-                            <Image
-                              alt=""
-                              className="menu-image"
-                              height={720}
-                              sizes="(max-width: 34rem) 100vw, 33vw"
-                              src={menuImageUrl(item.image_path)}
-                              width={1280}
-                            />
-                          ) : null}
+                          {item.image_path || (item.image_paths && item.image_paths.length > 0) ? (() => {
+                            const thumbPath = item.image_paths?.[0] || item.image_path;
+                            if (!thumbPath) return null;
+                            const totalPhotos = item.image_paths?.length || 1;
+                            return (
+                              <div style={{ position: "relative" }}>
+                                <Image
+                                  alt=""
+                                  className="menu-image"
+                                  height={720}
+                                  sizes="(max-width: 34rem) 100vw, 33vw"
+                                  src={menuImageUrl(thumbPath)}
+                                  width={1280}
+                                />
+                                {totalPhotos > 1 ? (
+                                  <div
+                                    aria-label={`${totalPhotos} fotos`}
+                                    className="dish-card-horizontal-photos-badge"
+                                    style={{ bottom: "0.5rem", right: "0.5rem" }}
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      fill="none"
+                                      height="11"
+                                      stroke="currentColor"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2.2"
+                                      viewBox="0 0 24 24"
+                                      width="11"
+                                    >
+                                      <rect height="18" rx="2" ry="2" width="18" x="3" y="3" />
+                                      <circle cx="8.5" cy="8.5" r="1.5" />
+                                      <polyline points="21 15 16 10 5 21" />
+                                    </svg>
+                                    <span>{totalPhotos}</span>
+                                  </div>
+                                ) : null}
+                              </div>
+                            );
+                          })() : null}
 
                           <div className="menu-card-content">
                             <div className="menu-card-heading">
@@ -1160,12 +1197,29 @@ export function AdminMenuView({
 
       {/* Modal: Crear Plato en Categoría */}
       {createItemForCategoryId && activeCategoryForNewItem ? (
-        <AdminDialog onClose={() => setCreateItemForCategoryId(null)}>
+        <AdminDialog onClose={() => {
+          setCreateItemForCategoryId(null);
+          setCreateStagedFiles([]);
+          setCreateKeptImages([]);
+        }}>
           <form
             action={async (formData) => {
-              await createMenuItem(formData);
-              setCreateItemForCategoryId(null);
-              setItemImagePreview(null);
+              console.log("[CLIENT] Submitting createMenuItem. Staged files count:", createStagedFiles.length, "Kept images count:", createKeptImages.length);
+              // Ensure all staged files and kept images are explicitly in formData
+              formData.delete("images");
+              createStagedFiles.forEach((file) => formData.append("images", file));
+              formData.delete("kept_image_paths");
+              createKeptImages.forEach((path) => formData.append("kept_image_paths", path));
+              formData.set("has_image_manager", "true");
+
+              startTransition(async () => {
+                await createMenuItem(formData);
+                setCreateItemForCategoryId(null);
+                setCreateStagedFiles([]);
+                setCreateKeptImages([]);
+                setItemImagePreview(null);
+                router.refresh();
+              });
             }}
             className="admin-modal-form"
           >
@@ -1198,7 +1252,10 @@ export function AdminMenuView({
               </label>
             </div>
 
-            <DishImagesUploader />
+            <DishImagesUploader
+              onFilesChange={setCreateStagedFiles}
+              onKeptImagesChange={setCreateKeptImages}
+            />
 
             <div className="admin-modal-grid">
               <label>
@@ -1217,13 +1274,18 @@ export function AdminMenuView({
             <div className="admin-modal-actions">
               <button
                 className="secondary-link"
-                onClick={() => setCreateItemForCategoryId(null)}
+                disabled={isPending}
+                onClick={() => {
+                  setCreateItemForCategoryId(null);
+                  setCreateStagedFiles([]);
+                  setCreateKeptImages([]);
+                }}
                 type="button"
               >
                 Cancelar
               </button>
-              <button className="primary-link" type="submit">
-                Crear y agregar plato
+              <button className="primary-link" disabled={isPending} type="submit">
+                {isPending ? "Creando..." : "Crear y agregar plato"}
               </button>
             </div>
           </form>
@@ -1232,11 +1294,28 @@ export function AdminMenuView({
 
       {/* Modal: Editar Plato Existente */}
       {editingItem ? (
-        <AdminDialog onClose={() => setEditingItem(null)}>
+        <AdminDialog onClose={() => {
+          setEditingItem(null);
+          setEditStagedFiles([]);
+          setEditKeptImages([]);
+        }}>
           <form
             action={async (formData) => {
-              await updateMenuItem(formData);
-              setEditingItem(null);
+              console.log("[CLIENT] Submitting updateMenuItem. Staged files count:", editStagedFiles.length, "Kept images count:", editKeptImages.length);
+              // Ensure all staged files and kept images are explicitly in formData
+              formData.delete("images");
+              editStagedFiles.forEach((file) => formData.append("images", file));
+              formData.delete("kept_image_paths");
+              editKeptImages.forEach((path) => formData.append("kept_image_paths", path));
+              formData.set("has_image_manager", "true");
+
+              startTransition(async () => {
+                await updateMenuItem(formData);
+                setEditingItem(null);
+                setEditStagedFiles([]);
+                setEditKeptImages([]);
+                router.refresh();
+              });
             }}
             className="admin-modal-form"
           >
@@ -1292,6 +1371,8 @@ export function AdminMenuView({
                   ? [editingItem.image_path]
                   : []
               }
+              onFilesChange={setEditStagedFiles}
+              onKeptImagesChange={setEditKeptImages}
             />
 
             <div className="admin-modal-grid">
@@ -1319,13 +1400,18 @@ export function AdminMenuView({
             <div className="admin-modal-actions">
               <button
                 className="secondary-link"
-                onClick={() => setEditingItem(null)}
+                disabled={isPending}
+                onClick={() => {
+                  setEditingItem(null);
+                  setEditStagedFiles([]);
+                  setEditKeptImages([]);
+                }}
                 type="button"
               >
                 Cancelar
               </button>
-              <button className="primary-link" type="submit">
-                Guardar cambios
+              <button className="primary-link" disabled={isPending} type="submit">
+                {isPending ? "Guardando..." : "Guardar cambios"}
               </button>
             </div>
           </form>

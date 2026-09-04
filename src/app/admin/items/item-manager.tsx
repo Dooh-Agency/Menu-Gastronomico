@@ -34,13 +34,18 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
 
   const [prevItems, setPrevItems] = useState(items);
   const [orderedItems, setOrderedItems] = useState(items);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Item | null>(null);
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
+
+  const [createStagedFiles, setCreateStagedFiles] = useState<File[]>([]);
+  const [createKeptImages, setCreateKeptImages] = useState<string[]>([]);
+  const [editStagedFiles, setEditStagedFiles] = useState<File[]>([]);
+  const [editKeptImages, setEditKeptImages] = useState<string[]>([]);
 
   if (items !== prevItems) {
     setPrevItems(items);
@@ -111,8 +116,29 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
       {!categories.length ? <p className="empty-state">Primero creá una categoría para poder agregar platos.</p> : null}
 
       {isCreateDialogOpen ? (
-        <AdminDialog onClose={() => setIsCreateDialogOpen(false)}>
-          <form action={createMenuItem} className="admin-modal-form" onSubmit={() => setIsCreateDialogOpen(false)}>
+        <AdminDialog onClose={() => {
+          setIsCreateDialogOpen(false);
+          setCreateStagedFiles([]);
+          setCreateKeptImages([]);
+        }}>
+          <form
+            action={async (formData) => {
+              formData.delete("images");
+              createStagedFiles.forEach((file) => formData.append("images", file));
+              formData.delete("kept_image_paths");
+              createKeptImages.forEach((path) => formData.append("kept_image_paths", path));
+              formData.set("has_image_manager", "true");
+
+              startTransition(async () => {
+                await createMenuItem(formData);
+                setIsCreateDialogOpen(false);
+                setCreateStagedFiles([]);
+                setCreateKeptImages([]);
+                router.refresh();
+              });
+            }}
+            className="admin-modal-form"
+          >
             <div>
               <p className="eyebrow">Nuevo plato</p>
               <h2>Agregar plato</h2>
@@ -149,7 +175,10 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
               <input defaultChecked name="is_available" type="checkbox" />
               Disponible
             </label>
-            <DishImagesUploader />
+            <DishImagesUploader
+              onFilesChange={setCreateStagedFiles}
+              onKeptImagesChange={setCreateKeptImages}
+            />
             <label>
               Etiquetas dietéticas <span className="field-optional">Separadas por comas</span>
               <input name="dietary_tags" placeholder="vegetariano, vegano" />
@@ -160,11 +189,20 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
             </label>
             <LocalizationFields locales={locales} translations={[]} />
             <div className="admin-modal-actions">
-              <button className="secondary-link" onClick={() => setIsCreateDialogOpen(false)} type="button">
+              <button
+                className="secondary-link"
+                disabled={isPending}
+                onClick={() => {
+                  setIsCreateDialogOpen(false);
+                  setCreateStagedFiles([]);
+                  setCreateKeptImages([]);
+                }}
+                type="button"
+              >
                 Cancelar
               </button>
-              <button className="primary-link" type="submit">
-                Agregar plato
+              <button className="primary-link" disabled={isPending} type="submit">
+                {isPending ? "Agregando..." : "Agregar plato"}
               </button>
             </div>
           </form>
@@ -172,8 +210,29 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
       ) : null}
 
       {editingItem ? (
-        <AdminDialog onClose={() => setEditingItem(null)}>
-          <form action={updateMenuItem} className="admin-modal-form" onSubmit={() => setEditingItem(null)}>
+        <AdminDialog onClose={() => {
+          setEditingItem(null);
+          setEditStagedFiles([]);
+          setEditKeptImages([]);
+        }}>
+          <form
+            action={async (formData) => {
+              formData.delete("images");
+              editStagedFiles.forEach((file) => formData.append("images", file));
+              formData.delete("kept_image_paths");
+              editKeptImages.forEach((path) => formData.append("kept_image_paths", path));
+              formData.set("has_image_manager", "true");
+
+              startTransition(async () => {
+                await updateMenuItem(formData);
+                setEditingItem(null);
+                setEditStagedFiles([]);
+                setEditKeptImages([]);
+                router.refresh();
+              });
+            }}
+            className="admin-modal-form"
+          >
             <input name="item_id" type="hidden" value={editingItem.id} />
             <div>
               <p className="eyebrow">Editar plato</p>
@@ -212,6 +271,8 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
                   ? [editingItem.image_path]
                   : []
               }
+              onFilesChange={setEditStagedFiles}
+              onKeptImagesChange={setEditKeptImages}
             />
             <label>
               Etiquetas dietéticas <span className="field-optional">Separadas por comas</span>
@@ -230,11 +291,20 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
               </label>
             </div>
             <div className="admin-modal-actions">
-              <button className="secondary-link" onClick={() => setEditingItem(null)} type="button">
+              <button
+                className="secondary-link"
+                disabled={isPending}
+                onClick={() => {
+                  setEditingItem(null);
+                  setEditStagedFiles([]);
+                  setEditKeptImages([]);
+                }}
+                type="button"
+              >
                 Cancelar
               </button>
-              <button className="primary-link" type="submit">
-                Guardar cambios
+              <button className="primary-link" disabled={isPending} type="submit">
+                {isPending ? "Guardando..." : "Guardar cambios"}
               </button>
             </div>
           </form>

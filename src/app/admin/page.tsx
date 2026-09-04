@@ -2,6 +2,8 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { AdminMenuView } from "./admin-menu-view";
 import type { Category, Daypart, Menu, MenuItem, MenuSchedule } from "./types";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminHomePage() {
   const supabase = await createSupabaseServerClient();
   const {

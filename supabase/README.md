@@ -1,19 +1,39 @@
 # Supabase
 
-Las migraciones son la fuente de verdad del esquema. Aplicarlas primero en un proyecto local y luego mediante CI o la integración de Supabase; no editar producción desde el panel.
+Las migraciones en `supabase/migrations/` son la fuente canónica de verdad del esquema de la base de datos. Deben aplicarse de forma secuencial y ordenada en el proyecto de Supabase (local o en la nube).
 
-## Puesta en marcha
+---
 
-1. Crear un proyecto Supabase gratuito para la demo.
-2. Copiar `.env.example` a `.env.local` y completar solo las dos variables `NEXT_PUBLIC_*`.
-3. Aplicar `migrations/20260824000000_initial_multi_tenant.sql` y luego `seed.sql` con un rol administrativo.
-4. Crear usuarios administradores en Supabase Auth y sus perfiles con `restaurant_id` y rol correspondiente desde una operación de servidor segura. El tenant semilla es `Demo`; MUUD se crea como tenant separado al iniciar el piloto.
-5. El bucket público `menu-images` se crea con la migración. Las imágenes deben guardarse como `{restaurant_id}/{archivo}`; las políticas impiden que un administrador cargue archivos en el prefijo de otro restaurante.
+## 🚀 Puesta en marcha desde cero
 
-## Si ya aplicaste la primera migración y el seed
+1. Crear un proyecto en Supabase.
+2. Copiar `.env.example` a `.env.local` y completar las variables de entorno:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY` (solo para servidor / Server Actions).
+3. Aplicar las migraciones en orden (ver tabla de migraciones).
+4. Ejecutar `seed-demo-menu.sql` (o `seed.sql`) para cargar el restaurante `Demo` y sus datos iniciales.
+5. El bucket público `menu-images` se crea automáticamente con la migración. Las imágenes se almacenan organizadas bajo `{restaurant_id}/...`.
 
-No ejecutes `seed.sql` otra vez. Aplicá solamente `migrations/20260824000100_align_demo_tenant.sql`: renombra de forma segura el tenant semilla anterior de `MUUD` a `Demo`. No afecta a un futuro tenant real de MUUD.
+---
 
-Si la migración inicial se aplicó antes de la corrección del trigger multi-tenant, aplicá también `migrations/20260824000200_fix_menu_tenant_integrity.sql` antes del seed.
+## 📜 Historial y Orden de Migraciones
 
-`SUPABASE_SERVICE_ROLE_KEY` queda reservada para acciones de servidor o CI; nunca se importa desde `src/app` ni se publica en el navegador.
+| Archivo de Migración | Descripción |
+| :--- | :--- |
+| `20260824000000_initial_multi_tenant.sql` | Esquema base multi-tenant: `restaurants`, `users`, `categories`, `items`, `dayparts`, bucket `menu-images` y RLS. |
+| `20260824000100_align_demo_tenant.sql` | Renombra de forma segura el tenant semilla inicial a `Demo`. |
+| `20260824000200_fix_menu_tenant_integrity.sql` | Triggers e integridad referencial de `restaurant_id` en cascada. |
+| `20260824000300_add_category_translations.sql` | Tabla `menu_category_translations` para soporte multi-idioma en categorías. |
+| `20260824150000_category_dayparts.sql` | Tabla intermedia `category_dayparts` para vincular categorías a franjas horarias. |
+| `20260826100000_align_demo_daypart_names.sql` | Normalización de nombres de franjas horarias ("Diurna", "Nocturna"). |
+| `20260827000100_admin_profile_visibility.sql` | Políticas RLS para aislar el listado de perfiles de administradores por tenant. |
+| `20260901000000_menus_system.sql` | Sistema de múltiples cartas (`menus`, `menu_categories_rel`) y configuración de menú activo. |
+| `20260901010000_item_image_paths.sql` | Columna `item_image_paths` (array de strings) para soportar carrusel de múltiples imágenes por plato. |
+
+---
+
+## 🔒 Seguridad y Buenas Prácticas
+
+- `SUPABASE_SERVICE_ROLE_KEY` queda reservada exclusivamente para acciones de servidor, tareas administrativas y CI/CD; **nunca** se expone al cliente ni se importa con prefijo `NEXT_PUBLIC_`.
+- Todas las tablas deben tener **Row Level Security (RLS)** habilitado con aislamiento estricto por `restaurant_id`.

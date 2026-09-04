@@ -7,16 +7,35 @@ import { menuImageUrl } from "@/lib/restaurant-branding";
 export interface DishImagesUploaderProps {
   initialImages?: string[];
   maxImages?: number;
+  onFilesChange?: (files: File[]) => void;
+  onKeptImagesChange?: (images: string[]) => void;
 }
 
 export function DishImagesUploader({
   initialImages = [],
   maxImages = 6,
+  onFilesChange,
+  onKeptImagesChange,
 }: DishImagesUploaderProps) {
   const [existingImages, setExistingImages] = useState<string[]>(initialImages);
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [stagedUrls, setStagedUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync with prop if initialImages change
+  useEffect(() => {
+    setExistingImages(initialImages);
+  }, [initialImages]);
+
+  // Notify parent of existing/kept images changes
+  useEffect(() => {
+    onKeptImagesChange?.(existingImages);
+  }, [existingImages, onKeptImagesChange]);
+
+  // Notify parent of staged files changes
+  useEffect(() => {
+    onFilesChange?.(stagedFiles);
+  }, [stagedFiles, onFilesChange]);
 
   // Sync preview URLs for staged files
   useEffect(() => {
@@ -44,6 +63,7 @@ export function DishImagesUploader({
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
+    console.log("[CLIENT DishImagesUploader] Selected raw files:", files.map(f => ({ name: f.name, size: f.size, type: f.type })));
     if (files.length === 0) return;
 
     const remainingSlots = maxImages - existingImages.length - stagedFiles.length;
@@ -53,6 +73,7 @@ export function DishImagesUploader({
       .filter((file) => ["image/jpeg", "image/png", "image/webp"].includes(file.type) && file.size <= 5 * 1024 * 1024)
       .slice(0, remainingSlots);
 
+    console.log("[CLIENT DishImagesUploader] Adding valid new files:", validNewFiles.length);
     setStagedFiles((prev) => [...prev, ...validNewFiles]);
     if (e.target) {
       e.target.value = "";

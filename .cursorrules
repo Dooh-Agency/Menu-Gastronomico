@@ -1,0 +1,9 @@
+# Cursor Rules
+
+You must always follow the canonical project instructions defined in:
+- @AGENTS.md
+- @docs/README.md
+
+When editing files inside subdirectories, check and adhere to the nested instructions:
+- @src/AGENTS.md for frontend/Next.js/React tasks
+- @supabase/AGENTS.md for database, migrations, and RLS tasks

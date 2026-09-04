@@ -112,7 +112,7 @@ Las entidades principales implementadas son:
 - `menus`: cartas o menús independientes del restaurante (ej. Carta Principal, Menú Ejecutivo).
 - `menu_categories`: categorías de platos y orden dentro del menú.
 - `menu_category_translations`: traducciones de categorías por idioma.
-- `menu_items`: platos, precios, orden, disponibilidad, estado activo y array de imágenes (`item_image_paths`).
+- `menu_items`: platos, precios, orden, disponibilidad, estado activo, imagen principal (`image_path`) y array de múltiples imágenes (`image_paths text[]`, hasta 6 imágenes con carrusel interactivo y badges de conteo).
 - `menu_item_translations`: traducciones de nombres y descripciones por idioma.
 - `dayparts`: franjas horarias configurables por tenant.
 - `category_dayparts`: relación entre categorías y franjas horarias.

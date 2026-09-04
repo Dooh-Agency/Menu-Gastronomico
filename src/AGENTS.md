@@ -26,3 +26,8 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
 2. **TypeScript Estricto:**
    - Evitar `any`. Tipar props, estados y respuestas de actions.
    - Mantener componentes pequeños, modulares y con una única responsabilidad.
+3. **Gestión de Imágenes y Multimedia:**
+   - Soportar siempre `image_paths: string[]` (carrusel de múltiples fotos, máx. 6) junto al fallback retrocompatible `image_path: string | null`.
+   - En formularios de subida, serializar explícitamente los archivos (`formData.append("images", file)`) y rutas preservadas (`formData.append("kept_image_paths", path)`).
+   - En páginas administrativas que consulten datos mutables de Supabase, declarar `export const dynamic = "force-dynamic"` para garantizar datos frescos post-mutación.
+

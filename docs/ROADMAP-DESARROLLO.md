@@ -130,7 +130,7 @@ Permitir administrar el contenido sin modificar código ni volver a desplegar la
 - ABM de platos.
 - Ordenamiento de categorías y platos.
 - Edición de precios y descripciones.
-- Carga y reemplazo de imágenes.
+- Carga, reemplazo y gestión de múltiples imágenes por plato (hasta 6 fotos con uploader interactivo y carrusel accesible).
 - Gestión de traducciones.
 - Gestión de etiquetas y alérgenos.
 - Activación/desactivación de productos.
@@ -191,7 +191,7 @@ Probar el producto dentro de la agencia antes de llevarlo a MUUD.
 - Cambio de idioma.
 - Cambio de carta por horario.
 - Edición de platos y precios.
-- Carga y visualización de imágenes.
+- Carga y visualización de imágenes (incluyendo carrusel interactivo de múltiples fotos y badges de conteo).
 - Productos agotados.
 - Permisos de usuarios.
 - Separación de datos entre tenants.

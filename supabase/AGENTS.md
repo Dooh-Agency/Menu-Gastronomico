@@ -24,6 +24,8 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
 1. **Migraciones:**
    - Crear archivos numerados y descriptivos en `supabase/migrations/` (ej. `YYYYMMDDHHMMSS_descripcion.sql`).
    - Evitar cambios destructivos (`DROP TABLE`, `DROP COLUMN`) sin confirmación explícita.
+   - Tras agregar o modificar columnas (ej. `ALTER TABLE ... ADD COLUMN ...`), ejecutar o incluir `NOTIFY pgrst, 'reload schema';` para recargar la caché de PostgREST inmediatamente.
+   - Para colecciones de cadenas como fotos de platos, usar tipos nativos (`text[] NOT NULL DEFAULT '{}'::text[]`).
 2. **Datos Semilla (MUUD):**
    - `MUUD` es únicamente un restaurante de demostración con datos semilla (`seed-demo-menu.sql`).
    - No escribir lógica acoplada a MUUD en el código de la aplicación.

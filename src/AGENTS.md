@@ -30,4 +30,13 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
    - Soportar siempre `image_paths: string[]` (carrusel de múltiples fotos, máx. 6) junto al fallback retrocompatible `image_path: string | null`.
    - En formularios de subida, serializar explícitamente los archivos (`formData.append("images", file)`) y rutas preservadas (`formData.append("kept_image_paths", path)`).
    - En páginas administrativas que consulten datos mutables de Supabase, declarar `export const dynamic = "force-dynamic"` para garantizar datos frescos post-mutación.
+4. **Estandarización de Modales en el Admin:**
+   - Todo modal del panel de control debe seguir estrictamente la jerarquía:
+     1. **Foto / Media:** (Uploader de fotos o banner con preview arriba de todo).
+     2. **Título:** (Encabezado principal `modal-title` y `eyebrow`).
+     3. **Descripción:** (`modal-description` contextual y explicativa).
+     4. **Campos y Acciones.**
+   - Utilizar siempre `AdminDialog` como contenedor base (incluye botón de cierre "✕", backdrop con `blur(8px)` y animaciones de entrada).
+   - En platos, alérgenos y etiquetas dietéticas deben emplear `TagMultiSelector` como chips/pills interactivas.
+   - En cartas, usar el modal unificado `MenuFormDialog` con checkboxes para cada día de la semana (Lun a Dom) y turnos múltiples.
 

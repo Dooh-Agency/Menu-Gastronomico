@@ -207,61 +207,122 @@ export async function createMenu(formData: FormData) {
     }
   }
 
-  // Create initial schedule if specified
-  const scheduleType = formData.get("schedule_type");
-  if (scheduleType === "custom") {
-    const daysSelection = formData.get("days_selection");
-    const startsAt = (formData.get("starts_at") as string) || "12:00";
-    const endsAt = (formData.get("ends_at") as string) || "23:30";
-
-    if (daysSelection === "weekdays") {
-      const schedules = [1, 2, 3, 4, 5].map((d) => ({
+  // Create initial schedules if provided
+  const schedulesJson = formData.get("schedules_json");
+  if (typeof schedulesJson === "string" && schedulesJson.trim()) {
+    const schedulesList = parseSchedulesJson(schedulesJson);
+    if (schedulesList.length > 0) {
+      const payload = schedulesList.map((s, idx) => ({
         menu_id: newMenu.id,
         restaurant_id: restaurantId,
-        day_of_week: d,
-        starts_at: startsAt,
-        ends_at: endsAt,
+        day_of_week: s.day_of_week,
+        starts_at: s.starts_at,
+        ends_at: s.ends_at,
+        sort_order: idx,
       }));
-      await supabase.from("menu_schedules").insert(schedules);
-    } else if (daysSelection === "weekends") {
-      const schedules = [6, 0].map((d) => ({
-        menu_id: newMenu.id,
-        restaurant_id: restaurantId,
-        day_of_week: d,
-        starts_at: startsAt,
-        ends_at: endsAt,
-      }));
-      await supabase.from("menu_schedules").insert(schedules);
-    } else if (daysSelection !== "all" && daysSelection !== null) {
-      await supabase.from("menu_schedules").insert({
-        menu_id: newMenu.id,
-        restaurant_id: restaurantId,
-        day_of_week: Number(daysSelection),
-        starts_at: startsAt,
-        ends_at: endsAt,
-      });
+      await supabase.from("menu_schedules").insert(payload);
     } else {
       await supabase.from("menu_schedules").insert({
         menu_id: newMenu.id,
         restaurant_id: restaurantId,
         day_of_week: null,
-        starts_at: startsAt,
-        ends_at: endsAt,
+        starts_at: "00:00" as unknown as string,
+        ends_at: "23:59:59" as unknown as string,
       });
     }
   } else {
-    // All day
-    await supabase.from("menu_schedules").insert({
-      menu_id: newMenu.id,
-      restaurant_id: restaurantId,
-      day_of_week: null,
-      starts_at: "00:00" as unknown as string,
-      ends_at: "23:59:59" as unknown as string,
-    });
+    // Legacy fallback
+    const scheduleType = formData.get("schedule_type");
+    if (scheduleType === "custom") {
+      const daysSelection = formData.get("days_selection");
+      const startsAt = (formData.get("starts_at") as string) || "12:00";
+      const endsAt = (formData.get("ends_at") as string) || "23:30";
+
+      if (daysSelection === "weekdays") {
+        const schedules = [1, 2, 3, 4, 5].map((d) => ({
+          menu_id: newMenu.id,
+          restaurant_id: restaurantId,
+          day_of_week: d,
+          starts_at: startsAt,
+          ends_at: endsAt,
+        }));
+        await supabase.from("menu_schedules").insert(schedules);
+      } else if (daysSelection === "weekends") {
+        const schedules = [6, 0].map((d) => ({
+          menu_id: newMenu.id,
+          restaurant_id: restaurantId,
+          day_of_week: d,
+          starts_at: startsAt,
+          ends_at: endsAt,
+        }));
+        await supabase.from("menu_schedules").insert(schedules);
+      } else if (daysSelection !== "all" && daysSelection !== null) {
+        await supabase.from("menu_schedules").insert({
+          menu_id: newMenu.id,
+          restaurant_id: restaurantId,
+          day_of_week: Number(daysSelection),
+          starts_at: startsAt,
+          ends_at: endsAt,
+        });
+      } else {
+        await supabase.from("menu_schedules").insert({
+          menu_id: newMenu.id,
+          restaurant_id: restaurantId,
+          day_of_week: null,
+          starts_at: startsAt,
+          ends_at: endsAt,
+        });
+      }
+    } else {
+      // All day
+      await supabase.from("menu_schedules").insert({
+        menu_id: newMenu.id,
+        restaurant_id: restaurantId,
+        day_of_week: null,
+        starts_at: "00:00" as unknown as string,
+        ends_at: "23:59:59" as unknown as string,
+      });
+    }
   }
 
   invalidate(slug);
   return { success: true, menuId: newMenu.id };
+}
+
+function parseSchedulesJson(jsonStr: string): Array<{ day_of_week: number | null; starts_at: string; ends_at: string }> {
+  try {
+    const raw = JSON.parse(jsonStr);
+    if (!Array.isArray(raw)) return [];
+    const list: Array<{ day_of_week: number | null; starts_at: string; ends_at: string }> = [];
+    for (const item of raw) {
+      if (Array.isArray(item.days)) {
+        if (item.days.length === 0 || item.days.length === 7) {
+          list.push({
+            day_of_week: null,
+            starts_at: item.starts_at || "00:00",
+            ends_at: item.ends_at || "23:59",
+          });
+        } else {
+          for (const d of item.days) {
+            list.push({
+              day_of_week: Number(d),
+              starts_at: item.starts_at || "00:00",
+              ends_at: item.ends_at || "23:59",
+            });
+          }
+        }
+      } else if (item.day_of_week !== undefined) {
+        list.push({
+          day_of_week: item.day_of_week === null || item.day_of_week === "" ? null : Number(item.day_of_week),
+          starts_at: item.starts_at || "00:00",
+          ends_at: item.ends_at || "23:59",
+        });
+      }
+    }
+    return list;
+  } catch {
+    return [];
+  }
 }
 
 export async function updateMenu(formData: FormData) {
@@ -278,7 +339,164 @@ export async function updateMenu(formData: FormData) {
     .eq("restaurant_id", restaurantId);
 
   if (error) throw error;
+
+  // Handle banner update/removal if present in unified modal
+  const bannerImage = formData.get("banner_image");
+  const removeBanner = formData.get("remove_banner") === "true";
+
+  if (removeBanner) {
+    const { data: menu } = await supabase
+      .from("menus")
+      .select("banner_path")
+      .eq("id", menuId)
+      .eq("restaurant_id", restaurantId)
+      .maybeSingle<{ banner_path: string | null }>();
+
+    if (menu?.banner_path?.startsWith(`${restaurantId}/menus/`)) {
+      await supabase.storage.from("menu-images").remove([menu.banner_path]);
+    }
+    await supabase
+      .from("menus")
+      .update({ banner_path: null })
+      .eq("id", menuId)
+      .eq("restaurant_id", restaurantId);
+  } else if (bannerImage instanceof File && bannerImage.size > 0) {
+    const { data: menu } = await supabase
+      .from("menus")
+      .select("banner_path")
+      .eq("id", menuId)
+      .eq("restaurant_id", restaurantId)
+      .maybeSingle<{ banner_path: string | null }>();
+
+    const bannerPath = await uploadMenuBannerImage(menuId, restaurantId, bannerImage, menu?.banner_path ?? null, supabase);
+    if (bannerPath) {
+      await supabase.from("menus").update({ banner_path: bannerPath }).eq("id", menuId);
+    }
+  }
+
+  // Handle schedule updates if provided in unified modal
+  const schedulesJson = formData.get("schedules_json");
+  if (typeof schedulesJson === "string" && schedulesJson.trim()) {
+    const schedulesList = parseSchedulesJson(schedulesJson);
+    await supabase
+      .from("menu_schedules")
+      .delete()
+      .eq("menu_id", menuId)
+      .eq("restaurant_id", restaurantId);
+
+    if (schedulesList.length > 0) {
+      const payload = schedulesList.map((s, idx) => ({
+        menu_id: menuId,
+        restaurant_id: restaurantId,
+        day_of_week: s.day_of_week,
+        starts_at: s.starts_at,
+        ends_at: s.ends_at,
+        sort_order: idx,
+      }));
+      await supabase.from("menu_schedules").insert(payload);
+    }
+  }
+
   invalidate(slug);
+}
+
+export async function duplicateCategoryToMenu(formData: FormData) {
+  const { supabase, restaurantId, slug } = await context();
+  const sourceCategoryId = required(formData, "source_category_id");
+  const targetMenuId = required(formData, "target_menu_id");
+
+  // Verify source category belongs to this restaurant
+  const { data: sourceCat, error: catErr } = await supabase
+    .from("menu_categories")
+    .select("name, description, menu_category_translations(locale, name, description)")
+    .eq("id", sourceCategoryId)
+    .eq("restaurant_id", restaurantId)
+    .single();
+
+  if (catErr || !sourceCat) throw new Error("Categoría de origen no encontrada.");
+
+  // Get max sort_order in target menu
+  const { data: lastCat } = await supabase
+    .from("menu_categories")
+    .select("sort_order")
+    .eq("menu_id", targetMenuId)
+    .eq("restaurant_id", restaurantId)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle<{ sort_order: number }>();
+
+  // Create new category in target menu
+  const { data: newCat, error: newCatErr } = await supabase
+    .from("menu_categories")
+    .insert({
+      restaurant_id: restaurantId,
+      menu_id: targetMenuId,
+      name: sourceCat.name,
+      description: sourceCat.description,
+      sort_order: (lastCat?.sort_order ?? -1) + 1,
+      is_active: true,
+    })
+    .select("id")
+    .single();
+
+  if (newCatErr || !newCat) throw newCatErr ?? new Error("No se pudo crear la categoría en la carta destino.");
+
+  // Copy category translations
+  const sourceTranslations = (sourceCat as unknown as { menu_category_translations?: Array<{ locale: string; name: string; description: string | null }> }).menu_category_translations;
+  if (sourceTranslations && sourceTranslations.length > 0) {
+    const catTranslations = sourceTranslations.map((t) => ({
+      menu_category_id: newCat.id,
+      locale: t.locale,
+      name: t.name,
+      description: t.description,
+    }));
+    await supabase.from("menu_category_translations").insert(catTranslations);
+  }
+
+  // Get all items from source category
+  const { data: sourceItems } = await supabase
+    .from("menu_items")
+    .select("name, description, price_cents, currency_code, image_path, image_paths, dietary_tags, allergens, is_available, sort_order, menu_item_translations(locale, name, description)")
+    .eq("category_id", sourceCategoryId)
+    .eq("restaurant_id", restaurantId)
+    .order("sort_order");
+
+  if (sourceItems && sourceItems.length > 0) {
+    for (const item of sourceItems) {
+      const { data: newItem, error: itemErr } = await supabase
+        .from("menu_items")
+        .insert({
+          restaurant_id: restaurantId,
+          category_id: newCat.id,
+          name: item.name,
+          description: item.description,
+          price_cents: item.price_cents,
+          currency_code: item.currency_code || "ARS",
+          image_path: item.image_path,
+          image_paths: item.image_paths,
+          dietary_tags: item.dietary_tags || [],
+          allergens: item.allergens || [],
+          is_available: item.is_available,
+          sort_order: item.sort_order,
+        })
+        .select("id")
+        .single();
+
+      const itemTranslations = (item as unknown as { menu_item_translations?: Array<{ locale: string; name: string; description: string | null }> }).menu_item_translations;
+      if (!itemErr && newItem && itemTranslations && itemTranslations.length > 0) {
+        const payloadTrans = itemTranslations.map((t) => ({
+          menu_item_id: newItem.id,
+          locale: t.locale,
+          name: t.name,
+          description: t.description,
+        }));
+        await supabase.from("menu_item_translations").insert(payloadTrans);
+      }
+    }
+  }
+
+  invalidate(slug);
+  return { success: true, newCategoryId: newCat.id };
 }
 
 export async function deleteMenu(formData: FormData) {

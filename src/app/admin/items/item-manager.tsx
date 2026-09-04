@@ -6,6 +6,11 @@ import { AdminDialog } from "../admin-dialog";
 import { createMenuItem, deleteMenuItem, reorderMenuItems, updateMenuItem } from "../actions";
 import { LocalizationFields } from "../localization-fields";
 import { DishImagesUploader } from "../dish-images-uploader";
+import {
+  DEFAULT_ALLERGENS,
+  DEFAULT_DIETARY_TAGS,
+  TagMultiSelector,
+} from "../tag-multi-selector";
 
 type Category = { id: string; name: string };
 type Item = {
@@ -116,11 +121,14 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
       {!categories.length ? <p className="empty-state">Primero creá una categoría para poder agregar platos.</p> : null}
 
       {isCreateDialogOpen ? (
-        <AdminDialog onClose={() => {
-          setIsCreateDialogOpen(false);
-          setCreateStagedFiles([]);
-          setCreateKeptImages([]);
-        }}>
+        <AdminDialog
+          maxWidth="46rem"
+          onClose={() => {
+            setIsCreateDialogOpen(false);
+            setCreateStagedFiles([]);
+            setCreateKeptImages([]);
+          }}
+        >
           <form
             action={async (formData) => {
               formData.delete("images");
@@ -139,24 +147,39 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
             }}
             className="admin-modal-form"
           >
-            <div>
-              <p className="eyebrow">Nuevo plato</p>
-              <h2>Agregar plato</h2>
-              <p>Completá los datos esenciales; después podés ajustarlos desde la lista.</p>
+            {/* 1- FOTO (Arriba de todo) */}
+            <div className="modal-hero-photo-section">
+              <DishImagesUploader
+                onFilesChange={setCreateStagedFiles}
+                onKeptImagesChange={setCreateKeptImages}
+              />
             </div>
+
+            {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
+            <div className="modal-header-section">
+              <p className="eyebrow">Nuevo plato</p>
+              <h2 className="modal-title">Agregar plato</h2>
+              <p className="modal-description">
+                Completá los datos esenciales para publicarlo en la carta.
+              </p>
+            </div>
+
             <label>
-              Nombre
-              <input autoFocus name="name" required />
+              Nombre del plato
+              <input autoFocus name="name" placeholder="Ej: Hamburguesa Clásica..." required />
             </label>
+
             <label>
               Descripción <span className="field-optional">Opcional</span>
-              <input name="description" />
+              <textarea name="description" placeholder="Ingredientes o notas..." rows={2} />
             </label>
+
             <div className="admin-modal-grid">
               <label>
                 Precio (ARS)
-                <input min="0" name="price" required step=".01" type="number" />
+                <input min="0" name="price" placeholder="Ej: 4500" required step=".01" type="number" />
               </label>
+
               <label>
                 Categoría
                 <select
@@ -171,23 +194,30 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
                 </select>
               </label>
             </div>
+
+            {/* SELECTOR MÚLTIPLE DE ETIQUETAS DIETÉTICAS */}
+            <TagMultiSelector
+              helpText="Seleccioná las etiquetas que aplican a este plato"
+              label="Etiquetas dietéticas"
+              name="dietary_tags"
+              options={DEFAULT_DIETARY_TAGS}
+            />
+
+            {/* SELECTOR MÚLTIPLE DE ALÉRGENOS */}
+            <TagMultiSelector
+              helpText="Indicá los alérgenos presentes para alertar a los clientes"
+              label="Alérgenos"
+              name="allergens"
+              options={DEFAULT_ALLERGENS}
+            />
+
+            <LocalizationFields locales={locales} translations={[]} />
+
             <label className="checkbox-label">
               <input defaultChecked name="is_available" type="checkbox" />
-              Disponible
+              <span>Disponible para comensales</span>
             </label>
-            <DishImagesUploader
-              onFilesChange={setCreateStagedFiles}
-              onKeptImagesChange={setCreateKeptImages}
-            />
-            <label>
-              Etiquetas dietéticas <span className="field-optional">Separadas por comas</span>
-              <input name="dietary_tags" placeholder="vegetariano, vegano" />
-            </label>
-            <label>
-              Alérgenos <span className="field-optional">Separados por comas</span>
-              <input name="allergens" placeholder="lácteos, gluten" />
-            </label>
-            <LocalizationFields locales={locales} translations={[]} />
+
             <div className="admin-modal-actions">
               <button
                 className="secondary-link"
@@ -210,11 +240,14 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
       ) : null}
 
       {editingItem ? (
-        <AdminDialog onClose={() => {
-          setEditingItem(null);
-          setEditStagedFiles([]);
-          setEditKeptImages([]);
-        }}>
+        <AdminDialog
+          maxWidth="46rem"
+          onClose={() => {
+            setEditingItem(null);
+            setEditStagedFiles([]);
+            setEditKeptImages([]);
+          }}
+        >
           <form
             action={async (formData) => {
               formData.delete("images");
@@ -234,24 +267,59 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
             className="admin-modal-form"
           >
             <input name="item_id" type="hidden" value={editingItem.id} />
-            <div>
-              <p className="eyebrow">Editar plato</p>
-              <h2>{editingItem.name}</h2>
-              <p>Los cambios se verán reflejados en el menú público.</p>
+            <input name="sort_order" type="hidden" value={editingItem.sort_order} />
+
+            {/* 1- FOTO (Arriba de todo) */}
+            <div className="modal-hero-photo-section">
+              <DishImagesUploader
+                initialImages={
+                  editingItem.image_paths?.length
+                    ? editingItem.image_paths
+                    : editingItem.image_path
+                    ? [editingItem.image_path]
+                    : []
+                }
+                onFilesChange={setEditStagedFiles}
+                onKeptImagesChange={setEditKeptImages}
+              />
             </div>
+
+            {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
+            <div className="modal-header-section">
+              <p className="eyebrow">Editar plato</p>
+              <h2 className="modal-title">{editingItem.name}</h2>
+              <p className="modal-description">
+                Los cambios se verán reflejados en el menú público.
+              </p>
+            </div>
+
             <label>
-              Nombre
+              Nombre del plato
               <input autoFocus defaultValue={editingItem.name} name="name" required />
             </label>
+
             <label>
               Descripción <span className="field-optional">Opcional</span>
-              <input defaultValue={editingItem.description ?? ""} name="description" />
+              <textarea
+                defaultValue={editingItem.description ?? ""}
+                name="description"
+                rows={2}
+              />
             </label>
+
             <div className="admin-modal-grid">
               <label>
                 Precio (ARS)
-                <input defaultValue={(editingItem.price_cents / 100).toFixed(2)} min="0" name="price" required step=".01" type="number" />
+                <input
+                  defaultValue={(editingItem.price_cents / 100).toFixed(2)}
+                  min="0"
+                  name="price"
+                  required
+                  step=".01"
+                  type="number"
+                />
               </label>
+
               <label>
                 Categoría
                 <select defaultValue={editingItem.category_id} name="category_id">
@@ -263,33 +331,32 @@ export function ItemManager({ categories, items, locales, initialCategoryId = "a
                 </select>
               </label>
             </div>
-            <DishImagesUploader
-              initialImages={
-                editingItem.image_paths?.length
-                  ? editingItem.image_paths
-                  : editingItem.image_path
-                  ? [editingItem.image_path]
-                  : []
-              }
-              onFilesChange={setEditStagedFiles}
-              onKeptImagesChange={setEditKeptImages}
+
+            {/* SELECTOR MÚLTIPLE DE ETIQUETAS DIETÉTICAS */}
+            <TagMultiSelector
+              helpText="Seleccioná las etiquetas que aplican a este plato"
+              initialValues={editingItem.dietary_tags}
+              label="Etiquetas dietéticas"
+              name="dietary_tags"
+              options={DEFAULT_DIETARY_TAGS}
             />
-            <label>
-              Etiquetas dietéticas <span className="field-optional">Separadas por comas</span>
-              <input defaultValue={editingItem.dietary_tags.join(", ")} name="dietary_tags" />
-            </label>
-            <label>
-              Alérgenos <span className="field-optional">Separados por comas</span>
-              <input defaultValue={editingItem.allergens.join(", ")} name="allergens" />
-            </label>
+
+            {/* SELECTOR MÚLTIPLE DE ALÉRGENOS */}
+            <TagMultiSelector
+              helpText="Indicá los alérgenos presentes para alertar a los clientes"
+              initialValues={editingItem.allergens}
+              label="Alérgenos"
+              name="allergens"
+              options={DEFAULT_ALLERGENS}
+            />
+
             <LocalizationFields locales={locales} translations={editingItem.menu_item_translations ?? []} />
-            <div className="admin-modal-grid">
-              <input name="sort_order" type="hidden" value={editingItem.sort_order} />
-              <label className="checkbox-label">
-                <input defaultChecked={editingItem.is_available} name="is_available" type="checkbox" />
-                Disponible
-              </label>
-            </div>
+
+            <label className="checkbox-label">
+              <input defaultChecked={editingItem.is_available} name="is_available" type="checkbox" />
+              <span>Disponible para comensales</span>
+            </label>
+
             <div className="admin-modal-actions">
               <button
                 className="secondary-link"

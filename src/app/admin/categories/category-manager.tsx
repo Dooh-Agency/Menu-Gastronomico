@@ -63,11 +63,60 @@ export function CategoryManager({ categories: initialCategories, dayparts, local
       {isCreateDialogOpen ? (
         <AdminDialog onClose={() => setIsCreateDialogOpen(false)}>
           <form action={createCategory} className="admin-modal-form" onSubmit={() => setIsCreateDialogOpen(false)}>
-            <div>
-              <p className="eyebrow">Nueva categoría</p>
-              <h2>Crear categoría</h2>
-              <p>Podés cambiar sus datos y su posición después.</p>
+            {/* 1- FOTO / HEADER VISUAL */}
+            <div className="modal-hero-photo-section">
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #823718 0%, #b85d3b 100%)",
+                  borderRadius: "0.75rem",
+                  padding: "1.2rem 1.4rem",
+                  color: "white",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1rem",
+                }}
+              >
+                <div
+                  style={{
+                    background: "rgba(255,255,255,0.22)",
+                    borderRadius: "50%",
+                    padding: "0.6rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <svg
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                  >
+                    <path d="M4 6h16M4 12h16M4 18h7" />
+                  </svg>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.85 }}>
+                    Sección del menú
+                  </span>
+                  <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700 }}>Categoría</h3>
+                </div>
+              </div>
             </div>
+
+            {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
+            <div className="modal-header-section">
+              <p className="eyebrow">Nueva categoría</p>
+              <h2 className="modal-title">Crear categoría</h2>
+              <p className="modal-description">
+                Podés cambiar sus datos y su posición después desde la lista de categorías.
+              </p>
+            </div>
+
             <label>
               Nombre
               <input autoFocus name="name" required />
@@ -106,11 +155,61 @@ export function CategoryManager({ categories: initialCategories, dayparts, local
           <form action={updateCategory} className="admin-modal-form" onSubmit={() => setEditingCategory(null)}>
             <input name="category_id" type="hidden" value={editingCategory.id} />
             <input name="sort_order" type="hidden" value={categories.findIndex(({ id }) => id === editingCategory.id)} />
-            <div>
-              <p className="eyebrow">Editar categoría</p>
-              <h2>{editingCategory.name}</h2>
-              <p>Actualizá los datos que se mostrarán en el menú público.</p>
+
+            {/* 1- FOTO / HEADER VISUAL */}
+            <div className="modal-hero-photo-section">
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #823718 0%, #b85d3b 100%)",
+                  borderRadius: "0.75rem",
+                  padding: "1.2rem 1.4rem",
+                  color: "white",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1rem",
+                }}
+              >
+                <div
+                  style={{
+                    background: "rgba(255,255,255,0.22)",
+                    borderRadius: "50%",
+                    padding: "0.6rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <svg
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                  >
+                    <path d="M4 6h16M4 12h16M4 18h7" />
+                  </svg>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.85 }}>
+                    Sección del menú
+                  </span>
+                  <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700 }}>Editar categoría</h3>
+                </div>
+              </div>
             </div>
+
+            {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
+            <div className="modal-header-section">
+              <p className="eyebrow">Editar categoría</p>
+              <h2 className="modal-title">{editingCategory.name}</h2>
+              <p className="modal-description">
+                Actualizá los datos que se mostrarán en el menú público.
+              </p>
+            </div>
+
             <label>
               Nombre
               <input autoFocus defaultValue={editingCategory.name} name="name" required />
@@ -121,7 +220,7 @@ export function CategoryManager({ categories: initialCategories, dayparts, local
             </label>
             <label className="checkbox-label">
               <input defaultChecked={editingCategory.is_active} name="is_active" type="checkbox" />
-              Activa
+              <span>Activa</span>
             </label>
             {dayparts.length ? (
               <fieldset className="daypart-fields">

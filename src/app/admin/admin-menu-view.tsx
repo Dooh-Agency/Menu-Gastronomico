@@ -16,6 +16,7 @@ import {
   createMenuItem,
   deleteCategory,
   deleteMenuItem,
+  duplicateCategoryToMenu,
   toggleMenuItemAvailability,
   updateCategory,
   updateLogoImage,
@@ -24,6 +25,11 @@ import {
 } from "./actions";
 import { LocalizationFields } from "./localization-fields";
 import { DishImagesUploader } from "./dish-images-uploader";
+import {
+  DEFAULT_ALLERGENS,
+  DEFAULT_DIETARY_TAGS,
+  TagMultiSelector,
+} from "./tag-multi-selector";
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
 import { DishImageCarousel } from "@/components/dish-image-carousel";
 import type { Category, Daypart, Menu, MenuItem, RestaurantData, SettingsData } from "./types";
@@ -129,6 +135,8 @@ export function AdminMenuView({
   const [isMenuSchedulesDialogOpen, setIsMenuSchedulesDialogOpen] = useState(false);
 
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [categoryMode, setCategoryMode] = useState<"new" | "reuse">("new");
+  const [selectedSourceCatId, setSelectedSourceCatId] = useState<string>("");
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [createItemForCategoryId, setCreateItemForCategoryId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
@@ -1029,31 +1037,63 @@ export function AdminMenuView({
       {isLogoDialogOpen ? (
         <AdminDialog onClose={() => setIsLogoDialogOpen(false)}>
           <form className="admin-modal-form" onSubmit={handleLogoSubmit}>
-            <div>
-              <p className="eyebrow">Personalización</p>
-              <h2>Foto de perfil / Logo del restaurante</h2>
-              <p>Esta imagen identifica a tu local en la cabecera del menú digital.</p>
+            {/* 1- FOTO */}
+            <div className="modal-hero-photo-section" style={{ display: "flex", justifyContent: "center" }}>
+              {logoPreview ? (
+                <div className="banner-preview-box" style={{ maxWidth: "160px" }}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img alt="Vista previa del logo" className="banner-preview-img" src={logoPreview} />
+                </div>
+              ) : branding.logo_path ? (
+                <div className="banner-preview-box" style={{ maxWidth: "160px" }}>
+                  <Image
+                    alt=""
+                    className="banner-preview-img"
+                    height={120}
+                    src={menuImageUrl(branding.logo_path)}
+                    width={120}
+                  />
+                </div>
+              ) : (
+                <div
+                  className="modal-banner-placeholder"
+                  style={{
+                    width: "120px",
+                    height: "120px",
+                    borderRadius: "50%",
+                    background: "#f4eee9",
+                    border: "2px dashed #cfc7bd",
+                  }}
+                >
+                  <svg
+                    fill="none"
+                    height="32"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.5"
+                    viewBox="0 0 24 24"
+                    width="32"
+                  >
+                    <circle cx="12" cy="7" r="4" />
+                    <path d="M5.5 21a8.5 8.5 0 0 1 13 0" />
+                  </svg>
+                  <span style={{ fontSize: "0.75rem" }}>Sin logo</span>
+                </div>
+              )}
             </div>
 
-            {logoPreview ? (
-              <div className="banner-preview-box" style={{ maxWidth: "160px" }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img alt="Vista previa del logo" className="banner-preview-img" src={logoPreview} />
-              </div>
-            ) : branding.logo_path ? (
-              <div className="banner-preview-box" style={{ maxWidth: "160px" }}>
-                <Image
-                  alt=""
-                  className="banner-preview-img"
-                  height={120}
-                  src={menuImageUrl(branding.logo_path)}
-                  width={120}
-                />
-              </div>
-            ) : null}
+            {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
+            <div className="modal-header-section" style={{ textAlign: "center", paddingRight: 0 }}>
+              <p className="eyebrow">Personalización</p>
+              <h2 className="modal-title">Foto de perfil / Logo</h2>
+              <p className="modal-description">
+                Esta imagen identifica a tu restaurante en la cabecera del menú digital.
+              </p>
+            </div>
 
             <label>
-              Seleccionar archivo de imagen <span className="field-optional">JPG, PNG o WebP; máx 5 MB</span>
+              Seleccionar nueva imagen <span className="field-optional">JPG, PNG o WebP; máx 5 MB</span>
               <input
                 accept="image/jpeg,image/png,image/webp"
                 name="logo_image"
@@ -1091,54 +1131,185 @@ export function AdminMenuView({
       ) : null}
 
       {/* Modal: Crear Nueva Categoría */}
-      {isCategoryDialogOpen ? (
-        <AdminDialog onClose={() => setIsCategoryDialogOpen(false)}>
-          <form
-            action={async (formData) => {
-              formData.set("menu_id", currentMenu.id);
-              await createCategory(formData);
-              setIsCategoryDialogOpen(false);
-            }}
-            className="admin-modal-form"
-          >
-            <div>
-              <p className="eyebrow">Nueva categoría para &quot;{currentMenu.name}&quot;</p>
-              <h2>Crear categoría</h2>
-              <p>Las categorías agrupan los platos dentro de esta carta.</p>
-            </div>
+      {isCategoryDialogOpen ? (() => {
+        const reusableCategories = categories.filter((c) => c.menu_id && c.menu_id !== currentMenu?.id);
 
-            <label>
-              Nombre de la categoría
-              <input
-                autoFocus
-                name="name"
-                placeholder="Ej: Entradas, Pastas, Postres, Vinos Tintos..."
-                required
-              />
-            </label>
+        return (
+          <AdminDialog onClose={() => {
+            setIsCategoryDialogOpen(false);
+            setCategoryMode("new");
+            setSelectedSourceCatId("");
+          }}>
+            <form
+              action={async (formData) => {
+                if (categoryMode === "reuse" && selectedSourceCatId) {
+                  const reuseFormData = new FormData();
+                  reuseFormData.set("source_category_id", selectedSourceCatId);
+                  reuseFormData.set("target_menu_id", currentMenu.id);
+                  startTransition(async () => {
+                    await duplicateCategoryToMenu(reuseFormData);
+                    setIsCategoryDialogOpen(false);
+                    setCategoryMode("new");
+                    setSelectedSourceCatId("");
+                    router.refresh();
+                  });
+                } else {
+                  formData.set("menu_id", currentMenu.id);
+                  startTransition(async () => {
+                    await createCategory(formData);
+                    setIsCategoryDialogOpen(false);
+                    setCategoryMode("new");
+                    setSelectedSourceCatId("");
+                    router.refresh();
+                  });
+                }
+              }}
+              className="admin-modal-form"
+            >
+              {/* 1- FOTO / HEADER VISUAL */}
+              <div className="modal-hero-photo-section">
+                <div
+                  style={{
+                    background: "linear-gradient(135deg, #823718 0%, #b85d3b 100%)",
+                    borderRadius: "0.75rem",
+                    padding: "1.2rem 1.4rem",
+                    color: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "1rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      background: "rgba(255,255,255,0.22)",
+                      borderRadius: "50%",
+                      padding: "0.6rem",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <svg
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                    >
+                      <path d="M4 6h16M4 12h16M4 18h7" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.85 }}>
+                      Sección de la carta
+                    </span>
+                    <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700 }}>Categoría de platos</h3>
+                  </div>
+                </div>
+              </div>
 
-            <label>
-              Descripción <span className="field-optional">Opcional</span>
-              <input name="description" placeholder="Aclaraciones sobre esta sección..." />
-            </label>
+              {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
+              <div className="modal-header-section">
+                <p className="eyebrow">Nueva categoría para &quot;{currentMenu.name}&quot;</p>
+                <h2 className="modal-title">Crear categoría</h2>
+                <p className="modal-description">
+                  Las categorías agrupan los platos dentro de esta carta.
+                </p>
+              </div>
 
-            <LocalizationFields locales={restaurant.supported_locales} translations={[]} />
+              {/* Selector de Modo (Nueva vs Reutilizar de otra carta) */}
+              {reusableCategories.length > 0 && (
+                <div className="category-mode-nav">
+                  <button
+                    className={`category-mode-tab ${categoryMode === "new" ? "is-active" : ""}`}
+                    onClick={() => setCategoryMode("new")}
+                    type="button"
+                  >
+                    Nueva desde cero
+                  </button>
+                  <button
+                    className={`category-mode-tab ${categoryMode === "reuse" ? "is-active" : ""}`}
+                    onClick={() => setCategoryMode("reuse")}
+                    type="button"
+                  >
+                    Reutilizar de otra carta ({reusableCategories.length})
+                  </button>
+                </div>
+              )}
 
-            <div className="admin-modal-actions">
-              <button
-                className="secondary-link"
-                onClick={() => setIsCategoryDialogOpen(false)}
-                type="button"
-              >
-                Cancelar
-              </button>
-              <button className="primary-link" type="submit">
-                Crear categoría
-              </button>
-            </div>
-          </form>
-        </AdminDialog>
-      ) : null}
+              {categoryMode === "reuse" ? (
+                <div className="category-reuse-box">
+                  <p className="category-reuse-info">
+                    Seleccioná una categoría ya existente en otra carta. Se clonará hacia &quot;{currentMenu.name}&quot; manteniendo todos sus platos, fotos, precios, etiquetas y alérgenos sin que tengas que cargarlos de nuevo.
+                  </p>
+                  <label>
+                    Categoría a reutilizar
+                    <select
+                      onChange={(e) => setSelectedSourceCatId(e.target.value)}
+                      required
+                      value={selectedSourceCatId}
+                    >
+                      <option value="">Seleccionar una categoría...</option>
+                      {reusableCategories.map((rc) => {
+                        const menuName = menus.find((m) => m.id === rc.menu_id)?.name || "Otra carta";
+                        const dishCount = items.filter((i) => i.category_id === rc.id).length;
+                        return (
+                          <option key={rc.id} value={rc.id}>
+                            {rc.name} ({menuName}) — {dishCount} {dishCount === 1 ? "plato" : "platos"}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </label>
+                </div>
+              ) : (
+                <>
+                  <label>
+                    Nombre de la categoría
+                    <input
+                      autoFocus
+                      name="name"
+                      placeholder="Ej: Entradas, Pastas, Postres, Vinos Tintos..."
+                      required
+                    />
+                  </label>
+
+                  <label>
+                    Descripción <span className="field-optional">Opcional</span>
+                    <input name="description" placeholder="Aclaraciones sobre esta sección..." />
+                  </label>
+
+                  <LocalizationFields locales={restaurant.supported_locales} translations={[]} />
+                </>
+              )}
+
+              <div className="admin-modal-actions">
+                <button
+                  className="secondary-link"
+                  onClick={() => {
+                    setIsCategoryDialogOpen(false);
+                    setCategoryMode("new");
+                    setSelectedSourceCatId("");
+                  }}
+                  type="button"
+                >
+                  Cancelar
+                </button>
+                <button className="primary-link" disabled={isPending} type="submit">
+                  {isPending
+                    ? "Procesando..."
+                    : categoryMode === "reuse"
+                    ? "Clonar y agregar categoría"
+                    : "Crear categoría"}
+                </button>
+              </div>
+            </form>
+          </AdminDialog>
+        );
+      })() : null}
 
       {/* Modal: Editar Categoría Existente */}
       {editingCategory ? (
@@ -1146,17 +1317,69 @@ export function AdminMenuView({
           <form
             action={async (formData) => {
               formData.set("menu_id", currentMenu.id);
-              await updateCategory(formData);
-              setEditingCategory(null);
+              startTransition(async () => {
+                await updateCategory(formData);
+                setEditingCategory(null);
+                router.refresh();
+              });
             }}
             className="admin-modal-form"
           >
             <input name="category_id" type="hidden" value={editingCategory.id} />
             <input name="sort_order" type="hidden" value={editingCategory.sort_order} />
 
-            <div>
+            {/* 1- FOTO / HEADER VISUAL */}
+            <div className="modal-hero-photo-section">
+              <div
+                style={{
+                  background: "linear-gradient(135deg, #823718 0%, #b85d3b 100%)",
+                  borderRadius: "0.75rem",
+                  padding: "1.2rem 1.4rem",
+                  color: "white",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "1rem",
+                }}
+              >
+                <div
+                  style={{
+                    background: "rgba(255,255,255,0.22)",
+                    borderRadius: "50%",
+                    padding: "0.6rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <svg
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                  >
+                    <path d="M4 6h16M4 12h16M4 18h7" />
+                  </svg>
+                </div>
+                <div>
+                  <span style={{ fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.85 }}>
+                    Sección de la carta
+                  </span>
+                  <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700 }}>Editar categoría</h3>
+                </div>
+              </div>
+            </div>
+
+            {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
+            <div className="modal-header-section">
               <p className="eyebrow">Editar categoría</p>
-              <h2>{editingCategory.name}</h2>
+              <h2 className="modal-title">{editingCategory.name}</h2>
+              <p className="modal-description">
+                Modificá los datos, visibilidad y traducciones de esta categoría.
+              </p>
             </div>
 
             <label>
@@ -1176,7 +1399,9 @@ export function AdminMenuView({
 
             <label className="checkbox-label">
               <input defaultChecked={editingCategory.is_active} name="is_active" type="checkbox" />
-              Categoría activa (visible para comensales)
+              <span>
+                <strong>Categoría activa</strong> (visible para los comensales)
+              </span>
             </label>
 
             <div className="admin-modal-actions">
@@ -1187,8 +1412,8 @@ export function AdminMenuView({
               >
                 Cancelar
               </button>
-              <button className="primary-link" type="submit">
-                Guardar cambios
+              <button className="primary-link" disabled={isPending} type="submit">
+                {isPending ? "Guardando..." : "Guardar cambios"}
               </button>
             </div>
           </form>
@@ -1197,15 +1422,16 @@ export function AdminMenuView({
 
       {/* Modal: Crear Plato en Categoría */}
       {createItemForCategoryId && activeCategoryForNewItem ? (
-        <AdminDialog onClose={() => {
-          setCreateItemForCategoryId(null);
-          setCreateStagedFiles([]);
-          setCreateKeptImages([]);
-        }}>
+        <AdminDialog
+          maxWidth="46rem"
+          onClose={() => {
+            setCreateItemForCategoryId(null);
+            setCreateStagedFiles([]);
+            setCreateKeptImages([]);
+          }}
+        >
           <form
             action={async (formData) => {
-              console.log("[CLIENT] Submitting createMenuItem. Staged files count:", createStagedFiles.length, "Kept images count:", createKeptImages.length);
-              // Ensure all staged files and kept images are explicitly in formData
               formData.delete("images");
               createStagedFiles.forEach((file) => formData.append("images", file));
               formData.delete("kept_image_paths");
@@ -1225,9 +1451,21 @@ export function AdminMenuView({
           >
             <input name="category_id" type="hidden" value={createItemForCategoryId} />
 
-            <div>
+            {/* 1- FOTO (Uploader de fotos múltiples arriba de todo) */}
+            <div className="modal-hero-photo-section">
+              <DishImagesUploader
+                onFilesChange={setCreateStagedFiles}
+                onKeptImagesChange={setCreateKeptImages}
+              />
+            </div>
+
+            {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
+            <div className="modal-header-section">
               <p className="eyebrow">Agregar plato en {activeCategoryForNewItem.name}</p>
-              <h2>Nuevo plato</h2>
+              <h2 className="modal-title">Nuevo plato</h2>
+              <p className="modal-description">
+                Completá los datos del plato para mostrarlo en el menú público.
+              </p>
             </div>
 
             <label>
@@ -1237,7 +1475,11 @@ export function AdminMenuView({
 
             <label>
               Descripción <span className="field-optional">Opcional</span>
-              <input name="description" placeholder="Ingredientes, preparación o detalles..." />
+              <textarea
+                name="description"
+                placeholder="Ingredientes, preparación o detalles..."
+                rows={2}
+              />
             </label>
 
             <div className="admin-modal-grid">
@@ -1248,26 +1490,25 @@ export function AdminMenuView({
 
               <label className="checkbox-label" style={{ alignSelf: "center", marginTop: "1.25rem" }}>
                 <input defaultChecked name="is_available" type="checkbox" />
-                Disponible para comensales
+                <span>Disponible para comensales</span>
               </label>
             </div>
 
-            <DishImagesUploader
-              onFilesChange={setCreateStagedFiles}
-              onKeptImagesChange={setCreateKeptImages}
+            {/* SELECTOR MÚLTIPLE DE ETIQUETAS DIETÉTICAS (5 opciones) */}
+            <TagMultiSelector
+              helpText="Seleccioná las etiquetas que aplican a este plato"
+              label="Etiquetas dietéticas"
+              name="dietary_tags"
+              options={DEFAULT_DIETARY_TAGS}
             />
 
-            <div className="admin-modal-grid">
-              <label>
-                Etiquetas dietéticas <span className="field-optional">Separadas por comas</span>
-                <input name="dietary_tags" placeholder="Vegano, Sin TACC, Casero" />
-              </label>
-
-              <label>
-                Alérgenos <span className="field-optional">Separados por comas</span>
-                <input name="allergens" placeholder="Gluten, Lácteos, Maní" />
-              </label>
-            </div>
+            {/* SELECTOR MÚLTIPLE DE ALÉRGENOS (5 opciones) */}
+            <TagMultiSelector
+              helpText="Indicá los alérgenos presentes para informar a los clientes"
+              label="Alérgenos"
+              name="allergens"
+              options={DEFAULT_ALLERGENS}
+            />
 
             <LocalizationFields locales={restaurant.supported_locales} translations={[]} />
 
@@ -1294,15 +1535,16 @@ export function AdminMenuView({
 
       {/* Modal: Editar Plato Existente */}
       {editingItem ? (
-        <AdminDialog onClose={() => {
-          setEditingItem(null);
-          setEditStagedFiles([]);
-          setEditKeptImages([]);
-        }}>
+        <AdminDialog
+          maxWidth="46rem"
+          onClose={() => {
+            setEditingItem(null);
+            setEditStagedFiles([]);
+            setEditKeptImages([]);
+          }}
+        >
           <form
             action={async (formData) => {
-              console.log("[CLIENT] Submitting updateMenuItem. Staged files count:", editStagedFiles.length, "Kept images count:", editKeptImages.length);
-              // Ensure all staged files and kept images are explicitly in formData
               formData.delete("images");
               editStagedFiles.forEach((file) => formData.append("images", file));
               formData.delete("kept_image_paths");
@@ -1322,10 +1564,28 @@ export function AdminMenuView({
             <input name="item_id" type="hidden" value={editingItem.id} />
             <input name="sort_order" type="hidden" value={editingItem.sort_order} />
 
-            <div>
+            {/* 1- FOTO (Uploader de fotos múltiples arriba de todo) */}
+            <div className="modal-hero-photo-section">
+              <DishImagesUploader
+                initialImages={
+                  editingItem.image_paths?.length
+                    ? editingItem.image_paths
+                    : editingItem.image_path
+                    ? [editingItem.image_path]
+                    : []
+                }
+                onFilesChange={setEditStagedFiles}
+                onKeptImagesChange={setEditKeptImages}
+              />
+            </div>
+
+            {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
+            <div className="modal-header-section">
               <p className="eyebrow">Editar plato</p>
-              <h2>{editingItem.name}</h2>
-              <p>Modificá los datos del plato para actualizarlo en el menú público.</p>
+              <h2 className="modal-title">{editingItem.name}</h2>
+              <p className="modal-description">
+                Modificá los datos del plato para actualizarlo en el menú público.
+              </p>
             </div>
 
             <label>
@@ -1335,7 +1595,11 @@ export function AdminMenuView({
 
             <label>
               Descripción <span className="field-optional">Opcional</span>
-              <input defaultValue={editingItem.description ?? ""} name="description" />
+              <textarea
+                defaultValue={editingItem.description ?? ""}
+                name="description"
+                rows={2}
+              />
             </label>
 
             <div className="admin-modal-grid">
@@ -1363,29 +1627,23 @@ export function AdminMenuView({
               </label>
             </div>
 
-            <DishImagesUploader
-              initialImages={
-                editingItem.image_paths?.length
-                  ? editingItem.image_paths
-                  : editingItem.image_path
-                  ? [editingItem.image_path]
-                  : []
-              }
-              onFilesChange={setEditStagedFiles}
-              onKeptImagesChange={setEditKeptImages}
+            {/* SELECTOR MÚLTIPLE DE ETIQUETAS DIETÉTICAS (5 opciones) */}
+            <TagMultiSelector
+              helpText="Seleccioná las etiquetas que aplican a este plato"
+              initialValues={editingItem.dietary_tags}
+              label="Etiquetas dietéticas"
+              name="dietary_tags"
+              options={DEFAULT_DIETARY_TAGS}
             />
 
-            <div className="admin-modal-grid">
-              <label>
-                Etiquetas dietéticas <span className="field-optional">Separadas por comas</span>
-                <input defaultValue={editingItem.dietary_tags.join(", ")} name="dietary_tags" />
-              </label>
-
-              <label>
-                Alérgenos <span className="field-optional">Separados por comas</span>
-                <input defaultValue={editingItem.allergens.join(", ")} name="allergens" />
-              </label>
-            </div>
+            {/* SELECTOR MÚLTIPLE DE ALÉRGENOS (5 opciones) */}
+            <TagMultiSelector
+              helpText="Indicá los alérgenos presentes para informar a los clientes"
+              initialValues={editingItem.allergens}
+              label="Alérgenos"
+              name="allergens"
+              options={DEFAULT_ALLERGENS}
+            />
 
             <LocalizationFields
               locales={restaurant.supported_locales}
@@ -1394,7 +1652,7 @@ export function AdminMenuView({
 
             <label className="checkbox-label">
               <input defaultChecked={editingItem.is_available} name="is_available" type="checkbox" />
-              Disponible para comensales
+              <span>Disponible para comensales</span>
             </label>
 
             <div className="admin-modal-actions">

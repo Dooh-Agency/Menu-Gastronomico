@@ -34,6 +34,7 @@ export default async function AdminHomePage() {
     itemsResult,
     menusResult,
     schedulesResult,
+    categoryMenusResult,
   ] = await Promise.all([
     supabase
       .from("restaurants")
@@ -74,6 +75,9 @@ export default async function AdminHomePage() {
       .select("id, menu_id, day_of_week, starts_at, ends_at, sort_order")
       .eq("restaurant_id", profile.restaurant_id)
       .order("sort_order"),
+    supabase
+      .from("menu_category_menus")
+      .select("menu_id, category_id, sort_order"),
   ]);
 
   const restaurant = restaurantResult.data;
@@ -92,6 +96,13 @@ export default async function AdminHomePage() {
 
   const dayparts = (daypartsResult.data ?? []) as Daypart[];
   const rawCategories = (categoriesResult.data ?? []) as Category[];
+  const categoryMenus = (!categoryMenusResult.error && categoryMenusResult.data
+    ? categoryMenusResult.data
+    : []) as Array<{
+    menu_id: string;
+    category_id: string;
+    sort_order: number;
+  }>;
   const rawItems = (itemsResult.data ?? []) as MenuItem[];
   let itemsList = rawItems;
   if (itemsResult.error) {
@@ -143,12 +154,32 @@ export default async function AdminHomePage() {
     schedules: schedules.filter((s) => s.menu_id === menu.id),
   }));
 
-  // Ensure all categories have a valid menu_id (fallback to first menu if null)
+  // Ensure all categories have valid menu_ids and fallback to first menu if unassigned
   const defaultMenuId = menus[0]?.id;
-  const categories = rawCategories.map((c) => ({
-    ...c,
-    menu_id: c.menu_id || defaultMenuId,
-  }));
+  const categories = rawCategories.map((c) => {
+    const assignments = categoryMenus
+      .filter((mapping) => mapping.category_id === c.id)
+      .map((mapping) => ({
+        menu_id: mapping.menu_id,
+        sort_order: mapping.sort_order,
+      }));
+    const assignedMenuIds = assignments.map((a) => a.menu_id);
+    const menuIds =
+      assignedMenuIds.length > 0
+        ? assignedMenuIds
+        : c.menu_id
+        ? [c.menu_id]
+        : defaultMenuId
+        ? [defaultMenuId]
+        : [];
+
+    return {
+      ...c,
+      menu_id: c.menu_id || defaultMenuId,
+      menu_ids: menuIds,
+      menu_assignments: assignments,
+    };
+  });
 
   return (
     <main className="admin-content-full">

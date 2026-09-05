@@ -39,4 +39,7 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
    - Utilizar siempre `AdminDialog` como contenedor base (incluye botón de cierre "✕", backdrop con `blur(8px)` y animaciones de entrada).
    - En platos, alérgenos y etiquetas dietéticas deben emplear `TagMultiSelector` como chips/pills interactivas.
    - En cartas, usar el modal unificado `MenuFormDialog` con checkboxes para cada día de la semana (Lun a Dom) y turnos múltiples.
-
+5. **Categorías Reutilizables entre Cartas:**
+   - Las categorías son grupos de platos pertenecientes al restaurante, reutilizables en múltiples cartas mediante la tabla intermedia `public.menu_category_menus`.
+   - **No clonar platos ni categorías** para compartirlos entre cartas: utilizar `assignCategoryToMenu` para vincular y `unlinkCategoryFromMenu` para desvincular sin destruir los platos.
+   - Soportar `menu_ids: string[]` y `menu_assignments: Array<{ menu_id: string; sort_order: number }>` con ordenamiento específico por carta y fallback retrocompatible a `menu_id`.

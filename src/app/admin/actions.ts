@@ -503,6 +503,21 @@ export async function deleteMenu(formData: FormData) {
   const { supabase, restaurantId, slug } = await context();
   const menuId = required(formData, "menu_id");
 
+  // 1. Delete links from menu_category_menus
+  try {
+    await supabase.from("menu_category_menus").delete().eq("menu_id", menuId);
+  } catch {
+    // Ignore if table does not exist yet
+  }
+
+  // 2. Clear menu_id on menu_categories so deleting menu does not cascade delete categories
+  await supabase
+    .from("menu_categories")
+    .update({ menu_id: null })
+    .eq("menu_id", menuId)
+    .eq("restaurant_id", restaurantId);
+
+  // 3. Delete the menu
   const { error } = await supabase
     .from("menus")
     .delete()
@@ -689,6 +704,28 @@ export async function createCategory(formData: FormData) {
     .single();
 
   if (error || !data) throw error ?? new Error("No se pudo crear la categoría.");
+
+  // If menuId is provided, also insert into menu_category_menus
+  if (menuId) {
+    try {
+      const { data: lastAssigned } = await supabase
+        .from("menu_category_menus")
+        .select("sort_order")
+        .eq("menu_id", menuId)
+        .order("sort_order", { ascending: false })
+        .limit(1)
+        .maybeSingle<{ sort_order: number }>();
+
+      await supabase.from("menu_category_menus").insert({
+        menu_id: menuId,
+        category_id: data.id,
+        sort_order: (lastAssigned?.sort_order ?? -1) + 1,
+      });
+    } catch {
+      // Ignored if table does not exist yet
+    }
+  }
+
   await replaceTranslations("menu_category_translations", "menu_category_id", data.id, formData, supabase);
   await replaceCategoryDayparts(data.id, formData, restaurantId, supabase);
   invalidate(slug);
@@ -791,9 +828,146 @@ export async function updateCategory(formData: FormData) {
   invalidate(slug);
 }
 
+export async function assignCategoryToMenu(formData: FormData) {
+  const { supabase, restaurantId, slug } = await context();
+  const categoryId = required(formData, "category_id");
+  const menuId = required(formData, "menu_id");
+
+  // Verify category belongs to this restaurant
+  const { data: cat } = await supabase
+    .from("menu_categories")
+    .select("id")
+    .eq("id", categoryId)
+    .eq("restaurant_id", restaurantId)
+    .maybeSingle();
+  if (!cat) throw new Error("Categoría no encontrada.");
+
+  // Verify menu belongs to this restaurant
+  const { data: menu } = await supabase
+    .from("menus")
+    .select("id")
+    .eq("id", menuId)
+    .eq("restaurant_id", restaurantId)
+    .maybeSingle();
+  if (!menu) throw new Error("Carta no encontrada.");
+
+  // Get next sort_order for this menu
+  let nextSortOrder = 0;
+  const { data: last, error: lastErr } = await supabase
+    .from("menu_category_menus")
+    .select("sort_order")
+    .eq("menu_id", menuId)
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle<{ sort_order: number }>();
+
+  if (!lastErr && last) {
+    nextSortOrder = (last.sort_order ?? -1) + 1;
+  }
+
+  const { error } = await supabase.from("menu_category_menus").upsert({
+    menu_id: menuId,
+    category_id: categoryId,
+    sort_order: nextSortOrder,
+  });
+
+  if (error) {
+    if (error.code === "42P01" || error.code === "PGRST205") {
+      // Fallback
+      await supabase
+        .from("menu_categories")
+        .update({ menu_id: menuId })
+        .eq("id", categoryId)
+        .eq("restaurant_id", restaurantId);
+    } else {
+      throw error;
+    }
+  }
+
+  invalidate(slug);
+  return { success: true };
+}
+
+export async function unlinkCategoryFromMenu(formData: FormData) {
+  const { supabase, restaurantId, slug } = await context();
+  const categoryId = required(formData, "category_id");
+  const menuId = required(formData, "menu_id");
+
+  // Delete assignment
+  const { error } = await supabase
+    .from("menu_category_menus")
+    .delete()
+    .eq("menu_id", menuId)
+    .eq("category_id", categoryId);
+
+  if (error && error.code !== "42P01" && error.code !== "PGRST205") {
+    throw error;
+  }
+
+  // Update fallback menu_id on menu_categories if needed
+  const { data: remaining } = await supabase
+    .from("menu_category_menus")
+    .select("menu_id")
+    .eq("category_id", categoryId)
+    .limit(1)
+    .maybeSingle<{ menu_id: string }>();
+
+  await supabase
+    .from("menu_categories")
+    .update({ menu_id: remaining?.menu_id ?? null })
+    .eq("id", categoryId)
+    .eq("restaurant_id", restaurantId);
+
+  invalidate(slug);
+  return { success: true };
+}
+
+export async function reorderMenuCategories(formData: FormData) {
+  const { supabase, restaurantId, slug } = await context();
+  const menuId = required(formData, "menu_id");
+  const ids = required(formData, "category_ids")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+
+  for (const [sort_order, id] of ids.entries()) {
+    const { error } = await supabase
+      .from("menu_category_menus")
+      .update({ sort_order })
+      .eq("menu_id", menuId)
+      .eq("category_id", id);
+
+    if (error && (error.code === "42P01" || error.code === "PGRST205")) {
+      await supabase
+        .from("menu_categories")
+        .update({ sort_order })
+        .eq("id", id)
+        .eq("restaurant_id", restaurantId);
+    } else if (error) {
+      throw error;
+    }
+  }
+
+  invalidate(slug);
+  return { success: true };
+}
+
 export async function deleteCategory(formData: FormData) {
   const { supabase, restaurantId, slug } = await context();
-  const { error } = await supabase.from("menu_categories").delete().eq("id", required(formData, "category_id")).eq("restaurant_id", restaurantId);
+  const categoryId = required(formData, "category_id");
+
+  try {
+    await supabase.from("menu_category_menus").delete().eq("category_id", categoryId);
+  } catch {
+    // Ignore if table does not exist yet
+  }
+
+  const { error } = await supabase
+    .from("menu_categories")
+    .delete()
+    .eq("id", categoryId)
+    .eq("restaurant_id", restaurantId);
+
   if (error) throw error;
   invalidate(slug);
 }
@@ -801,7 +975,14 @@ export async function deleteCategory(formData: FormData) {
 export async function reorderCategories(formData: FormData) {
   const { supabase, restaurantId, slug } = await context();
   const ids = required(formData, "category_ids").split(",");
-  for (const [sort_order, id] of ids.entries()) { const { error } = await supabase.from("menu_categories").update({ sort_order }).eq("id", id).eq("restaurant_id", restaurantId); if (error) throw error; }
+  for (const [sort_order, id] of ids.entries()) {
+    const { error } = await supabase
+      .from("menu_categories")
+      .update({ sort_order })
+      .eq("id", id)
+      .eq("restaurant_id", restaurantId);
+    if (error) throw error;
+  }
   invalidate(slug);
 }
 

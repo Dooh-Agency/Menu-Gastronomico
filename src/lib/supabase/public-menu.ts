@@ -48,6 +48,8 @@ export type PublicMenuRecord = {
 type CategoryRow = {
   id: string;
   menu_id: string | null;
+  menu_ids: string[];
+  menu_assignments: Array<{ menu_id: string; sort_order: number }>;
   daypart_id: string | null;
   daypart_ids: string[];
   name: string;
@@ -186,7 +188,7 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
   const rawMenus = (menusResult.data ?? []) as PublicMenuRecord[];
   const rawSchedules = (schedulesResult.data ?? []) as PublicMenuSchedule[];
 
-  const [itemTranslationsResult, categoryTranslationsResult, categoryDaypartsResult] =
+  const [itemTranslationsResult, categoryTranslationsResult, categoryDaypartsResult, categoryMenusResult] =
     await Promise.all([
       items.length
         ? supabase
@@ -206,6 +208,12 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
             .select("menu_category_id, daypart_id")
             .in("menu_category_id", categories.map((category) => category.id))
         : Promise.resolve({ data: [], error: null }),
+      categories.length
+        ? supabase
+            .from("menu_category_menus")
+            .select("menu_id, category_id, sort_order")
+            .in("category_id", categories.map((category) => category.id))
+        : Promise.resolve({ data: [], error: null }),
     ]);
 
   if (itemTranslationsResult.error) throw itemTranslationsResult.error;
@@ -217,6 +225,13 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
   const categoryDayparts = (categoryDaypartsResult.data ?? []) as Array<{
     menu_category_id: string;
     daypart_id: string;
+  }>;
+  const categoryMenus = (!categoryMenusResult.error && categoryMenusResult.data
+    ? categoryMenusResult.data
+    : []) as Array<{
+    menu_id: string;
+    category_id: string;
+    sort_order: number;
   }>;
 
   let menus = rawMenus;
@@ -260,16 +275,36 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
     },
     dayparts: (daypartsResult.data ?? []) as DaypartRow[],
     menus,
-    categories: categories.map((category) => ({
-      ...category,
-      menu_id: category.menu_id || defaultMenuId,
-      daypart_ids: categoryDayparts
-        .filter((mapping) => mapping.menu_category_id === category.id)
-        .map((mapping) => mapping.daypart_id),
-      translations: categoryTranslations.filter(
-        (translation) => translation.menu_category_id === category.id
-      ),
-    })),
+    categories: categories.map((category) => {
+      const assignments = categoryMenus
+        .filter((mapping) => mapping.category_id === category.id)
+        .map((mapping) => ({
+          menu_id: mapping.menu_id,
+          sort_order: mapping.sort_order,
+        }));
+      const assignedMenuIds = assignments.map((a) => a.menu_id);
+      const menuIds =
+        assignedMenuIds.length > 0
+          ? assignedMenuIds
+          : category.menu_id
+          ? [category.menu_id]
+          : defaultMenuId
+          ? [defaultMenuId]
+          : [];
+
+      return {
+        ...category,
+        menu_id: category.menu_id || defaultMenuId,
+        menu_ids: menuIds,
+        menu_assignments: assignments,
+        daypart_ids: categoryDayparts
+          .filter((mapping) => mapping.menu_category_id === category.id)
+          .map((mapping) => mapping.daypart_id),
+        translations: categoryTranslations.filter(
+          (translation) => translation.menu_category_id === category.id
+        ),
+      };
+    }),
     items: items.map((item) => {
       const itemImages =
         item.image_paths && Array.isArray(item.image_paths) && item.image_paths.length > 0

@@ -26,9 +26,17 @@ export type Daypart = {
   sort_order: number;
 };
 
+export type MenuCategoryAssignment = {
+  menu_id: string;
+  category_id: string;
+  sort_order: number;
+};
+
 export type Category = {
   id: string;
   menu_id?: string | null;
+  menu_ids?: string[];
+  menu_assignments?: Array<{ menu_id: string; sort_order: number }>;
   name: string;
   description: string | null;
   sort_order: number;

@@ -30,6 +30,7 @@ Las migraciones en `supabase/migrations/` son la fuente canónica de verdad del 
 | `20260827000100_admin_profile_visibility.sql` | Políticas RLS para aislar el listado de perfiles de administradores por tenant. |
 | `20260901000000_menus_system.sql` | Sistema de múltiples cartas (`menus`, `menu_categories_rel`) y configuración de menú activo. |
 | `20260901010000_item_image_paths.sql` | Columna `item_image_paths` (array de strings) para soportar carrusel de múltiples imágenes por plato. |
+| `20260905120000_reusable_menu_categories.sql` | Tabla intermedia `menu_category_menus` para permitir categorías reutilizables entre múltiples cartas sin duplicar platos. |
 
 ---
 

@@ -29,3 +29,7 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
 2. **Datos Semilla (MUUD):**
    - `MUUD` es únicamente un restaurante de demostración con datos semilla (`seed-demo-menu.sql`).
    - No escribir lógica acoplada a MUUD en el código de la aplicación.
+3. **Relación Cartas y Categorías (Many-to-Many):**
+   - La relación entre cartas (`public.menus`) y categorías (`public.menu_categories`) se resuelve exclusivamente mediante la tabla intermedia `public.menu_category_menus(menu_id, category_id, sort_order)`.
+   - La clave foránea `menu_categories.menu_id` se mantiene únicamente con `ON DELETE SET NULL` para retrocompatibilidad, evitando que borrar una carta elimine categorías reutilizadas.
+

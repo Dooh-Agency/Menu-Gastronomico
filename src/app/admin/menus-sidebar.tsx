@@ -46,13 +46,13 @@ export function MenusSidebar({
       return;
     }
 
-    const menuCategories = categories.filter((c) => c.menu_id === menu.id);
+    const menuCategories = categories.filter((c) => c.menu_ids?.includes(menu.id) || c.menu_id === menu.id);
     const menuCategoryIds = new Set(menuCategories.map((c) => c.id));
     const menuItems = items.filter((i) => menuCategoryIds.has(i.category_id));
 
     const confirmMsg =
       menuCategories.length > 0
-        ? `¿Eliminar la carta "${menu.name}"? Contiene ${menuCategories.length} categoría(s) y ${menuItems.length} plato(s) que también se eliminarán.`
+        ? `¿Eliminar la carta "${menu.name}"? Sus categorías y platos seguirán guardados en el restaurante.`
         : `¿Eliminar la carta "${menu.name}"?`;
 
     if (!confirm(confirmMsg)) return;
@@ -100,7 +100,7 @@ export function MenusSidebar({
       <div className="admin-menus-list">
         {menus.map((menu) => {
           const isSelected = menu.id === selectedMenuId;
-          const menuCategories = categories.filter((c) => c.menu_id === menu.id);
+          const menuCategories = categories.filter((c) => c.menu_ids?.includes(menu.id) || c.menu_id === menu.id);
           const menuCategoryIds = new Set(menuCategories.map((c) => c.id));
           const menuItemsCount = items.filter((i) => menuCategoryIds.has(i.category_id)).length;
           const scheduleSummary = formatScheduleSummary(menu);

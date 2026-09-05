@@ -167,7 +167,7 @@ Convertir el menú en un producto white-label configurable.
 - Radios y estilo visual.
 - Imagen de portada.
 - Idiomas habilitados.
-- Franjas horarias.
+- Franjas horarias y cartas múltiples con categorías reutilizables.
 - Configuración de productos agotados.
 - Datos de contacto.
 - Preview del branding.

@@ -286,7 +286,7 @@ export function MenuPublico({
     );
 
     function renderMenuCard(m: PublicMenu["menus"][number], isAvailable: boolean) {
-      const menuCats = menu.categories.filter((c) => c.menu_id === m.id);
+      const menuCats = menu.categories.filter((c) => c.menu_ids?.includes(m.id) || c.menu_id === m.id);
       const menuCatIds = new Set(menuCats.map((c) => c.id));
       const menuDishCount = menu.items.filter((i) => menuCatIds.has(i.category_id)).length;
       const bannerPath = m.banner_path || branding.cover_image_path;
@@ -548,8 +548,14 @@ export function MenuPublico({
 
   const dietaryTags = Array.from(new Set(menu.items.flatMap((item) => item.dietary_tags))).sort();
 
-  // Categorías de la carta seleccionada
-  const menuCategories = menu.categories.filter((c) => c.menu_id === currentMenu.id);
+  // Categorías de la carta seleccionada (ordenadas por el orden propio de esta carta)
+  const menuCategories = menu.categories
+    .filter((c) => c.menu_ids?.includes(currentMenu.id) || c.menu_id === currentMenu.id)
+    .sort((a, b) => {
+      const orderA = a.menu_assignments?.find((m) => m.menu_id === currentMenu.id)?.sort_order ?? a.sort_order;
+      const orderB = b.menu_assignments?.find((m) => m.menu_id === currentMenu.id)?.sort_order ?? b.sort_order;
+      return orderA - orderB;
+    });
   const categories = menuCategories;
 
   const categoriesToRender =

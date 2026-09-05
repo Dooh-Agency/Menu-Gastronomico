@@ -12,12 +12,15 @@ import {
   MenuSchedulesDialog,
 } from "./menu-dialogs";
 import {
+  assignCategoryToMenu,
   createCategory,
   createMenuItem,
   deleteCategory,
   deleteMenuItem,
   duplicateCategoryToMenu,
+  reorderMenuCategories,
   toggleMenuItemAvailability,
+  unlinkCategoryFromMenu,
   updateCategory,
   updateLogoImage,
   updateMenuBanner,
@@ -196,8 +199,14 @@ export function AdminMenuView({
     new Set(["Sin TACC / Celíaco", "Vegano", "Vegetariano", "Sin lactosa", ...items.flatMap((i) => i.dietary_tags)])
   ).filter(Boolean);
 
-  // Categories belonging to the active menu
-  const menuCategories = categories.filter((c) => c.menu_id === currentMenu.id);
+  // Categories belonging to the active menu (sorted by menu-specific order)
+  const menuCategories = categories
+    .filter((c) => c.menu_ids?.includes(currentMenu.id) || c.menu_id === currentMenu.id)
+    .sort((a, b) => {
+      const orderA = a.menu_assignments?.find((m) => m.menu_id === currentMenu.id)?.sort_order ?? a.sort_order;
+      const orderB = b.menu_assignments?.find((m) => m.menu_id === currentMenu.id)?.sort_order ?? b.sort_order;
+      return orderA - orderB;
+    });
   const visibleCategories = menuCategories;
 
   // Filter categories to display based on selectedCategoryId
@@ -272,12 +281,35 @@ export function AdminMenuView({
     });
   }
 
+  function handleUnlinkCategory(category: Category) {
+    const isShared = (category.menu_ids?.length ?? 1) > 1;
+    const confirmMsg = isShared
+      ? `¿Quitar la categoría "${category.name}" de "${currentMenu.name}"?\n\nSeguirá disponible en las demás cartas y sus platos no se borrarán.`
+      : `¿Quitar la categoría "${category.name}" de esta carta?\n\nSus platos se conservarán en tu catálogo de categorías para volver a usarla cuando quieras.`;
+
+    if (!confirm(confirmMsg)) return;
+
+    const formData = new FormData();
+    formData.set("category_id", category.id);
+    formData.set("menu_id", currentMenu.id);
+    startTransition(async () => {
+      await unlinkCategoryFromMenu(formData);
+      if (selectedCategoryId === category.id) {
+        setSelectedCategoryId("all");
+      }
+      router.refresh();
+    });
+  }
+
   function handleDeleteCategory(category: Category) {
+    const isShared = (category.menu_ids?.length ?? 1) > 1;
     const count = items.filter((i) => i.category_id === category.id).length;
-    const warningText =
-      count > 0
-        ? `¿Eliminar la categoría "${category.name}"? Contiene ${count} plato${count === 1 ? "" : "s"} que también se eliminarán.`
-        : `¿Eliminar la categoría "${category.name}"?`;
+    const warningText = isShared
+      ? `¡ATENCIÓN! La categoría "${category.name}" está asignada en ${category.menu_ids?.length} cartas.\n\nSi la eliminas definitivamente, se borrará de TODAS las cartas y se eliminarán sus ${count} plato${count === 1 ? "" : "s"}.\n\nSi solo querés sacarla de "${currentMenu.name}", usá "Quitar de esta carta".\n\n¿Eliminarla definitivamente?`
+      : count > 0
+      ? `¿Eliminar definitivamente la categoría "${category.name}"? Contiene ${count} plato${count === 1 ? "" : "s"} que también se eliminarán.`
+      : `¿Eliminar definitivamente la categoría "${category.name}"?`;
+
     if (!confirm(warningText)) return;
     const formData = new FormData();
     formData.set("category_id", category.id);
@@ -286,6 +318,7 @@ export function AdminMenuView({
       if (selectedCategoryId === category.id) {
         setSelectedCategoryId("all");
       }
+      router.refresh();
     });
   }
 
@@ -697,6 +730,30 @@ export function AdminMenuView({
                         {!category.is_active ? (
                           <span className="status-badge is-inactive">Pausada</span>
                         ) : null}
+                        {category.menu_ids && category.menu_ids.length > 1 ? (
+                          <span
+                            className="admin-category-shared-badge"
+                            style={{
+                              fontSize: "0.72rem",
+                              fontWeight: 600,
+                              padding: "0.2rem 0.55rem",
+                              borderRadius: "999px",
+                              background: "rgba(59, 130, 246, 0.12)",
+                              color: "#2563eb",
+                              border: "1px solid rgba(59, 130, 246, 0.25)",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "0.25rem",
+                            }}
+                            title={`Esta categoría está presente en ${category.menu_ids.length} cartas`}
+                          >
+                            <svg fill="none" height="11" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="11">
+                              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                            </svg>
+                            Compartida ({category.menu_ids.length} cartas)
+                          </span>
+                        ) : null}
                         <span className="admin-category-count-badge">
                           {categoryItems.length} {categoryItems.length === 1 ? "plato" : "platos"}
                         </span>
@@ -728,11 +785,33 @@ export function AdminMenuView({
                         </svg>
                       </button>
                       <button
-                        aria-label={`Eliminar categoría ${category.name}`}
+                        aria-label={`Quitar categoría ${category.name} de esta carta`}
+                        className="icon-button"
+                        disabled={isPending}
+                        onClick={() => handleUnlinkCategory(category)}
+                        title="Quitar de esta carta (conservar platos)"
+                        type="button"
+                      >
+                        <svg
+                          fill="none"
+                          height="15"
+                          stroke="currentColor"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          width="15"
+                        >
+                          <line x1="18" x2="6" y1="6" y2="18" />
+                          <line x1="6" x2="18" y1="6" y2="18" />
+                        </svg>
+                      </button>
+                      <button
+                        aria-label={`Eliminar categoría ${category.name} definitivamente`}
                         className="icon-button icon-button-danger"
                         disabled={isPending}
                         onClick={() => handleDeleteCategory(category)}
-                        title="Eliminar categoría"
+                        title="Eliminar definitivamente del restaurante"
                         type="button"
                       >
                         <svg
@@ -1132,7 +1211,9 @@ export function AdminMenuView({
 
       {/* Modal: Crear Nueva Categoría */}
       {isCategoryDialogOpen ? (() => {
-        const reusableCategories = categories.filter((c) => c.menu_id && c.menu_id !== currentMenu?.id);
+        const reusableCategories = categories.filter(
+          (c) => !(c.menu_ids?.includes(currentMenu?.id) || c.menu_id === currentMenu?.id)
+        );
 
         return (
           <AdminDialog onClose={() => {
@@ -1143,11 +1224,11 @@ export function AdminMenuView({
             <form
               action={async (formData) => {
                 if (categoryMode === "reuse" && selectedSourceCatId) {
-                  const reuseFormData = new FormData();
-                  reuseFormData.set("source_category_id", selectedSourceCatId);
-                  reuseFormData.set("target_menu_id", currentMenu.id);
+                  const linkFormData = new FormData();
+                  linkFormData.set("category_id", selectedSourceCatId);
+                  linkFormData.set("menu_id", currentMenu.id);
                   startTransition(async () => {
-                    await duplicateCategoryToMenu(reuseFormData);
+                    await assignCategoryToMenu(linkFormData);
                     setIsCategoryDialogOpen(false);
                     setCategoryMode("new");
                     setSelectedSourceCatId("");
@@ -1214,9 +1295,13 @@ export function AdminMenuView({
               {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
               <div className="modal-header-section">
                 <p className="eyebrow">Nueva categoría para &quot;{currentMenu.name}&quot;</p>
-                <h2 className="modal-title">Crear categoría</h2>
+                <h2 className="modal-title">
+                  {categoryMode === "reuse" ? "Vincular categoría existente" : "Crear categoría"}
+                </h2>
                 <p className="modal-description">
-                  Las categorías agrupan los platos dentro de esta carta.
+                  {categoryMode === "reuse"
+                    ? "Vincular una categoría existente a esta carta para compartir sus platos en tiempo real."
+                    : "Las categorías agrupan los platos dentro de esta carta."}
                 </p>
               </div>
 
@@ -1235,7 +1320,7 @@ export function AdminMenuView({
                     onClick={() => setCategoryMode("reuse")}
                     type="button"
                   >
-                    Reutilizar de otra carta ({reusableCategories.length})
+                    Reutilizar existente ({reusableCategories.length})
                   </button>
                 </div>
               )}
@@ -1243,7 +1328,7 @@ export function AdminMenuView({
               {categoryMode === "reuse" ? (
                 <div className="category-reuse-box">
                   <p className="category-reuse-info">
-                    Seleccioná una categoría ya existente en otra carta. Se clonará hacia &quot;{currentMenu.name}&quot; manteniendo todos sus platos, fotos, precios, etiquetas y alérgenos sin que tengas que cargarlos de nuevo.
+                    Seleccioná una categoría ya existente en tu restaurante. Se vinculará a &quot;{currentMenu.name}&quot; manteniendo todos sus platos, fotos y precios compartidos en tiempo real. Cualquier cambio que hagas en sus platos se reflejará en todas las cartas donde esté asignada.
                   </p>
                   <label>
                     Categoría a reutilizar
@@ -1254,11 +1339,14 @@ export function AdminMenuView({
                     >
                       <option value="">Seleccionar una categoría...</option>
                       {reusableCategories.map((rc) => {
-                        const menuName = menus.find((m) => m.id === rc.menu_id)?.name || "Otra carta";
+                        const assignedMenus = menus
+                          .filter((m) => rc.menu_ids?.includes(m.id) || rc.menu_id === m.id)
+                          .map((m) => m.name);
+                        const whereText = assignedMenus.length > 0 ? `En: ${assignedMenus.join(", ")}` : "Sin carta";
                         const dishCount = items.filter((i) => i.category_id === rc.id).length;
                         return (
                           <option key={rc.id} value={rc.id}>
-                            {rc.name} ({menuName}) — {dishCount} {dishCount === 1 ? "plato" : "platos"}
+                            {rc.name} ({whereText}) — {dishCount} {dishCount === 1 ? "plato" : "platos"}
                           </option>
                         );
                       })}
@@ -1302,7 +1390,7 @@ export function AdminMenuView({
                   {isPending
                     ? "Procesando..."
                     : categoryMode === "reuse"
-                    ? "Clonar y agregar categoría"
+                    ? "Vincular a esta carta"
                     : "Crear categoría"}
                 </button>
               </div>

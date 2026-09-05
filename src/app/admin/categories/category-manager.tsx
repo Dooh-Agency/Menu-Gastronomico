@@ -12,13 +12,25 @@ type Category = {
   description: string | null;
   sort_order: number;
   is_active: boolean;
+  menu_ids?: string[];
   menu_category_translations?: Array<{ locale: string; name: string; description: string | null }>;
   menu_category_dayparts?: Array<{ daypart_id: string }>;
 };
 
 type Daypart = { id: string; name: string };
+type MenuInfo = { id: string; name: string };
 
-export function CategoryManager({ categories: initialCategories, dayparts, locales }: { categories: Category[]; dayparts: Daypart[]; locales: string[] }) {
+export function CategoryManager({
+  categories: initialCategories,
+  dayparts,
+  locales,
+  menus = [],
+}: {
+  categories: Category[];
+  dayparts: Daypart[];
+  locales: string[];
+  menus?: MenuInfo[];
+}) {
   const [prevCategories, setPrevCategories] = useState(initialCategories);
   const [categories, setCategories] = useState(initialCategories);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -270,7 +282,36 @@ export function CategoryManager({ categories: initialCategories, dayparts, local
                 ⠿
               </span>
               <div className="category-details">
-                <strong>{category.name}</strong>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                  <strong>{category.name}</strong>
+                  {category.menu_ids && category.menu_ids.length > 0 && menus && menus.length > 0 ? (
+                    <span
+                      style={{
+                        fontSize: "0.72rem",
+                        fontWeight: 500,
+                        padding: "0.15rem 0.5rem",
+                        borderRadius: "999px",
+                        background: category.menu_ids.length > 1 ? "rgba(59, 130, 246, 0.12)" : "rgba(107, 114, 128, 0.12)",
+                        color: category.menu_ids.length > 1 ? "#2563eb" : "#4b5563",
+                      }}
+                    >
+                      {category.menu_ids.map((mid) => menus.find((m) => m.id === mid)?.name).filter(Boolean).join(", ") || "En cartas"}
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: "0.72rem",
+                        fontWeight: 500,
+                        padding: "0.15rem 0.5rem",
+                        borderRadius: "999px",
+                        background: "rgba(245, 158, 11, 0.12)",
+                        color: "#b45309",
+                      }}
+                    >
+                      Sin carta asignada
+                    </span>
+                  )}
+                </div>
                 {category.description ? <p>{category.description}</p> : <p className="empty-row-detail">Sin descripción</p>}
               </div>
               <span className={`status-badge${category.is_active ? "" : " is-inactive"}`}>

@@ -13,3 +13,7 @@ begin
     check (card_layout in ('rectangle', 'hero', 'carousel'));
   end if;
 end $$;
+
+-- Recargar caché de PostgREST para exponer la columna inmediatamente
+notify pgrst, 'reload schema';
+

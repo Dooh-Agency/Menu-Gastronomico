@@ -14,7 +14,6 @@ type Category = {
   is_active: boolean;
   menu_ids?: string[];
   menu_category_translations?: Array<{ locale: string; name: string; description: string | null }>;
-  menu_category_dayparts?: Array<{ daypart_id: string }>;
 };
 
 type Daypart = { id: string; name: string };
@@ -27,7 +26,7 @@ export function CategoryManager({
   menus = [],
 }: {
   categories: Category[];
-  dayparts: Daypart[];
+  dayparts?: Daypart[];
   locales: string[];
   menus?: MenuInfo[];
 }) {
@@ -137,14 +136,15 @@ export function CategoryManager({
               Descripción <span className="field-optional">Opcional</span>
               <input name="description" />
             </label>
-            {dayparts.length ? (
+            {menus.length ? (
               <fieldset className="daypart-fields">
                 <legend>Cartas donde se muestra</legend>
-                <p>Si no elegís ninguna, la categoría aparece en todas las cartas.</p>
-                {dayparts.map((daypart) => (
-                  <label className="checkbox-label" key={daypart.id}>
-                    <input name="daypart_ids" type="checkbox" value={daypart.id} />
-                    {daypart.name}
+                <p>Seleccioná en qué cartas querés que aparezca esta categoría.</p>
+                <input name="has_menu_selection" type="hidden" value="1" />
+                {menus.map((menu) => (
+                  <label className="checkbox-label" key={menu.id}>
+                    <input name="menu_ids" type="checkbox" value={menu.id} />
+                    {menu.name}
                   </label>
                 ))}
               </fieldset>
@@ -234,19 +234,20 @@ export function CategoryManager({
               <input defaultChecked={editingCategory.is_active} name="is_active" type="checkbox" />
               <span>Activa</span>
             </label>
-            {dayparts.length ? (
+            {menus.length ? (
               <fieldset className="daypart-fields">
                 <legend>Cartas donde se muestra</legend>
-                <p>Si no elegís ninguna, la categoría aparece en todas las cartas.</p>
-                {dayparts.map((daypart) => (
-                  <label className="checkbox-label" key={daypart.id}>
+                <p>Seleccioná en qué cartas querés que aparezca esta categoría.</p>
+                <input name="has_menu_selection" type="hidden" value="1" />
+                {menus.map((menu) => (
+                  <label className="checkbox-label" key={menu.id}>
                     <input
-                      defaultChecked={editingCategory.menu_category_dayparts?.some((item) => item.daypart_id === daypart.id)}
-                      name="daypart_ids"
+                      defaultChecked={editingCategory.menu_ids?.includes(menu.id)}
+                      name="menu_ids"
                       type="checkbox"
-                      value={daypart.id}
+                      value={menu.id}
                     />
-                    {daypart.name}
+                    {menu.name}
                   </label>
                 ))}
               </fieldset>

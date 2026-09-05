@@ -65,19 +65,66 @@ async function replaceTranslations(table: "menu_item_translations" | "menu_categ
   }
 }
 
-async function replaceCategoryDayparts(categoryId: string, formData: FormData, restaurantId: string, supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>) {
-  const daypartIds = formData.getAll("daypart_ids").filter((id): id is string => typeof id === "string" && id.length > 0);
-  if (daypartIds.length) {
-    const { data, error } = await supabase.from("dayparts").select("id").eq("restaurant_id", restaurantId).in("id", daypartIds);
+async function syncCategoryMenus(
+  categoryId: string,
+  targetMenuIds: string[],
+  restaurantId: string,
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>
+) {
+  if (targetMenuIds.length > 0) {
+    const { data: validMenus, error } = await supabase
+      .from("menus")
+      .select("id")
+      .eq("restaurant_id", restaurantId)
+      .in("id", targetMenuIds);
     if (error) throw error;
-    if ((data?.length ?? 0) !== daypartIds.length) throw new Error("Franja horaria no válida.");
+    if ((validMenus?.length ?? 0) !== targetMenuIds.length) {
+      throw new Error("Una o más cartas no son válidas.");
+    }
   }
-  const { error: deleteError } = await supabase.from("menu_category_dayparts").delete().eq("menu_category_id", categoryId);
-  if (deleteError) throw deleteError;
-  if (daypartIds.length) {
-    const { error } = await supabase.from("menu_category_dayparts").insert(daypartIds.map((daypart_id) => ({ menu_category_id: categoryId, daypart_id })));
-    if (error) throw error;
+
+  // Get current assignments for this category
+  const { data: currentAssignments } = await supabase
+    .from("menu_category_menus")
+    .select("menu_id, sort_order")
+    .eq("category_id", categoryId);
+
+  const currentMenuIds = (currentAssignments ?? []).map((a) => a.menu_id);
+
+  // Menus to remove: in currentMenuIds but not in targetMenuIds
+  const toRemove = currentMenuIds.filter((id) => !targetMenuIds.includes(id));
+  if (toRemove.length > 0) {
+    await supabase
+      .from("menu_category_menus")
+      .delete()
+      .eq("category_id", categoryId)
+      .in("menu_id", toRemove);
   }
+
+  // Menus to add: in targetMenuIds but not in currentMenuIds
+  const toAdd = targetMenuIds.filter((id) => !currentMenuIds.includes(id));
+  for (const menuId of toAdd) {
+    const { data: lastAssigned } = await supabase
+      .from("menu_category_menus")
+      .select("sort_order")
+      .eq("menu_id", menuId)
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle<{ sort_order: number }>();
+
+    await supabase.from("menu_category_menus").insert({
+      menu_id: menuId,
+      category_id: categoryId,
+      sort_order: (lastAssigned?.sort_order ?? -1) + 1,
+    });
+  }
+
+  // Update legacy menu_id column for backwards compatibility
+  await supabase
+    .from("menu_categories")
+    .update({ menu_id: targetMenuIds[0] ?? null })
+    .eq("id", categoryId)
+    .eq("restaurant_id", restaurantId);
 }
 
 async function uploadItemImages(
@@ -677,6 +724,8 @@ export async function updateLogoImage(formData: FormData) {
 export async function createCategory(formData: FormData) {
   const { supabase, restaurantId, slug } = await context();
   const menuId = formData.get("menu_id") as string | null;
+  const rawMenuIds = formData.getAll("menu_ids").filter((id): id is string => typeof id === "string" && id.length > 0);
+  const targetMenuIds = rawMenuIds.length > 0 ? rawMenuIds : (menuId ? [menuId] : []);
 
   const { data: last } = await supabase
     .from("menu_categories")
@@ -693,8 +742,8 @@ export async function createCategory(formData: FormData) {
     sort_order: (last?.sort_order ?? -1) + 1,
   };
 
-  if (menuId) {
-    insertPayload.menu_id = menuId;
+  if (targetMenuIds.length > 0) {
+    insertPayload.menu_id = targetMenuIds[0];
   }
 
   const { data, error } = await supabase
@@ -705,29 +754,15 @@ export async function createCategory(formData: FormData) {
 
   if (error || !data) throw error ?? new Error("No se pudo crear la categoría.");
 
-  // If menuId is provided, also insert into menu_category_menus
-  if (menuId) {
+  if (targetMenuIds.length > 0) {
     try {
-      const { data: lastAssigned } = await supabase
-        .from("menu_category_menus")
-        .select("sort_order")
-        .eq("menu_id", menuId)
-        .order("sort_order", { ascending: false })
-        .limit(1)
-        .maybeSingle<{ sort_order: number }>();
-
-      await supabase.from("menu_category_menus").insert({
-        menu_id: menuId,
-        category_id: data.id,
-        sort_order: (lastAssigned?.sort_order ?? -1) + 1,
-      });
-    } catch {
-      // Ignored if table does not exist yet
+      await syncCategoryMenus(data.id, targetMenuIds, restaurantId, supabase);
+    } catch (syncErr) {
+      console.error("[createCategory] Error syncing category menus:", syncErr);
     }
   }
 
   await replaceTranslations("menu_category_translations", "menu_category_id", data.id, formData, supabase);
-  await replaceCategoryDayparts(data.id, formData, restaurantId, supabase);
   invalidate(slug);
 }
 
@@ -812,7 +847,7 @@ export async function updateCategory(formData: FormData) {
     is_active: formData.get("is_active") === "on",
   };
 
-  if (menuId) {
+  if (menuId && !formData.has("has_menu_selection")) {
     updatePayload.menu_id = menuId;
   }
 
@@ -823,8 +858,13 @@ export async function updateCategory(formData: FormData) {
     .eq("restaurant_id", restaurantId);
 
   if (error) throw error;
+
+  if (formData.has("has_menu_selection")) {
+    const targetMenuIds = formData.getAll("menu_ids").filter((id): id is string => typeof id === "string" && id.length > 0);
+    await syncCategoryMenus(categoryId, targetMenuIds, restaurantId, supabase);
+  }
+
   await replaceTranslations("menu_category_translations", "menu_category_id", categoryId, formData, supabase);
-  await replaceCategoryDayparts(categoryId, formData, restaurantId, supabase);
   invalidate(slug);
 }
 

@@ -8,15 +8,14 @@ export default async function CategoriesPage() {
     ? await s.from("profiles").select("restaurant_id").eq("id", user.id).maybeSingle<{ restaurant_id: string | null }>()
     : { data: null };
 
-  const [categoryResult, daypartsResult, restaurantResult, menusResult, categoryMenusResult] = p?.restaurant_id
+  const [categoryResult, restaurantResult, menusResult, categoryMenusResult] = p?.restaurant_id
     ? await Promise.all([
-        s.from("menu_categories").select("id,menu_id,name,description,sort_order,is_active,menu_category_translations(locale,name,description),menu_category_dayparts(daypart_id)").eq("restaurant_id", p.restaurant_id).order("sort_order"),
-        s.from("dayparts").select("id,name").eq("restaurant_id", p.restaurant_id).order("sort_order"),
+        s.from("menu_categories").select("id,menu_id,name,description,sort_order,is_active,menu_category_translations(locale,name,description)").eq("restaurant_id", p.restaurant_id).order("sort_order"),
         s.from("restaurants").select("supported_locales").eq("id", p.restaurant_id).maybeSingle<{ supported_locales: string[] }>(),
         s.from("menus").select("id,name").eq("restaurant_id", p.restaurant_id).order("sort_order"),
         s.from("menu_category_menus").select("menu_id,category_id"),
       ])
-    : [{ data: [] }, { data: [] }, { data: null }, { data: [] }, { data: [] }];
+    : [{ data: [] }, { data: null }, { data: [] }, { data: [] }];
 
   const rawCategories = categoryResult.data ?? [];
   const menus = menusResult.data ?? [];
@@ -35,7 +34,6 @@ export default async function CategoriesPage() {
     <main className="admin-content">
       <CategoryManager
         categories={categories}
-        dayparts={daypartsResult.data ?? []}
         locales={restaurantResult.data?.supported_locales ?? ["es"]}
         menus={menus}
       />

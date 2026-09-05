@@ -35,6 +35,8 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Forzado dinámico de datos admin:** Inclusión de `export const dynamic = "force-dynamic"` en `/admin` y `/admin/items` para evitar respuestas cacheadas tras modificaciones de platos.
 
 ### 🐛 Correcciones
+- **Migración de selección de cartas en gestor de categorías (`/admin/categories`):** Se reemplazó el uso legacy de la tabla `dayparts` ("Diurna", "Nocturna", "Mostrador") por el listado de cartas reales (`menus`) en los modales de creación y edición de categorías (`category-manager.tsx`). Se implementó `syncCategoryMenus` en `actions.ts` para sincronizar las asignaciones en `menu_category_menus`.
+- **Limpieza de franjas horarias residuales:** Migración `20260905130000_cleanup_legacy_dayparts.sql` para remover registros huérfanos de `dayparts` provenientes del seed inicial.
 - **Subida de múltiples imágenes por plato:** Se corrigió la serialización de archivos en `FormData` en `DishImagesUploader`, asegurando la adjunción explícita de todos los archivos seleccionados hacia los Server Actions sin depender de `DataTransfer`.
 - **Refresco de estado en panel de administración:** Se integró `startTransition` y `router.refresh()` en los modales de creación y edición de platos (`admin-menu-view.tsx` e `item-manager.tsx`) para actualizar la interfaz inmediatamente tras guardar múltiples fotos.
 - **Prevención de desmontaje prematuro:** Se eliminó el `onSubmit` sincrónico en `item-manager.tsx` que destruía el DOM antes de que concluyera la subida.
@@ -42,5 +44,6 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 
 ### 🛠️ Base de Datos & Backend
 - **Migración de categorías reutilizables:** Archivo `supabase/migrations/20260905120000_reusable_menu_categories.sql` que crea la tabla `public.menu_category_menus`, migra datos existentes, establece triggers de integridad multi-tenant y configura RLS.
+- **Migración de limpieza de franjas obsoletas:** Archivo `supabase/migrations/20260905130000_cleanup_legacy_dayparts.sql` para purgar registros antiguos de `dayparts`.
 - **Migración Supabase:** Archivo `supabase/migrations/20260901010000_item_image_paths.sql` para el array/columnas de imágenes de ítems.
 

@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { PublicMenu, PublicMenuSchedule } from "@/lib/supabase/public-menu";
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
-import { DishCardHorizontal } from "@/components/dish-cards";
+import { DishCardHorizontal, DishCardHero, DishCardCompact } from "@/components/dish-cards";
 import { DishImageCarousel } from "@/components/dish-image-carousel";
 
 type MenuPublicoProps = {
@@ -779,22 +779,64 @@ export function MenuPublico({
                   <h2>{localizedCategory.name}</h2>
                   {localizedCategory.description ? <p>{localizedCategory.description}</p> : null}
                 </div>
-                <div className="menu-items-horizontal-list">
-                  {items.map((item) => (
-                    <DishCardHorizontal
-                      key={item.id}
-                      item={item}
-                      labels={{
-                        allergens: copy.allergens,
-                        details: copy.details,
-                        filters: copy.filters,
-                        soldOut: copy.soldOut,
-                      }}
-                      locale={locale}
-                      onSelect={setSelectedItem}
-                    />
-                  ))}
-                </div>
+
+                {category.card_layout === "hero" ? (
+                  <div className="menu-items-hero-grid">
+                    {items.map((item) => (
+                      <DishCardHero
+                        key={item.id}
+                        item={item}
+                        labels={{
+                          allergens: copy.allergens,
+                          details: copy.details,
+                          filters: copy.filters,
+                          soldOut: copy.soldOut,
+                        }}
+                        locale={locale}
+                        onSelect={setSelectedItem}
+                      />
+                    ))}
+                  </div>
+                ) : category.card_layout === "carousel" ? (
+                  <div
+                    aria-label={localizedCategory.name}
+                    className="menu-items-carousel-row"
+                    role="region"
+                    tabIndex={0}
+                  >
+                    {items.map((item) => (
+                      <DishCardCompact
+                        key={item.id}
+                        item={item}
+                        labels={{
+                          allergens: copy.allergens,
+                          details: copy.details,
+                          filters: copy.filters,
+                          soldOut: copy.soldOut,
+                        }}
+                        locale={locale}
+                        onSelect={setSelectedItem}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="menu-items-horizontal-list">
+                    {items.map((item) => (
+                      <DishCardHorizontal
+                        key={item.id}
+                        item={item}
+                        labels={{
+                          allergens: copy.allergens,
+                          details: copy.details,
+                          filters: copy.filters,
+                          soldOut: copy.soldOut,
+                        }}
+                        locale={locale}
+                        onSelect={setSelectedItem}
+                      />
+                    ))}
+                  </div>
+                )}
               </section>
             );
           });

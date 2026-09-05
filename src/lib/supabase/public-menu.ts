@@ -55,6 +55,7 @@ type CategoryRow = {
   name: string;
   description: string | null;
   sort_order: number;
+  card_layout: "rectangle" | "hero" | "carousel";
 };
 
 type ItemRow = {
@@ -139,7 +140,7 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
       .order("sort_order"),
     supabase
       .from("menu_categories")
-      .select("id, menu_id, daypart_id, name, description, sort_order")
+      .select("id, menu_id, daypart_id, name, description, sort_order, card_layout")
       .eq("restaurant_id", restaurant.id)
       .order("sort_order"),
     supabase
@@ -163,7 +164,23 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
 
   if (settingsResult.error) throw settingsResult.error;
   if (daypartsResult.error) throw daypartsResult.error;
-  if (categoriesResult.error) throw categoriesResult.error;
+
+  let categoriesRaw: Array<Record<string, unknown>> = [];
+  if (categoriesResult.error) {
+    if (categoriesResult.error.code === "42703") {
+      const fallbackCategoriesResult = await supabase
+        .from("menu_categories")
+        .select("id, menu_id, daypart_id, name, description, sort_order")
+        .eq("restaurant_id", restaurant.id)
+        .order("sort_order");
+      if (fallbackCategoriesResult.error) throw fallbackCategoriesResult.error;
+      categoriesRaw = (fallbackCategoriesResult.data ?? []) as Array<Record<string, unknown>>;
+    } else {
+      throw categoriesResult.error;
+    }
+  } else {
+    categoriesRaw = (categoriesResult.data ?? []) as Array<Record<string, unknown>>;
+  }
 
   let items: ItemRow[] = [];
   if (itemsResult.error) {
@@ -184,7 +201,10 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
     items = (itemsResult.data ?? []) as ItemRow[];
   }
 
-  const categories = (categoriesResult.data ?? []) as CategoryRow[];
+  const categories = categoriesRaw.map((c) => ({
+    ...c,
+    card_layout: (c.card_layout === "hero" || c.card_layout === "carousel" ? c.card_layout : "rectangle") as "rectangle" | "hero" | "carousel",
+  })) as CategoryRow[];
   const rawMenus = (menusResult.data ?? []) as PublicMenuRecord[];
   const rawSchedules = (schedulesResult.data ?? []) as PublicMenuSchedule[];
 

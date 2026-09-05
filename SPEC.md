@@ -44,7 +44,7 @@ La demo se validará primero dentro de la agencia. Después podrá desplegarse p
 - Precios, descripciones, fotos individuales o carrusel de múltiples fotos (`item_image_paths`).
 - Etiquetas dietéticas y alérgenos.
 - Soporte multi-idioma (Español / Inglés) con traducciones dinámicas.
-- Sistema de cartas múltiples (`menus`) con categorías como grupos de platos reutilizables (`menu_category_menus`) y cartas por franja horaria (`dayparts`).
+- Sistema de cartas múltiples (`menus`) con categorías como grupos de platos reutilizables (`menu_category_menus`), personalización del formato de tarjetas por categoría (`rectangle`, `hero`, `carousel`) y cartas por franja horaria (`dayparts`).
 - Horarios y zona horaria configurables por restaurante.
 - Disponibilidad de productos en tiempo real.
 - Configuración de productos agotados: ocultar o mostrar como agotados.

@@ -54,7 +54,7 @@ export default async function AdminHomePage() {
     supabase
       .from("menu_categories")
       .select(
-        "id, menu_id, name, description, sort_order, is_active, menu_category_translations(locale, name, description), menu_category_dayparts(daypart_id)"
+        "id, menu_id, name, description, sort_order, is_active, card_layout, menu_category_translations(locale, name, description), menu_category_dayparts(daypart_id)"
       )
       .eq("restaurant_id", profile.restaurant_id)
       .order("sort_order"),
@@ -95,7 +95,17 @@ export default async function AdminHomePage() {
   };
 
   const dayparts = (daypartsResult.data ?? []) as Daypart[];
-  const rawCategories = (categoriesResult.data ?? []) as Category[];
+  let rawCategories = (categoriesResult.data ?? []) as Category[];
+  if (categoriesResult.error && categoriesResult.error.code === "42703") {
+    const fallbackCat = await supabase
+      .from("menu_categories")
+      .select(
+        "id, menu_id, name, description, sort_order, is_active, menu_category_translations(locale, name, description), menu_category_dayparts(daypart_id)"
+      )
+      .eq("restaurant_id", profile.restaurant_id)
+      .order("sort_order");
+    rawCategories = (fallbackCat.data ?? []) as Category[];
+  }
   const categoryMenus = (!categoryMenusResult.error && categoryMenusResult.data
     ? categoryMenusResult.data
     : []) as Array<{

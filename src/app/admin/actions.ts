@@ -735,22 +735,37 @@ export async function createCategory(formData: FormData) {
     .limit(1)
     .maybeSingle<{ sort_order: number }>();
 
+  const rawLayout = formData.get("card_layout");
+  const cardLayout = (rawLayout === "hero" || rawLayout === "carousel") ? rawLayout : "rectangle";
+
   const insertPayload: Record<string, unknown> = {
     restaurant_id: restaurantId,
     name: required(formData, "name"),
     description: (formData.get("description") as string | null)?.trim() || null,
     sort_order: (last?.sort_order ?? -1) + 1,
+    card_layout: cardLayout,
   };
 
   if (targetMenuIds.length > 0) {
     insertPayload.menu_id = targetMenuIds[0];
   }
 
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from("menu_categories")
     .insert(insertPayload)
     .select("id")
     .single();
+
+  if (error && error.code === "42703") {
+    delete insertPayload.card_layout;
+    const retry = await supabase
+      .from("menu_categories")
+      .insert(insertPayload)
+      .select("id")
+      .single();
+    data = retry.data;
+    error = retry.error;
+  }
 
   if (error || !data) throw error ?? new Error("No se pudo crear la categoría.");
 
@@ -847,15 +862,30 @@ export async function updateCategory(formData: FormData) {
     is_active: formData.get("is_active") === "on",
   };
 
+  const rawLayout = formData.get("card_layout");
+  if (typeof rawLayout === "string" && (rawLayout === "rectangle" || rawLayout === "hero" || rawLayout === "carousel")) {
+    updatePayload.card_layout = rawLayout;
+  }
+
   if (menuId && !formData.has("has_menu_selection")) {
     updatePayload.menu_id = menuId;
   }
 
-  const { error } = await supabase
+  let { error } = await supabase
     .from("menu_categories")
     .update(updatePayload)
     .eq("id", categoryId)
     .eq("restaurant_id", restaurantId);
+
+  if (error && error.code === "42703" && updatePayload.card_layout) {
+    delete updatePayload.card_layout;
+    const retry = await supabase
+      .from("menu_categories")
+      .update(updatePayload)
+      .eq("id", categoryId)
+      .eq("restaurant_id", restaurantId);
+    error = retry.error;
+  }
 
   if (error) throw error;
 

@@ -35,6 +35,7 @@ import {
 } from "./tag-multi-selector";
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
 import { DishImageCarousel } from "@/components/dish-image-carousel";
+import { CardLayoutSelector, type CardLayoutType } from "./categories/card-layout-selector";
 import type { Category, Daypart, Menu, MenuItem, RestaurantData, SettingsData } from "./types";
 
 type AdminMenuViewProps = {
@@ -140,7 +141,9 @@ export function AdminMenuView({
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [categoryMode, setCategoryMode] = useState<"new" | "reuse">("new");
   const [selectedSourceCatId, setSelectedSourceCatId] = useState<string>("");
+  const [menuCatCreateLayout, setMenuCatCreateLayout] = useState<CardLayoutType>("rectangle");
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [menuCatEditLayout, setMenuCatEditLayout] = useState<CardLayoutType>("rectangle");
   const [createItemForCategoryId, setCreateItemForCategoryId] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [itemImagePreview, setItemImagePreview] = useState<string | null>(null);
@@ -730,6 +733,32 @@ export function AdminMenuView({
                         {!category.is_active ? (
                           <span className="status-badge is-inactive">Pausada</span>
                         ) : null}
+                        <span
+                          style={{
+                            fontSize: "0.72rem",
+                            fontWeight: 600,
+                            padding: "0.15rem 0.5rem",
+                            borderRadius: "999px",
+                            background:
+                              category.card_layout === "hero"
+                                ? "#fef3c7"
+                                : category.card_layout === "carousel"
+                                ? "#e0e7ff"
+                                : "#f3f4f6",
+                            color:
+                              category.card_layout === "hero"
+                                ? "#92400e"
+                                : category.card_layout === "carousel"
+                                ? "#3730a3"
+                                : "#4b5563",
+                          }}
+                        >
+                          {category.card_layout === "hero"
+                            ? "Cuadrado grande"
+                            : category.card_layout === "carousel"
+                            ? "Scroll horizontal"
+                            : "Rectángulo"}
+                        </span>
                         {category.menu_ids && category.menu_ids.length > 1 ? (
                           <span
                             className="admin-category-shared-badge"
@@ -767,7 +796,10 @@ export function AdminMenuView({
                       <button
                         aria-label={`Editar categoría ${category.name}`}
                         className="icon-button"
-                        onClick={() => setEditingCategory(category)}
+                        onClick={() => {
+                          setEditingCategory(category);
+                          setMenuCatEditLayout(category.card_layout || "rectangle");
+                        }}
                         title="Editar categoría"
                         type="button"
                       >
@@ -1371,6 +1403,17 @@ export function AdminMenuView({
                   </label>
 
                   <LocalizationFields locales={restaurant.supported_locales} translations={[]} />
+
+                  <div>
+                    <label style={{ display: "block", marginBottom: "0.25rem" }}>
+                      Formato de tarjetas
+                    </label>
+                    <CardLayoutSelector
+                      name="card_layout"
+                      onChange={setMenuCatCreateLayout}
+                      value={menuCatCreateLayout}
+                    />
+                  </div>
                 </>
               )}
 
@@ -1484,6 +1527,17 @@ export function AdminMenuView({
               locales={restaurant.supported_locales}
               translations={editingCategory.menu_category_translations ?? []}
             />
+
+            <div>
+              <label style={{ display: "block", marginBottom: "0.25rem" }}>
+                Formato de tarjetas
+              </label>
+              <CardLayoutSelector
+                name="card_layout"
+                onChange={setMenuCatEditLayout}
+                value={menuCatEditLayout}
+              />
+            </div>
 
             <label className="checkbox-label">
               <input defaultChecked={editingCategory.is_active} name="is_active" type="checkbox" />

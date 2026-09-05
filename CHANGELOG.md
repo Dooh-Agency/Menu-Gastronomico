@@ -14,6 +14,26 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Sincronización de Especificación y Roadmap:** Actualización de `SPEC.md` con el estado real de Etapas 0-3 y modelo conceptual, consolidación de la tabla de progreso en `docs/ROADMAP-DESARROLLO.md` y catálogo completo de migraciones en `supabase/README.md`.
 
 ### ✨ Nuevas Funcionalidades
+- **Personalización de formato de tarjetas por categoría (`card_layout`):** Cada categoría ahora puede definir su propio estilo de presentación en el menú público entre 3 opciones:
+  - **Rectángulo clásico (`rectangle`):** Lista vertical con imagen lateral derecha, ideal para cartas extensas y variadas.
+  - **Cuadrado grande / Hero (`hero`):** Tarjeta destacada y amplia con foto protagonista, tipografía generosa y precio destacado, ideal para *"Plato del día"*, sugerencias del chef o cortes premium.
+  - **Scroll horizontal (`carousel`):** Fila deslizable de tarjetas cuadradas compactas con soporte táctil (`scroll-snap`), ideal para categorías breves, postres, entradas o cafetería.
+- **Modal de categorías multi-paso (Wizard en 2 pasos):**
+  - **Paso 1:** Información básica (Nombre, descripción, cartas donde se muestra y traducciones).
+  - **Paso 2:** Selector visual interactivo (`CardLayoutSelector`) con mini-mockups gráficos ilustrados y badges explicativos del formato seleccionado.
+  - Disponible tanto en la gestión de categorías (`category-manager.tsx`) como en el editor de cartas (`admin-menu-view.tsx`).
+- **Badges de formato en administración:** Indicadores visuales claros en las listas y bloques de categorías del panel de control que informan el diseño configurado (*"Cuadrado grande"*, *"Scroll horizontal"*, *"Rectángulo"*).
+
+### 🎨 UI & Diseño
+- **Nuevos componentes de tarjetas gastronómicas:**
+  - `DishCardHero`: Tarjeta amplia con imagen de cabecera en alta resolución, badge de contador de fotos, precio destacado y tags dietéticos.
+  - `DishCardCompact`: Tarjeta cuadrada compacta diseñada para navegación horizontal suave en carrusel.
+- **Contenedores de menú público dinámicos:** Integración en `menu-publico.tsx` de `.menu-items-hero-grid`, `.menu-items-carousel-row` y `.menu-items-horizontal-list` con soporte de accesibilidad por teclado y `prefers-reduced-motion`.
+
+### 🗄️ Backend & Base de Datos
+- **Migración `20260905140000_category_card_layout.sql`:** Nueva columna `card_layout` con restricción CHECK en `public.menu_categories`.
+- **Compatibilidad y fallback defensivo:** Soporte en `createCategory`, `updateCategory`, `getPublicMenu` y vistas de administración con fallback ante esquemas sin migrar (código 42703).
+
 - **Estandarización de modales con estructura 1-2-3:** Implementación obligatoria de la jerarquía visual **1- Foto / Media**, **2- Título**, **3- Descripción** en los modales de administración.
 - **Modal unificado de cartas (`MenuFormDialog`):** Unificación de creación y edición de cartas en un único modal en `menu-dialogs.tsx` con carga de portada, metadatos y configuración horaria integrada.
 - **Franjas horarias avanzadas con días combinados:** Selector con checkboxes individuales para cada uno de los 7 días de la semana (Lun a Dom), presets rápidos (*"Todos"*, *"Lun a Vie"*, *"Sáb y Dom"*) y capacidad de agregar múltiples franjas horarias por carta.

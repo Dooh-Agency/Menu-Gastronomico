@@ -41,6 +41,7 @@ export type Category = {
   description: string | null;
   sort_order: number;
   is_active: boolean;
+  card_layout?: "rectangle" | "hero" | "carousel";
   menu_category_dayparts?: Array<{ daypart_id: string }>;
   menu_category_translations?: Array<{ locale: string; name: string; description: string | null }>;
 };

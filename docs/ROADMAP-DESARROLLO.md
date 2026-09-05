@@ -126,7 +126,7 @@ Permitir administrar el contenido sin modificar código ni volver a desplegar la
 #### Alcance
 
 - Login de administradores.
-- ABM de categorías.
+- ABM de categorías con personalización de formato de tarjetas (`rectangle`, `hero`, `carousel`) y modal wizard en 2 pasos con preview interactivo.
 - ABM de platos.
 - Ordenamiento de categorías y platos.
 - Edición de precios y descripciones.
@@ -167,7 +167,7 @@ Convertir el menú en un producto white-label configurable.
 - Radios y estilo visual.
 - Imagen de portada.
 - Idiomas habilitados.
-- Franjas horarias y cartas múltiples con categorías reutilizables.
+- Franjas horarias y cartas múltiples con categorías reutilizables y formatos visuales de tarjetas personalizados.
 - Configuración de productos agotados.
 - Datos de contacto.
 - Preview del branding.

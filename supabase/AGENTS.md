@@ -32,4 +32,8 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
 3. **Relación Cartas y Categorías (Many-to-Many):**
    - La relación entre cartas (`public.menus`) y categorías (`public.menu_categories`) se resuelve exclusivamente mediante la tabla intermedia `public.menu_category_menus(menu_id, category_id, sort_order)`.
    - La clave foránea `menu_categories.menu_id` se mantiene únicamente con `ON DELETE SET NULL` para retrocompatibilidad, evitando que borrar una carta elimine categorías reutilizadas.
+4. **Evolución del Esquema y Compatibilidad Defensiva:**
+   - Para columnas opcionales o de configuración de diseño (ej. `menu_categories.card_layout`), implementar siempre fallback defensivo ante error PostgreSQL `42703` (*undefined_column*) en consultas y Server Actions de Next.js, garantizando que la aplicación continúe operando si una migración está pendiente de ejecución en la base de datos.
+   - Utilizar restricciones `CHECK` en columnas de texto con valores finitos (ej. `CHECK (card_layout IN ('rectangle', 'hero', 'carousel'))`).
+
 

@@ -43,3 +43,14 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
    - Las categorías son grupos de platos pertenecientes al restaurante, reutilizables en múltiples cartas mediante la tabla intermedia `public.menu_category_menus`.
    - **No clonar platos ni categorías** para compartirlos entre cartas: utilizar `assignCategoryToMenu` para vincular y `unlinkCategoryFromMenu` para desvincular sin destruir los platos.
    - Soportar `menu_ids: string[]` y `menu_assignments: Array<{ menu_id: string; sort_order: number }>` con ordenamiento específico por carta y fallback retrocompatible a `menu_id`.
+6. **Personalización de Tarjetas por Categoría y Modales Wizard:**
+   - Cada categoría define su formato de tarjetas mediante `card_layout: 'rectangle' | 'hero' | 'carousel'`.
+   - **Menú público:** Renderizar la tarjeta y contenedor correspondiente según `category.card_layout`:
+     - `'hero'` ➔ `<div className="menu-items-hero-grid">` con `DishCardHero` (cuadrado grande destacado para plato del día o sugerencias).
+     - `'carousel'` ➔ `<div className="menu-items-carousel-row">` con `DishCardCompact` (scroll horizontal táctil para categorías breves o postres).
+     - `'rectangle'` ➔ `<div className="menu-items-horizontal-list">` con `DishCardHorizontal` (formato estándar en lista).
+   - **Modales de categoría:** Emplear el componente `CardLayoutSelector` y un flujo multi-paso (Wizard) o pestañas:
+     - **Paso 1:** Información básica (Nombre, descripción, cartas donde se muestra y traducciones).
+     - **Paso 2:** Selección visual de formato de tarjetas con mini-mockups gráficos interactivos y explicaciones de uso.
+     - Disponible en `CategoryManager` (`category-manager.tsx`) y en el editor de cartas (`admin-menu-view.tsx`).
+

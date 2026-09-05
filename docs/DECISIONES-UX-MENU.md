@@ -44,3 +44,39 @@ Usar el patrón de tabs como única fuente de navegación:
 - TypeScript: `tsc --noEmit`.
 - Linter: `eslint .`.
 - Validación en `http://localhost:3001/demo`: al activar `Pastelería y panadería`, queda seleccionada esa tab y se muestra únicamente su panel.
+
+---
+
+## Formatos de presentación de tarjetas por categoría
+
+**Fecha:** 2026-09-05  
+**Alcance:** Menú público y panel de administración.
+
+### Necesidad
+
+No todas las categorías comunican de la misma forma:
+- Un *"Plato del día"* o un corte especial requiere máxima jerarquía visual con fotos grandes y protagonismo inmediato.
+- Secciones complementarias o breves (postres, entradas, cafetería) se benefician de una navegación horizontal ágil y compacta que no consuma demasiado scroll vertical.
+- Las categorías centrales de la carta necesitan una lista clara y densa para comparar precios y descripciones cómodamente.
+
+### Decisión de UX
+
+Permitir que el administrador configure el formato de tarjeta de cada categoría entre tres alternativas estandarizadas:
+
+1. **Rectángulo clásico (`rectangle`):**
+   - Formato en lista vertical con foto pequeña a la derecha (110px).
+   - Optimizado para escaneo rápido de ingredientes y precios en cartas extensas.
+2. **Cuadrado grande / Hero (`hero`):**
+   - Tarjeta destacada a ancho completo (o 2 columnas en pantallas amplias) con foto en alta resolución (16:11), precio de alto contraste y descripción completa.
+   - Diseñado para platos estrella, plato del día y recomendaciones del chef.
+3. **Scroll horizontal / Carrusel (`carousel`):**
+   - Fila de desplazamiento horizontal con tarjetas cuadradas compactas (aspecto 1:1, ancho fijo de ~180–210px).
+   - Utiliza `scroll-snap-type: x mandatory`, `touch-action: pan-x pan-y` y scrollbar oculta para una experiencia fluida en móviles.
+
+### Experiencia en Administración (Wizard en 2 Pasos)
+
+Para evitar sobrecargar los formularios y facilitar la comprensión visual de los formatos:
+- El modal de creación/edición de categorías se divide en:
+  - **Paso 1: Información básica:** Nombre, descripción, cartas donde se muestra y traducciones.
+  - **Paso 2: Formato visual:** Selector interactivo con mini-mockups gráficos (`CardLayoutSelector`) que muestran el comportamiento y estética de cada opción antes de guardar.
+

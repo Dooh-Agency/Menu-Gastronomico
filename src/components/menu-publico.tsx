@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, type UIEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -212,8 +212,6 @@ export function MenuPublico({
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>("all");
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
-  const categoryNav = useRef<HTMLElement>(null);
-  const categoryScrollTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const copy = copyFor(locale);
 
   const branding = brandingFor(menu.restaurant.branding);
@@ -252,26 +250,8 @@ export function MenuPublico({
     router.push(nextUrl);
   }
 
-  useEffect(() => () => {
-    if (categoryScrollTimeout.current) clearTimeout(categoryScrollTimeout.current);
-  }, []);
-
   function selectCategory(categoryId: string) {
     setSelectedCategoryId(categoryId);
-  }
-
-  function selectCategoryFromNavScroll(event: UIEvent<HTMLElement>) {
-    const nav = event.currentTarget;
-    if (categoryScrollTimeout.current) clearTimeout(categoryScrollTimeout.current);
-    categoryScrollTimeout.current = setTimeout(() => {
-      const navCenter = nav.getBoundingClientRect().left + nav.clientWidth / 2;
-      const closestTab = Array.from(nav.querySelectorAll<HTMLElement>("[data-category-id]")).reduce<HTMLElement | null>(
-        (closest, tab) => !closest || Math.abs(tab.getBoundingClientRect().left + tab.offsetWidth / 2 - navCenter) < Math.abs(closest.getBoundingClientRect().left + closest.offsetWidth / 2 - navCenter) ? tab : closest,
-        null,
-      );
-      const categoryId = closestTab?.dataset.categoryId;
-      if (categoryId) setSelectedCategoryId(categoryId);
-    }, 120);
   }
 
   // =========================================================================
@@ -699,8 +679,6 @@ export function MenuPublico({
         <nav
           className="category-nav"
           aria-label={copy.menu}
-          onScroll={selectCategoryFromNavScroll}
-          ref={categoryNav}
           role="tablist"
         >
           <button

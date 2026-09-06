@@ -2,48 +2,47 @@
 
 ## Navegación horizontal entre categorías
 
-**Fecha:** 2026-08-26  
-**Alcance:** menú público, vista mobile-first y escritorio.
+**Fecha:** 2026-08-26 (Actualizado: 2026-09-06)  
+**Alcance:** Menú público, vista mobile-first y escritorio.
 
 ### Necesidad
 
-La carta tiene muchas categorías. La barra de categorías debe poder desplazarse horizontalmente para descubrirlas y, al terminar el gesto, mostrar los platos de la categoría que quedó en foco. El click sobre una categoría debe conservar el mismo resultado inmediato.
+La carta tiene muchas categorías. La barra de categorías debe poder desplazarse horizontalmente para descubrirlas libremente. La activación de una categoría debe ser deliberada mediante acción del usuario (clic, tap o teclado), conservando un resultado inmediato y evitando cambios involuntarios de sección al desplazarse por la barra.
 
 ### Problema detectado
 
-Se probaron dos contenedores horizontales sincronizados: la barra de categorías y un carrusel con las secciones de platos. Cada `scroll` desplazaba el otro contenedor mediante animaciones. Esto generaba un ciclo de eventos y una navegación irregular: el arrastre podía sentirse forzado, con saltos o cambios antes de terminar el gesto.
-
-El problema no era que las categorías fueran botones; los botones son el control correcto para la activación por click y teclado. El conflicto venía de que ambos contenedores intentaban controlar mutuamente el desplazamiento.
+1. En una primera iteración se probaron dos contenedores sincronizados (categorías y carrusel de platos). Generaba ciclos de eventos y saltos forzados.
+2. Posteriormente se implementó un mecanismo de auto-activación por desplazamiento: al dejar de scrollear la barra de categorías (tras 120 ms de debounce), se seleccionaba automáticamente la categoría que quedaba centrada. Esto generaba fricción al navegar: los usuarios que sólo querían deslizar la barra para explorar qué otras categorías existían (ej. buscando postres o bebidas) sufrían el cambio automático e indeseado del listado de platos sin haber hecho clic en ninguna opción.
 
 ### Decisión
 
-Usar el patrón de tabs como única fuente de navegación:
+Usar el patrón de tabs con desplazamiento libre y activación deliberada:
 
 - La barra horizontal contiene tabs nativas (`role="tablist"` y `role="tab"`).
 - El contenido muestra solamente el panel de la tab activa (`role="tabpanel"`).
-- El desplazamiento horizontal ocurre únicamente en la barra de tabs.
-- Luego de 120 ms sin nuevos eventos de desplazamiento, se identifica la tab más cercana al centro visible de la barra y se activa su panel.
-- Un click activa la tab de inmediato, sin desplazar programáticamente otros contenedores.
+- El desplazamiento horizontal en la barra de tabs es completamente libre e independiente; no dispara cambios de categoría automáticos.
+- La activación de una categoría es una acción deliberada: ocurre únicamente al hacer clic o tap sobre la tab deseada (o mediante foco por teclado).
+- Un clic activa la tab de inmediato y actualiza su panel, sin desplazar programáticamente otros contenedores.
+- Se eliminan timers y listeners de `scroll` en la barra de navegación, simplificando la lógica y mejorando el rendimiento en dispositivos móviles.
 
 ### Comportamiento esperado
 
-1. Deslizar la barra permite descubrir las categorías.
-2. Al finalizar el gesto, cambia el listado por la categoría en foco.
-3. Al tocar o hacer click en una tab visible, cambia su listado de inmediato.
-4. Si un filtro deja una categoría sin platos, el panel informa que no hay platos disponibles en vez de desaparecer.
+1. Deslizar la barra horizontalmente permite descubrir y explorar las categorías libremente sin alterar la categoría actualmente seleccionada ni el listado de platos visible.
+2. Al tocar o hacer clic en una tab visible, se activa y cambia su listado de platos de inmediato.
+3. Si un filtro deja una categoría sin platos, el panel informa que no hay platos disponibles en vez de desaparecer.
 
 ### Accesibilidad y rendimiento
 
-- Se conservan los controles nativos `button`, útiles para teclado y lectores de pantalla.
+- Se conservan los controles nativos `button`, óptimos para teclado y lectores de pantalla.
 - `aria-selected`, `aria-controls` y `aria-labelledby` relacionan cada tab con su panel.
-- La barra usa `scroll-snap`, `touch-action: pan-x` y `overscroll-behavior-x: contain` para un gesto horizontal claro.
-- No se usan listeners manuales de `touchstart`/`touchend` ni animaciones cruzadas entre elementos.
+- La barra usa `scroll-snap`, `touch-action: pan-x` y `overscroll-behavior-x: contain` para un gesto horizontal claro y fluido.
+- No se usan listeners de `scroll`, `touchstart`/`touchend` ni animaciones cruzadas entre elementos.
 
 ### Verificación realizada
 
 - TypeScript: `tsc --noEmit`.
 - Linter: `eslint .`.
-- Validación en `http://localhost:3001/demo`: al activar `Pastelería y panadería`, queda seleccionada esa tab y se muestra únicamente su panel.
+- Menú público: al deslizar horizontalmente la barra de categorías, la categoría activa se mantiene fija hasta que el usuario hace clic o tap explícito en otra categoría.
 
 ---
 

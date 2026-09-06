@@ -8,7 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 ## [Unreleased]
 
 ### 📚 Documentación & Configuración de Agentes
-- **Actualización de decisiones de UX en `docs/DECISIONES-UX-MENU.md`:** Se documentó la transición hacia desplazamiento horizontal libre en categorías con activación deliberada por interacción explícita del comensal, descartando la auto-selección por debounce.
+- **Actualización de decisiones de UX en `docs/DECISIONES-UX-MENU.md`:** Se documentó la transición hacia un feed continuo sin filtrado excluyente por categorías, navegación rápida por anclas con scroll suave, auto-centrado de tabs y Scrollspy vertical.
 - **Estructura jerárquica de `AGENTS.md`:** Creación de `src/AGENTS.md` (frontend) y `supabase/AGENTS.md` (base de datos) complementando al `AGENTS.md` raíz.
 - **Índice de documentación:** Creación de `docs/README.md` como punto central de la documentación técnica y funcional del equipo.
 - **Compatibilidad multi-asistente:** Configuración de `CLAUDE.md`, `.cursorrules` y `.github/copilot-instructions.md` delegando a `AGENTS.md` y `docs/`.
@@ -26,7 +26,8 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Badges de formato en administración:** Indicadores visuales claros en las listas y bloques de categorías del panel de control que informan el diseño configurado (*"Cuadrado grande"*, *"Scroll horizontal"*, *"Rectángulo"*).
 
 ### 🎨 UI & Diseño
-- **Desactivación de auto-selección por scroll en categorías:** En `menu-publico.tsx`, se eliminó el listener y debounce de scroll que activaba automáticamente la categoría centrada al finalizar el desplazamiento horizontal en la barra de categorías. El desplazamiento de la barra ahora es libre y la selección de categoría es puramente deliberada (al hacer clic, tap o navegar por teclado), evitando cambios no deseados del menú visible.
+- **Navegación continua por categorías con scroll suave y Scrollspy:** En `menu-publico.tsx`, las categorías ya no filtran ni ocultan el contenido de la carta. Todas las secciones se muestran en un feed vertical continuo. Al hacer clic o tap en una categoría, la página se desplaza suavemente hasta su sección (`scrollIntoView` con respeto a `prefers-reduced-motion`). Se incorporó un observador de scroll (*Scrollspy*) que destaca la categoría activa en la barra superior mientras se recorre la carta y auto-centra suavemente la tab activa en pantallas móviles.
+- **Desactivación de auto-selección por scroll en barra de categorías:** Se eliminó el listener y debounce que activaba automáticamente la categoría centrada al finalizar el desplazamiento horizontal en la barra de navegación, permitiendo descubrir categorías libremente.
 - **Nuevos componentes de tarjetas gastronómicas:**
   - `DishCardHero`: Tarjeta amplia con imagen de cabecera en alta resolución, badge de contador de fotos, precio destacado y tags dietéticos.
   - `DishCardCompact`: Tarjeta cuadrada compacta diseñada para navegación horizontal suave en carrusel.

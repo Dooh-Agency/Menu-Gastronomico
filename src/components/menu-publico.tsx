@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties, useEffect, useMemo, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -212,6 +212,9 @@ export function MenuPublico({
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>("all");
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const isManualScrollRef = useRef(false);
+  const manualScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const categoryNavRef = useRef<HTMLElement>(null);
   const copy = copyFor(locale);
 
   const branding = brandingFor(menu.restaurant.branding);
@@ -224,6 +227,108 @@ export function MenuPublico({
     "--menu-font": restaurantFonts[branding.font_family ?? "inter"].cssFamily,
     "--radius-card": branding.radius === "soft" ? ".65rem" : branding.radius === "square" ? ".15rem" : "1rem",
   } as CSSProperties;
+
+  const currentMenu = useMemo(
+    () =>
+      activeMenus.find((m) => m.id === selectedMenuId) ||
+      activeMenus[0] || {
+        id: "default",
+        restaurant_id: menu.restaurant.id,
+        name: "Carta Principal",
+        description: null,
+        banner_path: null,
+        is_active: true,
+        sort_order: 0,
+        schedules: [],
+      },
+    [activeMenus, selectedMenuId, menu.restaurant.id]
+  );
+
+  const categories = useMemo(() => {
+    return menu.categories
+      .filter((c) => c.menu_ids?.includes(currentMenu.id) || c.menu_id === currentMenu.id)
+      .sort((a, b) => {
+        const orderA = a.menu_assignments?.find((m) => m.menu_id === currentMenu.id)?.sort_order ?? a.sort_order;
+        const orderB = b.menu_assignments?.find((m) => m.menu_id === currentMenu.id)?.sort_order ?? b.sort_order;
+        return orderA - orderB;
+      });
+  }, [menu.categories, currentMenu]);
+
+  // Scrollspy: detecta la categoría visible al hacer scroll vertical en la página
+  useEffect(() => {
+    if (!selectedMenuId) return;
+
+    const handleScroll = () => {
+      if (isManualScrollRef.current) return;
+
+      const contentEl = document.getElementById("menu-content");
+      if (!contentEl) return;
+
+      const contentRect = contentEl.getBoundingClientRect();
+      if (contentRect.top > 80) {
+        setSelectedCategoryId("all");
+        return;
+      }
+
+      const isAtBottom =
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 40;
+
+      const sections = categories
+        .map((c) => document.getElementById(`category-${c.id}`))
+        .filter((el): el is HTMLElement => el !== null);
+
+      if (sections.length === 0) return;
+
+      if (isAtBottom) {
+        setSelectedCategoryId(sections[sections.length - 1].id.replace("category-", ""));
+        return;
+      }
+
+      const threshold = 90;
+      let currentId = sections[0].id.replace("category-", "");
+
+      for (const section of sections) {
+        const rect = section.getBoundingClientRect();
+        if (rect.top <= threshold) {
+          currentId = section.id.replace("category-", "");
+        } else {
+          break;
+        }
+      }
+
+      setSelectedCategoryId(currentId);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (manualScrollTimeoutRef.current) clearTimeout(manualScrollTimeoutRef.current);
+    };
+  }, [selectedMenuId, categories]);
+
+  // Mantiene visible la tab activa dentro de la barra de categorías horizontal
+  useEffect(() => {
+    if (!selectedCategoryId || !categoryNavRef.current) return;
+    const tabId = selectedCategoryId === "all" ? "tab-all" : `tab-${selectedCategoryId}`;
+    const tabEl = document.getElementById(tabId);
+    const nav = categoryNavRef.current;
+    if (!tabEl || !nav) return;
+
+    const navRect = nav.getBoundingClientRect();
+    const tabRect = tabEl.getBoundingClientRect();
+
+    if (tabRect.left < navRect.left) {
+      nav.scrollTo({
+        left: nav.scrollLeft + (tabRect.left - navRect.left) - 20,
+        behavior: "smooth",
+      });
+    } else if (tabRect.right > navRect.right) {
+      nav.scrollTo({
+        left: nav.scrollLeft + (tabRect.right - navRect.right) + 20,
+        behavior: "smooth",
+      });
+    }
+  }, [selectedCategoryId]);
 
   function selectLocale(nextLocale: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -252,6 +357,31 @@ export function MenuPublico({
 
   function selectCategory(categoryId: string) {
     setSelectedCategoryId(categoryId);
+    isManualScrollRef.current = true;
+    if (manualScrollTimeoutRef.current) clearTimeout(manualScrollTimeoutRef.current);
+    manualScrollTimeoutRef.current = setTimeout(() => {
+      isManualScrollRef.current = false;
+    }, 800);
+
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const behavior = prefersReducedMotion ? "instant" : "smooth";
+
+    if (categoryId === "all") {
+      const content = document.getElementById("menu-content");
+      if (content) {
+        content.scrollIntoView({ behavior, block: "start" });
+      } else {
+        window.scrollTo({ top: 0, behavior });
+      }
+      return;
+    }
+
+    const target = document.getElementById(`category-${categoryId}`);
+    if (target) {
+      target.scrollIntoView({ behavior, block: "start" });
+    }
   }
 
   // =========================================================================
@@ -507,41 +637,11 @@ export function MenuPublico({
     );
   }
 
-  // =========================================================================
-  // VISTA 2: Detalle de la Carta Seleccionada (Platos por categoría)
-  // =========================================================================
-  const currentMenu =
-    activeMenus.find((m) => m.id === selectedMenuId) ||
-    activeMenus[0] || {
-      id: "default",
-      restaurant_id: menu.restaurant.id,
-      name: "Carta Principal",
-      description: null,
-      banner_path: null,
-      is_active: true,
-      sort_order: 0,
-      schedules: [],
-    };
-
   const activeBannerPath = currentMenu.banner_path || branding.cover_image_path;
   const isCurrentMenuInSchedule = isMenuScheduleActive(currentMenu.schedules, menu.restaurant.timezone);
 
   const dietaryTags = Array.from(new Set(menu.items.flatMap((item) => item.dietary_tags))).sort();
-
-  // Categorías de la carta seleccionada (ordenadas por el orden propio de esta carta)
-  const menuCategories = menu.categories
-    .filter((c) => c.menu_ids?.includes(currentMenu.id) || c.menu_id === currentMenu.id)
-    .sort((a, b) => {
-      const orderA = a.menu_assignments?.find((m) => m.menu_id === currentMenu.id)?.sort_order ?? a.sort_order;
-      const orderB = b.menu_assignments?.find((m) => m.menu_id === currentMenu.id)?.sort_order ?? b.sort_order;
-      return orderA - orderB;
-    });
-  const categories = menuCategories;
-
-  const categoriesToRender =
-    !selectedCategoryId || selectedCategoryId === "all"
-      ? categories
-      : categories.filter((c) => c.id === selectedCategoryId);
+  const categoriesToRender = categories;
 
   return (
     <main className="menu-shell" style={brandStyle}>
@@ -679,6 +779,7 @@ export function MenuPublico({
         <nav
           className="category-nav"
           aria-label={copy.menu}
+          ref={categoryNavRef}
           role="tablist"
         >
           <button
@@ -725,22 +826,6 @@ export function MenuPublico({
 
             if (items.length > 0) {
               hasRenderedAnyItem = true;
-            } else if (selectedCategoryId !== "all" && selectedCategoryId !== null) {
-              return (
-                <section
-                  aria-labelledby={`tab-${category.id}`}
-                  className="menu-section"
-                  id={`category-${category.id}`}
-                  key={category.id}
-                  role="tabpanel"
-                >
-                  <div className="section-heading">
-                    <h2>{localizedCategory.name}</h2>
-                    {localizedCategory.description ? <p>{localizedCategory.description}</p> : null}
-                  </div>
-                  <p className="empty-state">{copy.noItems}</p>
-                </section>
-              );
             } else {
               return null;
             }
@@ -751,7 +836,6 @@ export function MenuPublico({
                 className="menu-section"
                 id={`category-${category.id}`}
                 key={category.id}
-                role="tabpanel"
               >
                 <div className="section-heading">
                   <h2>{localizedCategory.name}</h2>
@@ -819,7 +903,7 @@ export function MenuPublico({
             );
           });
 
-          return hasRenderedAnyItem || (selectedCategoryId !== "all" && selectedCategoryId !== null)
+          return hasRenderedAnyItem
             ? renderedSections
             : (
               <p className="empty-state">{copy.noItems}</p>

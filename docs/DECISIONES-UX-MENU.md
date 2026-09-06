@@ -1,48 +1,52 @@
 # Decisiones de UX — menú público
 
-## Navegación horizontal entre categorías
+## Navegación entre categorías: feed continuo con scroll suave y Scrollspy
 
 **Fecha:** 2026-08-26 (Actualizado: 2026-09-06)  
 **Alcance:** Menú público, vista mobile-first y escritorio.
 
 ### Necesidad
 
-La carta tiene muchas categorías. La barra de categorías debe poder desplazarse horizontalmente para descubrirlas libremente. La activación de una categoría debe ser deliberada mediante acción del usuario (clic, tap o teclado), conservando un resultado inmediato y evitando cambios involuntarios de sección al desplazarse por la barra.
+La carta tiene muchas categorías. Para ofrecer una experiencia gastronómica fluida y moderna:
+- Las categorías **no deben filtrar ni ocultar el resto de la carta**: el comensal debe poder recorrer toda la oferta en un flujo continuo vertical.
+- La barra de categorías superior debe funcionar como un índice de acceso rápido: al pulsar una categoría, la página se desplaza suavemente (*smooth scroll*) hasta dicha sección.
+- El desplazamiento horizontal en la barra de categorías debe ser libre para descubrir opciones sin provocar saltos indeseados ni cambios automáticos.
+- El estado activo de la barra debe sincronizarse con el scroll vertical de la página (*Scrollspy*), informando en qué sección se encuentra el comensal en cada momento.
 
-### Problema detectado
+### Problemas previos detectados
 
-1. En una primera iteración se probaron dos contenedores sincronizados (categorías y carrusel de platos). Generaba ciclos de eventos y saltos forzados.
-2. Posteriormente se implementó un mecanismo de auto-activación por desplazamiento: al dejar de scrollear la barra de categorías (tras 120 ms de debounce), se seleccionaba automáticamente la categoría que quedaba centrada. Esto generaba fricción al navegar: los usuarios que sólo querían deslizar la barra para explorar qué otras categorías existían (ej. buscando postres o bebidas) sufrían el cambio automático e indeseado del listado de platos sin haber hecho clic en ninguna opción.
+1. **Sincronización bidireccional forzada:** Se probaron contenedores horizontales sincronizados (categorías y carrusel de platos). Generaba conflictos de eventos y tirones al arrastrar.
+2. **Auto-activación por desplazamiento en la barra:** Al dejar de scrollear la barra horizontalmente, se activaba la categoría centrada por debounce, provocando cambios involuntarios de sección cuando el usuario sólo quería explorar las tabs.
+3. **Filtrado excluyente de categorías:** Anteriormente, seleccionar una categoría ocultaba todas las demás (patrón tabpanel). Esto obligaba al usuario a alternar constantemente entre "Todos" y categorías individuales, interrumpiendo la lectura continuada de la carta.
 
-### Decisión
+### Decisión de UX e Implementación
 
-Usar el patrón de tabs con desplazamiento libre y activación deliberada:
+Adoptar el patrón de **feed continuo con navegación por anclas y Scrollspy**:
 
-- La barra horizontal contiene tabs nativas (`role="tablist"` y `role="tab"`).
-- El contenido muestra solamente el panel de la tab activa (`role="tabpanel"`).
-- El desplazamiento horizontal en la barra de tabs es completamente libre e independiente; no dispara cambios de categoría automáticos.
-- La activación de una categoría es una acción deliberada: ocurre únicamente al hacer clic o tap sobre la tab deseada (o mediante foco por teclado).
-- Un clic activa la tab de inmediato y actualiza su panel, sin desplazar programáticamente otros contenedores.
-- Se eliminan timers y listeners de `scroll` en la barra de navegación, simplificando la lógica y mejorando el rendimiento en dispositivos móviles.
-
-### Comportamiento esperado
-
-1. Deslizar la barra horizontalmente permite descubrir y explorar las categorías libremente sin alterar la categoría actualmente seleccionada ni el listado de platos visible.
-2. Al tocar o hacer clic en una tab visible, se activa y cambia su listado de platos de inmediato.
-3. Si un filtro deja una categoría sin platos, el panel informa que no hay platos disponibles en vez de desaparecer.
+- **Contenido continuo:** Todas las categorías y sus platos se renderizan de forma vertical en `#menu-content`. No se ocultan categorías al interactuar con la barra.
+- **Navegación por scroll suave:** Al pulsar un botón de categoría en la barra:
+  - Se desplaza la ventana hacia el contenedor correspondiente (`#category-${id}`) mediante `scrollIntoView({ behavior: 'smooth', block: 'start' })`.
+  - Si el usuario tiene activo `prefers-reduced-motion: reduce`, el desplazamiento se realiza de manera instantánea (`behavior: 'instant'`).
+  - La opción *"Todos"* desplaza al comensal a la cabecera del menú (`#menu-content` o tope de página).
+- **Compensación de barra fija (`scroll-margin-top`):** Cada sección `.menu-section` posee `scroll-margin-top: 4.75rem`, garantizando que el título de la categoría quede perfectamente visible debajo de la barra sticky sin quedar tapado.
+- **Scrollspy vertical no bloqueante:** Un listener optimizado detecta qué sección está actualmente bajo la barra de navegación:
+  - Si el usuario está al tope de la carta (por encima de las secciones), se activa la opción *"Todos"*.
+  - A medida que se desplaza hacia abajo, se destaca la categoría en foco visual.
+  - Al pulsar una categoría, se bloquea temporalmente la sobreescritura del Scrollspy durante la animación (800 ms) para evitar parpadeos intermedios.
+- **Auto-centrado suave en la barra horizontal:** Cuando la categoría activa cambia (por scroll vertical o clic), la barra horizontal desliza suavemente (`scrollTo`) para asegurar que la tab activa permanezca visible dentro del viewport, sin disparar eventos extra.
 
 ### Accesibilidad y rendimiento
 
-- Se conservan los controles nativos `button`, óptimos para teclado y lectores de pantalla.
-- `aria-selected`, `aria-controls` y `aria-labelledby` relacionan cada tab con su panel.
-- La barra usa `scroll-snap`, `touch-action: pan-x` y `overscroll-behavior-x: contain` para un gesto horizontal claro y fluido.
-- No se usan listeners de `scroll`, `touchstart`/`touchend` ni animaciones cruzadas entre elementos.
+- Controles accesibles `button` nativos con soporte de teclado y foco visible.
+- Atributos `aria-selected` y `aria-controls` para navegación asistida clara.
+- Respeto estricto de `prefers-reduced-motion` para usuarios con sensibilidad al movimiento.
+- Rendimiento optimizado: no se usan librerías pesadas externas, recurriendo a APIs nativas del navegador (`getBoundingClientRect`, `scrollIntoView`, `scrollTo`).
 
 ### Verificación realizada
 
 - TypeScript: `tsc --noEmit`.
 - Linter: `eslint .`.
-- Menú público: al deslizar horizontalmente la barra de categorías, la categoría activa se mantiene fija hasta que el usuario hace clic o tap explícito en otra categoría.
+- Menú público: al hacer clic en cualquier categoría, la página scrollea suavemente hasta su sección, manteniendo todas las categorías visibles en el documento.
 
 ---
 

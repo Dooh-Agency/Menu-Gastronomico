@@ -110,7 +110,8 @@ Las entidades principales implementadas son:
 - `restaurants`: tenant, slug, branding (colores, logo, portada, tipografía), idiomas y configuración.
 - `users` / `profiles`: usuarios autenticados, roles y vinculación estricta a un `restaurant_id`.
 - `menus`: cartas o menús independientes del restaurante (ej. Carta Principal, Menú Ejecutivo).
-- `menu_categories`: categorías de platos y orden dentro del menú.
+- `menu_categories`: categorías de platos del restaurante con formato de tarjeta (`card_layout`: `rectangle`, `hero`, `carousel`).
+- `menu_category_menus`: asignación de categorías a múltiples cartas con ordenamiento independiente (`sort_order`).
 - `menu_category_translations`: traducciones de categorías por idioma.
 - `menu_items`: platos, precios, orden, disponibilidad, estado activo, imagen principal (`image_path`) y array de múltiples imágenes (`image_paths text[]`, hasta 6 imágenes con carrusel interactivo y badges de conteo).
 - `menu_item_translations`: traducciones de nombres y descripciones por idioma.

@@ -128,7 +128,7 @@ Permitir administrar el contenido sin modificar código ni volver a desplegar la
 - Login de administradores.
 - ABM de categorías con personalización de formato de tarjetas (`rectangle`, `hero`, `carousel`) y modal wizard en 2 pasos con preview interactivo.
 - ABM de platos.
-- Ordenamiento de categorías y platos.
+- Ordenamiento de categorías y platos (incluyendo modal interactivo con Drag & Drop por carta y referencia visual a formatos de UI).
 - Edición de precios y descripciones.
 - Carga, reemplazo y gestión de múltiples imágenes por plato (hasta 6 fotos con uploader interactivo y carrusel accesible).
 - Gestión de traducciones.

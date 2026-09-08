@@ -32,6 +32,7 @@ import {
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
 import { DishImageCarousel } from "@/components/dish-image-carousel";
 import { CardLayoutSelector, type CardLayoutType } from "./categories/card-layout-selector";
+import { MenuCategoriesConfigDialog } from "./menu-categories-config-dialog";
 import type { Category, Daypart, Menu, MenuItem, RestaurantData, SettingsData } from "./types";
 
 type AdminMenuViewProps = {
@@ -133,6 +134,7 @@ export function AdminMenuView({
   const [isMenuEditDialogOpen, setIsMenuEditDialogOpen] = useState(false);
 
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
+  const [isCategoryConfigOpen, setIsCategoryConfigOpen] = useState(false);
   const [categoryMode, setCategoryMode] = useState<"new" | "reuse">("new");
   const [selectedSourceCatId, setSelectedSourceCatId] = useState<string>("");
   const [menuCatCreateLayout, setMenuCatCreateLayout] = useState<CardLayoutType>("rectangle");
@@ -623,6 +625,57 @@ export function AdminMenuView({
         {/* 5. Sección de Categorías de la Carta */}
         <section className="admin-category-section" aria-label="Categorías del menú">
           <div className="admin-category-header">
+            {/* Controles a la izquierda: Configuración y Agregar */}
+            <div className="admin-category-controls-left">
+              <button
+                aria-label="Configurar y ordenar categorías de esta carta"
+                className="admin-category-settings-btn"
+                onClick={() => setIsCategoryConfigOpen(true)}
+                title="Configurar y ordenar categorías de esta carta"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  height="17"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  width="17"
+                >
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+              </button>
+
+              <button
+                aria-label="Agregar nueva categoría a esta carta"
+                className="admin-add-category-circle-btn"
+                onClick={() => setIsCategoryDialogOpen(true)}
+                title="Agregar nueva categoría a esta carta"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  height="18"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.5"
+                  viewBox="0 0 24 24"
+                  width="18"
+                >
+                  <line x1="12" x2="12" y1="5" y2="19" />
+                  <line x1="5" x2="19" y1="12" y2="12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="admin-category-tabs-divider" aria-hidden="true" />
+
             <div className="admin-category-tabs" role="tablist">
               {/* Botón Todos */}
               <button
@@ -656,30 +709,6 @@ export function AdminMenuView({
                   </button>
                 );
               })}
-
-              {/* Botón circular + para agregar categorías */}
-              <button
-                aria-label="Agregar nueva categoría a esta carta"
-                className="admin-add-category-circle-btn"
-                onClick={() => setIsCategoryDialogOpen(true)}
-                title="Agregar nueva categoría a esta carta"
-                type="button"
-              >
-                <svg
-                  aria-hidden="true"
-                  fill="none"
-                  height="18"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.5"
-                  viewBox="0 0 24 24"
-                  width="18"
-                >
-                  <line x1="12" x2="12" y1="5" y2="19" />
-                  <line x1="5" x2="19" y1="12" y2="12" />
-                </svg>
-              </button>
             </div>
           </div>
         </section>
@@ -1203,6 +1232,31 @@ export function AdminMenuView({
           </form>
         </AdminDialog>
       ) : null}
+
+      {/* Modal: Configuración y Reordenamiento de Categorías de la Carta */}
+      {isCategoryConfigOpen && (
+        <MenuCategoriesConfigDialog
+          allMenus={menus}
+          categories={menuCategories}
+          items={items}
+          menu={currentMenu}
+          onAddCategory={() => setIsCategoryDialogOpen(true)}
+          onClose={() => setIsCategoryConfigOpen(false)}
+          onDeleteCategory={(cat) => handleDeleteCategory(cat)}
+          onEditCategory={(cat) => {
+            setEditingCategory(cat);
+            setMenuCatEditLayout(cat.card_layout || "rectangle");
+          }}
+          onReorder={async (newCategories) => {
+            const formData = new FormData();
+            formData.set("menu_id", currentMenu.id);
+            formData.set("category_ids", newCategories.map((c) => c.id).join(","));
+            await reorderMenuCategories(formData);
+            router.refresh();
+          }}
+          onUnlinkCategory={(cat) => handleUnlinkCategory(cat)}
+        />
+      )}
 
       {/* Modal: Crear Nueva Categoría */}
       {isCategoryDialogOpen ? (() => {

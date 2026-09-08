@@ -1003,9 +1003,10 @@ export async function reorderMenuCategories(formData: FormData) {
   for (const [sort_order, id] of ids.entries()) {
     const { error } = await supabase
       .from("menu_category_menus")
-      .update({ sort_order })
-      .eq("menu_id", menuId)
-      .eq("category_id", id);
+      .upsert(
+        { menu_id: menuId, category_id: id, sort_order },
+        { onConflict: "menu_id,category_id" }
+      );
 
     if (error && (error.code === "42P01" || error.code === "PGRST205")) {
       await supabase

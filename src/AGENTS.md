@@ -53,4 +53,10 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
      - **Paso 1:** Información básica (Nombre, descripción, cartas donde se muestra y traducciones).
      - **Paso 2:** Selección visual de formato de tarjetas con mini-mockups gráficos interactivos y explicaciones de uso.
      - Disponible en `CategoryManager` (`category-manager.tsx`) y en el editor de cartas (`admin-menu-view.tsx`).
-
+7. **Gestión y Configuración de Categorías en Edición de Cartas (`AdminMenuView`):**
+   - **Barra de navegación de categorías:** Controles de acción ubicados a la izquierda: botón circular de Configuración (`admin-category-settings-btn`) con icono de engranaje y botón de Agregar (`admin-add-category-circle-btn`) con icono `+`, separados de las pestañas scrollables por `.admin-category-tabs-divider`. El botón de agregar no debe ubicarse al final a la derecha del scroll.
+   - **Modal de configuración (`MenuCategoriesConfigDialog`):**
+     - Muestra las categorías de la carta activa en su orden de presentación actual.
+     - Soporta reordenamiento mediante Drag & Drop con persistencia instantánea (`reorderMenuCategories` vía `upsert` en `menu_category_menus`) y controles accesibles de subir/bajar (▲/▼).
+     - **Referencia clara al tipo de UI:** Cada categoría debe exhibir su formato `card_layout` con badges e iconos distintivos (`Rectángulo estándar (Lista)`, `Cuadrado grande (Hero)`, `Scroll horizontal (Carrusel)`).
+     - Gestión individual por fila: Editar (datos y formato visual), Quitar de esta carta (`unlinkCategoryFromMenu`), y Eliminar definitivamente (`deleteCategory`).

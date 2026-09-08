@@ -60,3 +60,6 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
      - Soporta reordenamiento mediante Drag & Drop con persistencia instantánea (`reorderMenuCategories` vía `upsert` en `menu_category_menus`) y controles accesibles de subir/bajar (▲/▼).
      - **Referencia al formato de UI:** Cada categoría exhibe un badge conciso con su formato `card_layout` (*"Cuadrado grande"*, *"Scroll horizontal"*, *"Rectángulo"*) de forma directa e integrada, sin sobrecargar la interfaz con leyendas redundantes.
      - Gestión individual por fila: Editar (datos y formato visual), Quitar de esta carta (`unlinkCategoryFromMenu`), y Eliminar definitivamente (`deleteCategory`).
+8. **Estructura del Navbar de Administración (`AdminNav`):**
+   - **Enlaces canónicos:** `Menú` (`/admin`), `Configuración` (`/admin/settings`), `Equipo` (`/admin/users`) y el acceso directo `Ver menú público`.
+   - No exponer pestañas separadas de `Categorías` ni `Platos` en el navbar superior; toda la creación, edición, reordenamiento y configuración de cartas, categorías y platos se gestiona de forma centralizada y contextual en `/admin`.

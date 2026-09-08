@@ -11,81 +11,121 @@ export interface DishImagesUploaderProps {
   onKeptImagesChange?: (images: string[]) => void;
 }
 
+type StagedImage = {
+  file: File;
+  url: string;
+};
+
+const DEFAULT_EMPTY_IMAGES: string[] = [];
+
 export function DishImagesUploader({
-  initialImages = [],
+  initialImages = DEFAULT_EMPTY_IMAGES,
   maxImages = 6,
   onFilesChange,
   onKeptImagesChange,
 }: DishImagesUploaderProps) {
   const [existingImages, setExistingImages] = useState<string[]>(initialImages);
-  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
-  const [stagedUrls, setStagedUrls] = useState<string[]>([]);
+  const [stagedImages, setStagedImages] = useState<StagedImage[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync with prop if initialImages change
+  // Keep reference to current staged images for cleanup on unmount
+  const stagedImagesRef = useRef<StagedImage[]>([]);
   useEffect(() => {
-    setExistingImages(initialImages);
-  }, [initialImages]);
+    stagedImagesRef.current = stagedImages;
+  }, [stagedImages]);
 
-  // Notify parent of existing/kept images changes
-  useEffect(() => {
-    onKeptImagesChange?.(existingImages);
-  }, [existingImages, onKeptImagesChange]);
+  // Track serialized representation of initialImages to prevent infinite loops from new array instances
+  const serializedInitial = (initialImages || DEFAULT_EMPTY_IMAGES).join("|");
+  const prevSerializedRef = useRef(serializedInitial);
 
-  // Notify parent of staged files changes
+  // Notify parent on mount with initial images (runs once)
+  const isMountedRef = useRef(false);
   useEffect(() => {
-    onFilesChange?.(stagedFiles);
-  }, [stagedFiles, onFilesChange]);
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      onKeptImagesChange?.(initialImages || DEFAULT_EMPTY_IMAGES);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sync preview URLs for staged files
+  // Sync with prop only if the actual image paths change (e.g. user opens a different item)
   useEffect(() => {
-    const urls = stagedFiles.map((file) => URL.createObjectURL(file));
-    setStagedUrls(urls);
-    return () => {
-      urls.forEach((url) => URL.revokeObjectURL(url));
-    };
-  }, [stagedFiles]);
+    if (prevSerializedRef.current !== serializedInitial) {
+      prevSerializedRef.current = serializedInitial;
+      const next = initialImages || DEFAULT_EMPTY_IMAGES;
+      setExistingImages(next);
+      onKeptImagesChange?.(next);
+    }
+  }, [serializedInitial, initialImages, onKeptImagesChange]);
 
   // Sync staged files with the real file input so native form submission includes all files
   useEffect(() => {
     if (!fileInputRef.current) return;
     try {
       const dt = new DataTransfer();
-      stagedFiles.forEach((file) => dt.items.add(file));
+      stagedImages.forEach((item) => dt.items.add(item.file));
       fileInputRef.current.files = dt.files;
     } catch {
       // Fallback for environments where DataTransfer constructor isn't supported
     }
-  }, [stagedFiles]);
+  }, [stagedImages]);
 
-  const totalImages = existingImages.length + stagedFiles.length;
+  // Revoke object URLs on unmount
+  useEffect(() => {
+    return () => {
+      stagedImagesRef.current.forEach((item) => URL.revokeObjectURL(item.url));
+    };
+  }, []);
+
+  const totalImages = existingImages.length + stagedImages.length;
   const canAddMore = totalImages < maxImages;
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
-    console.log("[CLIENT DishImagesUploader] Selected raw files:", files.map(f => ({ name: f.name, size: f.size, type: f.type })));
     if (files.length === 0) return;
 
-    const remainingSlots = maxImages - existingImages.length - stagedFiles.length;
+    const remainingSlots = maxImages - existingImages.length - stagedImages.length;
     if (remainingSlots <= 0) return;
 
     const validNewFiles = files
       .filter((file) => ["image/jpeg", "image/png", "image/webp"].includes(file.type) && file.size <= 5 * 1024 * 1024)
       .slice(0, remainingSlots);
 
-    console.log("[CLIENT DishImagesUploader] Adding valid new files:", validNewFiles.length);
-    setStagedFiles((prev) => [...prev, ...validNewFiles]);
+    if (validNewFiles.length === 0) return;
+
+    const newItems: StagedImage[] = validNewFiles.map((file) => ({
+      file,
+      url: URL.createObjectURL(file),
+    }));
+
+    setStagedImages((prev) => {
+      const updated = [...prev, ...newItems];
+      onFilesChange?.(updated.map((item) => item.file));
+      return updated;
+    });
+
     if (e.target) {
       e.target.value = "";
     }
   }
 
   function handleRemoveExisting(index: number) {
-    setExistingImages((prev) => prev.filter((_, i) => i !== index));
+    setExistingImages((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+      onKeptImagesChange?.(updated);
+      return updated;
+    });
   }
 
   function handleRemoveStaged(index: number) {
-    setStagedFiles((prev) => prev.filter((_, i) => i !== index));
+    setStagedImages((prev) => {
+      const target = prev[index];
+      if (target) {
+        URL.revokeObjectURL(target.url);
+      }
+      const updated = prev.filter((_, i) => i !== index);
+      onFilesChange?.(updated.map((item) => item.file));
+      return updated;
+    });
   }
 
   return (
@@ -148,7 +188,7 @@ export function DishImagesUploader({
           ))}
 
           {/* Newly staged files */}
-          {stagedUrls.map((url, idx) => {
+          {stagedImages.map(({ url }, idx) => {
             const overallIdx = existingImages.length + idx;
             return (
               <div className="dish-uploader-thumb is-new" key={`new-${idx}-${url}`}>

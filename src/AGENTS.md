@@ -58,5 +58,5 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
    - **Modal de configuración (`MenuCategoriesConfigDialog`):**
      - Muestra las categorías de la carta activa en su orden de presentación actual.
      - Soporta reordenamiento mediante Drag & Drop con persistencia instantánea (`reorderMenuCategories` vía `upsert` en `menu_category_menus`) y controles accesibles de subir/bajar (▲/▼).
-     - **Referencia clara al tipo de UI:** Cada categoría debe exhibir su formato `card_layout` con badges e iconos distintivos (`Rectángulo estándar (Lista)`, `Cuadrado grande (Hero)`, `Scroll horizontal (Carrusel)`).
+     - **Referencia al formato de UI:** Cada categoría exhibe un badge conciso con su formato `card_layout` (*"Cuadrado grande"*, *"Scroll horizontal"*, *"Rectángulo"*) de forma directa e integrada, sin sobrecargar la interfaz con leyendas redundantes.
      - Gestión individual por fila: Editar (datos y formato visual), Quitar de esta carta (`unlinkCategoryFromMenu`), y Eliminar definitivamente (`deleteCategory`).

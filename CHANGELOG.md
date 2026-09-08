@@ -16,11 +16,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 
 ### ✨ Nuevas Funcionalidades
 - **Modal de Configuración y Reordenamiento de Categorías por Carta:** Nuevo diálogo interactivo (`MenuCategoriesConfigDialog`) accesible desde la barra de navegación de categorías de la carta activa. Permite organizar y reordenar las categorías pertenecientes a la carta en cuestión mediante Drag & Drop con persistencia instantánea (`reorderMenuCategories`) y botones accesibles de desplazamiento (▲/▼). Brinda administración individual (editar datos y formato de tarjetas, quitar de la carta conservando platos en el restaurante, o eliminar definitivamente).
-- **Referencia clara y visual al tipo de UI de cada categoría/tarjeta:** En el modal de configuración de categorías, cada fila exhibe una referencia gráfica inequívoca a su formato de interfaz (`card_layout`):
-  - **Rectángulo estándar (Lista):** Badge neutro pizarra con icono de lista y foto lateral, optimizado para lectura rápida.
-  - **Cuadrado grande (Hero):** Badge ámbar con icono destacado para fotos 16:11 protagónicas (platos estrella o sugerencias).
-  - **Scroll horizontal (Carrusel):** Badge índigo con icono de desplazamiento táctil para filas compactas deslizables (postres/entradas).
-  - Incorpora leyenda de formatos UI y previsualización gráfica clara para el administrador.
+- **Referencia concisa al tipo de UI de tarjetas:** Cada fila del modal muestra de forma limpia y directa el formato de presentación configurado mediante un badge sutil en la misma línea del nombre (*"Cuadrado grande"*, *"Scroll horizontal"*, *"Rectángulo"*), manteniendo la interfaz libre de sobrecargas visuales o leyendas redundantes.
 - **Banner de carta interactivo con accesibilidad total:** La superficie del banner de la carta activa en el panel de administración ahora es completamente interactiva (`role="button"`, `tabIndex={0}`, eventos de teclado `Enter`/`Space`), con feedback visual de hover (zoom sutil en imagen, badge *"Modificar carta"* y elevación) y acción directa para modificar portada, nombre, horarios y disponibilidad.
 - **Personalización de formato de tarjetas por categoría (`card_layout`):** Cada categoría ahora puede definir su propio estilo de presentación en el menú público entre 3 opciones:
   - **Rectángulo clásico (`rectangle`):** Lista vertical con imagen lateral derecha, ideal para cartas extensas y variadas.

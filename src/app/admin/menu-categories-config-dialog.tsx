@@ -117,7 +117,7 @@ export function MenuCategoriesConfigDialog({
     <AdminDialog maxWidth="50rem" onClose={onClose}>
       <div className="menu-categories-config-modal">
         {/* Encabezado del Modal */}
-        <div className="modal-header-section" style={{ paddingBottom: "1rem" }}>
+        <div className="modal-header-section" style={{ paddingBottom: "0.5rem" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
             <span
               style={{
@@ -131,66 +131,40 @@ export function MenuCategoriesConfigDialog({
                 borderRadius: "999px",
               }}
             >
-              Carta en edición: {menu.name}
+              Carta: {menu.name}
             </span>
 
-            {saveStatus === "saving" ? (
-              <span className="save-indicator is-saving">Guardando orden...</span>
-            ) : saveStatus === "saved" ? (
-              <span className="save-indicator is-saved">✓ Orden guardado</span>
-            ) : null}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              {saveStatus === "saving" ? (
+                <span className="save-indicator is-saving">Guardando orden...</span>
+              ) : saveStatus === "saved" ? (
+                <span className="save-indicator is-saved">✓ Orden guardado</span>
+              ) : null}
+
+              <button
+                className="admin-config-add-btn"
+                onClick={() => {
+                  onClose();
+                  onAddCategory();
+                }}
+                title="Agregar o vincular una nueva categoría a esta carta"
+                type="button"
+              >
+                <svg fill="none" height="15" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="15">
+                  <line x1="12" x2="12" y1="5" y2="19" />
+                  <line x1="5" x2="19" y1="12" y2="12" />
+                </svg>
+                Agregar categoría
+              </button>
+            </div>
           </div>
 
           <h2 className="modal-title" style={{ marginTop: "0.5rem", marginBottom: "0.25rem" }}>
             Configuración de Categorías
           </h2>
-          <p className="modal-description" style={{ marginBottom: "0.75rem" }}>
-            Arrastrá las filas con el control <strong>⠿</strong> para definir el orden en que se mostrarán en esta carta. También podés modificar sus datos, formato de tarjetas o desvincularlas individualmente.
+          <p className="modal-description" style={{ marginBottom: "0.25rem" }}>
+            Arrastrá las filas con <strong>⠿</strong> para definir el orden en esta carta, o editalas y borralas una por una.
           </p>
-
-          {/* Barra de herramientas superior del modal */}
-          <div className="modal-toolbar-row">
-            <div className="ui-type-legend-compact" title="Referencias de formatos UI disponibles para los platos en las categorías">
-              <span className="legend-title">Formatos UI:</span>
-              <span className="legend-chip chip-rect">
-                <svg fill="none" height="12" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="12">
-                  <rect height="16" rx="2" width="20" x="2" y="4" />
-                  <path d="M14 8v8M6 8h4M6 12h4" />
-                </svg>
-                Rectángulo (Lista)
-              </span>
-              <span className="legend-chip chip-hero">
-                <svg fill="none" height="12" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="12">
-                  <rect height="18" rx="2" width="18" x="3" y="3" />
-                  <path d="M7 15l3-3 4 4 3-3" />
-                </svg>
-                Cuadrado grande (Hero)
-              </span>
-              <span className="legend-chip chip-carousel">
-                <svg fill="none" height="12" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="12">
-                  <rect height="14" rx="2" width="9" x="2" y="5" />
-                  <rect height="14" rx="2" width="9" x="13" y="5" />
-                </svg>
-                Scroll horizontal (Carrusel)
-              </span>
-            </div>
-
-            <button
-              className="admin-config-add-btn"
-              onClick={() => {
-                onClose();
-                onAddCategory();
-              }}
-              title="Agregar o vincular una nueva categoría a esta carta"
-              type="button"
-            >
-              <svg fill="none" height="15" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" viewBox="0 0 24 24" width="15">
-                <line x1="12" x2="12" y1="5" y2="19" />
-                <line x1="5" x2="19" y1="12" y2="12" />
-              </svg>
-              Agregar categoría
-            </button>
-          </div>
         </div>
 
         {/* Lista de Categorías */}
@@ -299,6 +273,15 @@ export function MenuCategoriesConfigDialog({
                     <div className="config-category-title-line">
                       <strong className="config-category-name">{category.name}</strong>
 
+                      {/* Badge del Formato de Tarjeta (Tipo de UI) */}
+                      <span className={`config-layout-badge badge-${layoutType}`}>
+                        {layoutType === "hero"
+                          ? "Cuadrado grande"
+                          : layoutType === "carousel"
+                          ? "Scroll horizontal"
+                          : "Rectángulo"}
+                      </span>
+
                       {/* Badge de Estado */}
                       {!category.is_active ? (
                         <span className="status-badge is-inactive" style={{ fontSize: "0.7rem", padding: "0.15rem 0.45rem" }}>
@@ -329,39 +312,6 @@ export function MenuCategoriesConfigDialog({
                     {category.description ? (
                       <p className="config-category-desc">{category.description}</p>
                     ) : null}
-
-                    {/* Referencia Destacada al Tipo de UI de Tarjetas */}
-                    <div className="config-category-ui-reference">
-                      <span className="ui-reference-label">Tipo de UI:</span>
-                      {layoutType === "hero" ? (
-                        <div className="ui-type-pill pill-hero">
-                          <svg className="ui-pill-icon" fill="none" height="13" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="13">
-                            <rect height="18" rx="2" width="18" x="3" y="3" />
-                            <path d="M7 15l3-3 4 4 3-3" />
-                          </svg>
-                          <span className="ui-pill-title">Cuadrado grande (Hero)</span>
-                          <span className="ui-pill-hint">· Tarjetas destacadas 16:11 con foto grande</span>
-                        </div>
-                      ) : layoutType === "carousel" ? (
-                        <div className="ui-type-pill pill-carousel">
-                          <svg className="ui-pill-icon" fill="none" height="13" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="13">
-                            <rect height="14" rx="2" width="9" x="2" y="5" />
-                            <rect height="14" rx="2" width="9" x="13" y="5" />
-                          </svg>
-                          <span className="ui-pill-title">Scroll horizontal (Carrusel)</span>
-                          <span className="ui-pill-hint">· Fila deslizable táctil con snap</span>
-                        </div>
-                      ) : (
-                        <div className="ui-type-pill pill-rect">
-                          <svg className="ui-pill-icon" fill="none" height="13" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="13">
-                            <rect height="16" rx="2" width="20" x="2" y="4" />
-                            <path d="M14 8v8M6 8h4M6 12h4" />
-                          </svg>
-                          <span className="ui-pill-title">Rectángulo estándar (Lista)</span>
-                          <span className="ui-pill-hint">· Formato clásico optimizado para lectura</span>
-                        </div>
-                      )}
-                    </div>
                   </div>
 
                   {/* Acciones de la fila (Editar, Quitar, Borrar) */}

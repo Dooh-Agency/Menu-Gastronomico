@@ -15,6 +15,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Sincronización de Especificación y Roadmap:** Actualización de `SPEC.md` con el estado real de Etapas 0-3 y modelo conceptual, consolidación de la tabla de progreso en `docs/ROADMAP-DESARROLLO.md` y catálogo completo de migraciones en `supabase/README.md`.
 
 ### ✨ Nuevas Funcionalidades
+- **Banner de carta interactivo con accesibilidad total:** La superficie del banner de la carta activa en el panel de administración ahora es completamente interactiva (`role="button"`, `tabIndex={0}`, eventos de teclado `Enter`/`Space`), con feedback visual de hover (zoom sutil en imagen, badge *"Modificar carta"* y elevación) y acción directa para modificar portada, nombre, horarios y disponibilidad.
 - **Personalización de formato de tarjetas por categoría (`card_layout`):** Cada categoría ahora puede definir su propio estilo de presentación en el menú público entre 3 opciones:
   - **Rectángulo clásico (`rectangle`):** Lista vertical con imagen lateral derecha, ideal para cartas extensas y variadas.
   - **Cuadrado grande / Hero (`hero`):** Tarjeta destacada y amplia con foto protagonista, tipografía generosa y precio destacado, ideal para *"Plato del día"*, sugerencias del chef o cortes premium.
@@ -26,6 +27,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Badges de formato en administración:** Indicadores visuales claros en las listas y bloques de categorías del panel de control que informan el diseño configurado (*"Cuadrado grande"*, *"Scroll horizontal"*, *"Rectángulo"*).
 
 ### 🎨 UI & Diseño
+- **Modificación de cartas centralizada exclusivamente en el banner:** En `admin-menu-view.tsx`, se unificó el punto de acceso para editar la carta en el propio banner. Se eliminó el botón *"Editar carta"* junto al título y el botón de lápiz en la barra lateral (`menus-sidebar.tsx`). Además, el selector de *"Horarios disponibles"* ahora es un indicador informativo de lectura (`admin-schedule-info-display`), garantizando que la modificación de la carta se realice únicamente haciendo clic en el banner interactivo.
 - **Navegación continua por categorías con scroll suave y Scrollspy:** En `menu-publico.tsx`, las categorías ya no filtran ni ocultan el contenido de la carta. Todas las secciones se muestran en un feed vertical continuo. Al hacer clic o tap en una categoría, la página se desplaza suavemente hasta su sección (`scrollIntoView` con respeto a `prefers-reduced-motion`). Se incorporó un observador de scroll (*Scrollspy*) que destaca la categoría activa en la barra superior mientras se recorre la carta y auto-centra suavemente la tab activa en pantallas móviles.
 - **Desactivación de auto-selección por scroll en barra de categorías:** Se eliminó el listener y debounce que activaba automáticamente la categoría centrada al finalizar el desplazamiento horizontal en la barra de navegación, permitiendo descubrir categorías libremente.
 - **Nuevos componentes de tarjetas gastronómicas:**

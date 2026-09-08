@@ -2183,6 +2183,30 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
   position: relative;
 }
 
+.admin-menu-cover-clickable {
+  cursor: pointer;
+  outline: none;
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
+  user-select: none;
+}
+
+.admin-menu-cover-clickable:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+.admin-menu-cover-clickable:focus-visible {
+  outline: 3px solid var(--color-accent, #ae4c2c);
+  outline-offset: 3px;
+}
+
+.admin-menu-cover-clickable .admin-menu-cover-image {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.admin-menu-cover-clickable:hover .admin-menu-cover-image {
+  transform: scale(1.025);
+}
+
 .admin-menu-cover::after {
   background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.45) 100%);
   content: "";
@@ -2224,6 +2248,23 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
 .admin-cover-action-btn:hover {
   background: #ffffff;
   transform: translateY(-1px);
+}
+
+.admin-cover-modify-badge {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  color: var(--color-ink, #1f2937);
+  letter-spacing: -0.01em;
+  transition: all 0.2s ease;
+}
+
+.admin-menu-cover-clickable:hover .admin-cover-modify-badge {
+  background: #ffffff;
+  border-color: #ffffff;
+  color: var(--color-accent, #ae4c2c);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
 
 .admin-cover-action-btn.btn-danger {
@@ -3173,6 +3214,17 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
 .admin-schedule-trigger-btn:hover {
   border-color: var(--color-accent, #ae4c2c);
   background: #fdfbf9;
+}
+
+.admin-schedule-trigger-btn.admin-schedule-info-display {
+  cursor: default;
+  background: #fbfaf8;
+  border-color: #ded7ce;
+}
+
+.admin-schedule-trigger-btn.admin-schedule-info-display:hover {
+  border-color: #ded7ce;
+  background: #fbfaf8;
 }
 
 .admin-schedule-summary-text {

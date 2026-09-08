@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CreateMenuDialog, EditMenuDialog } from "./menu-dialogs";
+import { CreateMenuDialog } from "./menu-dialogs";
 import { deleteMenu } from "./actions";
 import type { Category, Menu, MenuItem } from "./types";
 
@@ -37,7 +37,6 @@ export function MenusSidebar({
   items,
 }: MenusSidebarProps) {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function handleDelete(menu: Menu) {
@@ -149,28 +148,6 @@ export function MenusSidebar({
               </button>
 
               <div className="admin-menu-sidebar-card-actions">
-                <button
-                  className="admin-menu-action-icon-btn"
-                  onClick={() => setEditingMenu(menu)}
-                  title="Editar detalles de la carta"
-                  type="button"
-                >
-                  <svg
-                    aria-hidden="true"
-                    fill="none"
-                    height="14"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    width="14"
-                  >
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                  </svg>
-                </button>
-
                 {menus.length > 1 && (
                   <button
                     className="admin-menu-action-icon-btn btn-danger"
@@ -228,14 +205,6 @@ export function MenusSidebar({
         onClose={() => setIsCreateOpen(false)}
         onCreated={(newId) => onSelectMenu(newId)}
       />
-
-      {editingMenu && (
-        <EditMenuDialog
-          isOpen={true}
-          menu={editingMenu}
-          onClose={() => setEditingMenu(null)}
-        />
-      )}
     </aside>
   );
 }

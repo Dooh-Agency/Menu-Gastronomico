@@ -6,11 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AdminDialog } from "./admin-dialog";
 import { MenusDashboard } from "./menus-dashboard";
-import {
-  EditMenuDialog,
-  MenuBannerDialog,
-  MenuSchedulesDialog,
-} from "./menu-dialogs";
+import { EditMenuDialog } from "./menu-dialogs";
 import {
   assignCategoryToMenu,
   createCategory,
@@ -134,9 +130,7 @@ export function AdminMenuView({
   const [isLogoDialogOpen, setIsLogoDialogOpen] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
-  const [isMenuBannerDialogOpen, setIsMenuBannerDialogOpen] = useState(false);
   const [isMenuEditDialogOpen, setIsMenuEditDialogOpen] = useState(false);
-  const [isMenuSchedulesDialogOpen, setIsMenuSchedulesDialogOpen] = useState(false);
 
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [categoryMode, setCategoryMode] = useState<"new" | "reuse">("new");
@@ -445,10 +439,23 @@ export function AdminMenuView({
           </div>
         </header>
 
-        {/* 2. Banner de la Carta Activa */}
+        {/* 2. Banner de la Carta Activa (clic para modificar carta) */}
         <section className="admin-menu-cover-section" aria-label="Banner de portada de la carta">
           {activeBannerPath ? (
-            <div className="admin-menu-cover">
+            <div
+              aria-label={`Modificar carta ${currentMenu.name}`}
+              className="admin-menu-cover admin-menu-cover-clickable"
+              onClick={() => setIsMenuEditDialogOpen(true)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setIsMenuEditDialogOpen(true);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              title="Hacé clic para modificar esta carta"
+            >
               <Image
                 alt={`Banner de ${currentMenu.name}`}
                 className="admin-menu-cover-image"
@@ -458,11 +465,7 @@ export function AdminMenuView({
                 src={menuImageUrl(activeBannerPath)}
               />
               <div className="admin-cover-overlay">
-                <button
-                  className="admin-cover-action-btn"
-                  onClick={() => setIsMenuBannerDialogOpen(true)}
-                  type="button"
-                >
+                <span className="admin-cover-action-btn admin-cover-modify-badge">
                   <svg
                     aria-hidden="true"
                     fill="none"
@@ -474,16 +477,19 @@ export function AdminMenuView({
                     viewBox="0 0 24 24"
                     width="15"
                   >
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                    <circle cx="12" cy="13" r="4" />
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                   </svg>
-                  Cambiar banner de la carta
-                </button>
+                  Modificar carta
+                </span>
                 {currentMenu.banner_path && (
                   <button
                     className="admin-cover-action-btn btn-danger"
                     disabled={isPending}
-                    onClick={handleRemoveMenuBanner}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveMenuBanner();
+                    }}
                     title="Quitar banner de la carta"
                     type="button"
                   >
@@ -508,8 +514,9 @@ export function AdminMenuView({
             </div>
           ) : (
             <button
-              className="admin-cover-placeholder"
-              onClick={() => setIsMenuBannerDialogOpen(true)}
+              className="admin-cover-placeholder admin-cover-placeholder-clickable"
+              onClick={() => setIsMenuEditDialogOpen(true)}
+              title="Hacé clic para modificar esta carta"
               type="button"
             >
               <div className="admin-cover-placeholder-content">
@@ -524,18 +531,18 @@ export function AdminMenuView({
                     viewBox="0 0 24 24"
                     width="22"
                   >
-                    <line x1="12" x2="12" y1="5" y2="19" />
-                    <line x1="5" x2="19" y1="12" y2="12" />
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                   </svg>
                 </div>
-                <strong>Agregar banner para &quot;{currentMenu.name}&quot;</strong>
-                <p>Hacé clic para cargar una foto de cabecera propia para esta carta (1200 × 400 px)</p>
+                <strong>Modificar carta &quot;{currentMenu.name}&quot;</strong>
+                <p>Hacé clic aquí para modificar la carta, cargar una foto de cabecera o configurar horarios</p>
               </div>
             </button>
           )}
         </section>
 
-        {/* 3. Datos de la Carta (Nombre, Descripción, Botón Editar) */}
+        {/* 3. Datos de la Carta (Nombre y Descripción) */}
         <section className="admin-active-menu-info">
           <div className="admin-active-menu-meta">
             <div className="admin-active-menu-header-row">
@@ -543,28 +550,6 @@ export function AdminMenuView({
               {!currentMenu.is_active && (
                 <span className="status-badge is-inactive">Carta Oculta / Inactiva</span>
               )}
-              <button
-                className="admin-menu-edit-btn"
-                onClick={() => setIsMenuEditDialogOpen(true)}
-                title="Editar nombre y descripción de la carta"
-                type="button"
-              >
-                <svg
-                  aria-hidden="true"
-                  fill="none"
-                  height="14"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  width="14"
-                >
-                  <path d="M12 20h9" />
-                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                </svg>
-                Editar carta
-              </button>
             </div>
             {currentMenu.description && (
               <p className="admin-active-menu-description">{currentMenu.description}</p>
@@ -577,11 +562,9 @@ export function AdminMenuView({
           {/* Horarios disponibles de la carta */}
           <div className="admin-menu-control admin-schedule-control">
             <span>Horarios disponibles</span>
-            <button
-              className="admin-schedule-trigger-btn"
-              onClick={() => setIsMenuSchedulesDialogOpen(true)}
-              title="Configurar días y horarios de esta carta"
-              type="button"
+            <div
+              className="admin-schedule-trigger-btn admin-schedule-info-display"
+              title="Días y horarios configurados para esta carta (se modifican haciendo clic en el banner)"
             >
               <svg
                 aria-hidden="true"
@@ -600,8 +583,7 @@ export function AdminMenuView({
               <span className="admin-schedule-summary-text">
                 {getScheduleSummaryText(currentMenu)}
               </span>
-              <span className="admin-schedule-edit-badge">Modificar</span>
-            </button>
+            </div>
           </div>
 
           {/* Selector de Preferencias / Filtros */}
@@ -1116,31 +1098,12 @@ export function AdminMenuView({
           MODALES
           ========================================================================= */}
 
-      {/* Modal: Banner de la carta */}
-      {isMenuBannerDialogOpen && (
-        <MenuBannerDialog
-          isOpen={isMenuBannerDialogOpen}
-          menu={currentMenu}
-          onClose={() => setIsMenuBannerDialogOpen(false)}
-        />
-      )}
-
-      {/* Modal: Editar metadatos de la carta */}
+      {/* Modal: Modificar carta (metadatos, portada, horarios) */}
       {isMenuEditDialogOpen && (
         <EditMenuDialog
           isOpen={isMenuEditDialogOpen}
           menu={currentMenu}
           onClose={() => setIsMenuEditDialogOpen(false)}
-        />
-      )}
-
-      {/* Modal: Horarios de la carta */}
-      {isMenuSchedulesDialogOpen && (
-        <MenuSchedulesDialog
-          isOpen={isMenuSchedulesDialogOpen}
-          menu={currentMenu}
-          onClose={() => setIsMenuSchedulesDialogOpen(false)}
-          schedules={currentMenu.schedules || []}
         />
       )}
 

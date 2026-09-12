@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 ## [Unreleased]
 
 ### 📚 Documentación & Configuración de Agentes
+- **Checklists interactivos en el Roadmap (`docs/ROADMAP-DESARROLLO.md`):** Se convirtieron todos los ítems de alcance, validaciones y actividades a formato de checklist interactivo (`- [ ]`), marcando automáticamente las Etapas 0, 1, 2 y 3 como completadas (`- [x]`) y dejando las etapas 4 en adelante preparadas para seguimiento de progreso.
 - **Actualización de decisiones de UX en `docs/DECISIONES-UX-MENU.md`:** Se documentó la transición hacia un feed continuo sin filtrado excluyente por categorías, navegación rápida por anclas con scroll suave, auto-centrado de tabs y Scrollspy vertical.
 - **Estructura jerárquica de `AGENTS.md`:** Creación de `src/AGENTS.md` (frontend) y `supabase/AGENTS.md` (base de datos) complementando al `AGENTS.md` raíz.
 - **Índice de documentación:** Creación de `docs/README.md` como punto central de la documentación técnica y funcional del equipo.

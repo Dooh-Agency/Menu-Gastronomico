@@ -7,6 +7,9 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 
 ## [Unreleased]
 
+### 🐛 Correcciones
+- **Cumplimiento estricto de las Reglas de Hooks de React (`MenuPublico`):** Se trasladaron las llamadas `useMemo` de `dietaryTags` y `allAllergens` al nivel superior incondicional del componente, antes de cualquier sentencia `if (!selectedMenuId) return`, resolviendo el error `Rendered more hooks than during the previous render`.
+
 ### 🎨 UI & Diseño
 - **Rediseño del Header y Navegación en Cartas (`menu-publico.tsx`):**
   - **Izquierda:** Incorporación de botón circular con icono de flecha atrás (`menu-back-arrow-btn`) para retornar limpiamente a la selección de cartas en menús con múltiples cartas activas, junto con el Isologo y nombre del restaurante.

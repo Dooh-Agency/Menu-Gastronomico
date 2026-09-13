@@ -256,6 +256,15 @@ export function MenuPublico({
       });
   }, [menu.categories, currentMenu]);
 
+  const dietaryTags = useMemo(
+    () => Array.from(new Set(menu.items.flatMap((item) => item.dietary_tags || []))).sort(),
+    [menu.items]
+  );
+  const allAllergens = useMemo(
+    () => Array.from(new Set(menu.items.flatMap((item) => item.allergens || []))).sort(),
+    [menu.items]
+  );
+
   // Scrollspy: detecta la categoría visible al hacer scroll vertical en la página
   useEffect(() => {
     if (!selectedMenuId) return;
@@ -624,15 +633,6 @@ export function MenuPublico({
 
   const activeBannerPath = currentMenu.banner_path || branding.cover_image_path;
   const isCurrentMenuInSchedule = isMenuScheduleActive(currentMenu.schedules, menu.restaurant.timezone);
-
-  const dietaryTags = useMemo(
-    () => Array.from(new Set(menu.items.flatMap((item) => item.dietary_tags || []))).sort(),
-    [menu.items]
-  );
-  const allAllergens = useMemo(
-    () => Array.from(new Set(menu.items.flatMap((item) => item.allergens || []))).sort(),
-    [menu.items]
-  );
   const categoriesToRender = categories;
 
   return (

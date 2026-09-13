@@ -8,6 +8,7 @@ import type { PublicMenu, PublicMenuSchedule } from "@/lib/supabase/public-menu"
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
 import { DishCardHorizontal, DishCardHero, DishCardCompact } from "@/components/dish-cards";
 import { DishImageCarousel } from "@/components/dish-image-carousel";
+import { RestaurantFooter } from "@/components/restaurant-footer";
 
 type MenuPublicoProps = {
   menu: PublicMenu;
@@ -613,26 +614,7 @@ export function MenuPublico({
         </section>
 
         {/* Footer con información de contacto */}
-        {menu.settings.contact.phone ||
-        menu.settings.contact.email ||
-        menu.settings.contact.address ||
-        menu.settings.contact.website ? (
-          <footer className="menu-contact" aria-label="Contacto">
-            <h2>{menu.restaurant.name}</h2>
-            {menu.settings.contact.address ? <p>{menu.settings.contact.address}</p> : null}
-            {menu.settings.contact.phone ? (
-              <a href={`tel:${menu.settings.contact.phone}`}>{menu.settings.contact.phone}</a>
-            ) : null}
-            {menu.settings.contact.email ? (
-              <a href={`mailto:${menu.settings.contact.email}`}>{menu.settings.contact.email}</a>
-            ) : null}
-            {menu.settings.contact.website ? (
-              <a href={menu.settings.contact.website} rel="noreferrer" target="_blank">
-                Sitio web
-              </a>
-            ) : null}
-          </footer>
-        ) : null}
+        <RestaurantFooter restaurantName={menu.restaurant.name} contact={menu.settings.contact} />
       </main>
     );
   }
@@ -913,26 +895,7 @@ export function MenuPublico({
         )}
       </section>
 
-      {menu.settings.contact.phone ||
-      menu.settings.contact.email ||
-      menu.settings.contact.address ||
-      menu.settings.contact.website ? (
-        <footer className="menu-contact" aria-label="Contacto">
-          <h2>{menu.restaurant.name}</h2>
-          {menu.settings.contact.address ? <p>{menu.settings.contact.address}</p> : null}
-          {menu.settings.contact.phone ? (
-            <a href={`tel:${menu.settings.contact.phone}`}>{menu.settings.contact.phone}</a>
-          ) : null}
-          {menu.settings.contact.email ? (
-            <a href={`mailto:${menu.settings.contact.email}`}>{menu.settings.contact.email}</a>
-          ) : null}
-          {menu.settings.contact.website ? (
-            <a href={menu.settings.contact.website} rel="noreferrer" target="_blank">
-              Sitio web
-            </a>
-          ) : null}
-        </footer>
-      ) : null}
+      <RestaurantFooter restaurantName={menu.restaurant.name} contact={menu.settings.contact} />
 
       {selectedItem ? (() => {
         const localizedItem = translated(selectedItem, locale);

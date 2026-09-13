@@ -1213,30 +1213,80 @@ export async function updateRestaurantSettings(formData: FormData) {
 
 export async function updateRestaurantConfiguration(formData: FormData) {
   const { supabase, restaurantId, slug } = await context();
-  const { data: restaurant } = await supabase.from("restaurants").select("name, timezone, supported_locales, default_locale, branding").eq("id", restaurantId).maybeSingle<{ name: string; timezone: string; supported_locales: string[]; default_locale: string; branding: Record<string, unknown> }>();
+  const { data: restaurant } = await supabase
+    .from("restaurants")
+    .select("name, timezone, supported_locales, default_locale, branding")
+    .eq("id", restaurantId)
+    .maybeSingle<{ name: string; timezone: string; supported_locales: string[]; default_locale: string; branding: Record<string, unknown> }>();
   if (!restaurant) throw new Error("Restaurante no encontrado.");
-  const supported_locales = formData.getAll("supported_locales").filter((locale): locale is string => locale === "es" || locale === "en");
-  if (!supported_locales.length) throw new Error("Seleccioná al menos un idioma.");
-  const default_locale = required(formData, "default_locale");
-  if (!supported_locales.includes(default_locale)) throw new Error("El idioma predeterminado debe estar habilitado.");
-  const timezone = required(formData, "timezone");
-  try { Intl.DateTimeFormat(undefined, { timeZone: timezone }); } catch { throw new Error("Zona horaria inválida."); }
-  const font_family = required(formData, "font_family");
-  const radius = required(formData, "radius");
-  if (!(font_family in restaurantFonts) || !["soft", "rounded", "square"].includes(radius)) throw new Error("Estilo visual inválido.");
+
   const oldBranding = brandingFor(restaurant.branding);
+
+  const supported_locales = formData.has("supported_locales")
+    ? formData.getAll("supported_locales").filter((locale): locale is string => locale === "es" || locale === "en")
+    : restaurant.supported_locales;
+  if (!supported_locales.length) throw new Error("Seleccioná al menos un idioma.");
+
+  const default_locale = formData.has("default_locale")
+    ? required(formData, "default_locale")
+    : restaurant.default_locale;
+  if (!supported_locales.includes(default_locale)) throw new Error("El idioma predeterminado debe estar habilitado.");
+
+  const timezone = formData.has("timezone") ? required(formData, "timezone") : restaurant.timezone;
+  try { Intl.DateTimeFormat(undefined, { timeZone: timezone }); } catch { throw new Error("Zona horaria inválida."); }
+
+  const name = formData.has("name") ? required(formData, "name") : restaurant.name;
+
+  const font_family = formData.has("font_family") ? required(formData, "font_family") : oldBranding.font_family;
+  const radius = formData.has("radius") ? required(formData, "radius") : oldBranding.radius;
+  if (font_family && !(font_family in restaurantFonts)) throw new Error("Tipografía inválida.");
+  if (radius && !["soft", "rounded", "square"].includes(radius)) throw new Error("Estilo visual inválido.");
+
+  const established_year = formData.has("established_year")
+    ? (formData.get("established_year") as string).trim()
+    : oldBranding.established_year;
+
   const branding = {
-    primary_color: hexColor(formData, "primary_color"), secondary_color: hexColor(formData, "secondary_color"), surface_color: hexColor(formData, "surface_color"), text_color: hexColor(formData, "text_color"), accent_text_color: hexColor(formData, "accent_text_color"),
-    font_family: font_family as RestaurantFont, radius: radius as "soft" | "rounded" | "square",
-    logo_path: await uploadBrandImage("logo", restaurantId, formData.get("logo") instanceof File ? formData.get("logo") as File : null, oldBranding.logo_path, supabase),
-    cover_image_path: await uploadBrandImage("cover", restaurantId, formData.get("cover_image") instanceof File ? formData.get("cover_image") as File : null, oldBranding.cover_image_path, supabase),
+    ...oldBranding,
+    primary_color: formData.has("primary_color") ? hexColor(formData, "primary_color") : oldBranding.primary_color,
+    secondary_color: formData.has("secondary_color") ? hexColor(formData, "secondary_color") : oldBranding.secondary_color,
+    surface_color: formData.has("surface_color") ? hexColor(formData, "surface_color") : oldBranding.surface_color,
+    text_color: formData.has("text_color") ? hexColor(formData, "text_color") : oldBranding.text_color,
+    accent_text_color: formData.has("accent_text_color") ? hexColor(formData, "accent_text_color") : oldBranding.accent_text_color,
+    font_family: (font_family as RestaurantFont) ?? oldBranding.font_family,
+    radius: (radius as "soft" | "rounded" | "square") ?? oldBranding.radius,
+    established_year: established_year || undefined,
+    logo_path: await uploadBrandImage("logo", restaurantId, formData.get("logo") instanceof File ? (formData.get("logo") as File) : null, oldBranding.logo_path, supabase),
+    cover_image_path: await uploadBrandImage("cover", restaurantId, formData.get("cover_image") instanceof File ? (formData.get("cover_image") as File) : null, oldBranding.cover_image_path, supabase),
   };
-  const contact = contactFor({ phone: optionalText(formData, "phone", 60), email: optionalText(formData, "email", 254), address: optionalText(formData, "address", 240), website: optionalText(formData, "website", 240) });
-  if (contact.email && !/^\S+@\S+\.\S+$/.test(contact.email)) throw new Error("Email de contacto inválido.");
-  if (contact.website) { try { const url = new URL(contact.website); if (!/^https?:$/.test(url.protocol)) throw new Error(); } catch { throw new Error("Sitio web inválido."); } }
+
+  const contact = contactFor({
+    phone: formData.has("phone") ? optionalText(formData, "phone", 60) : undefined,
+    email: formData.has("email") ? optionalText(formData, "email", 254) : undefined,
+    address: formData.has("address") ? optionalText(formData, "address", 240) : undefined,
+    website: formData.has("website") ? optionalText(formData, "website", 240) : undefined,
+  });
+
+  // Preserve existing contact fields if updating partial contact info
+  const { data: existingSettings } = await supabase.from("restaurant_settings").select("contact").eq("restaurant_id", restaurantId).maybeSingle();
+  const mergedContact = {
+    ...contactFor(existingSettings?.contact),
+    ...contact,
+  };
+
+  if (mergedContact.email && !/^\S+@\S+\.\S+$/.test(mergedContact.email)) throw new Error("Email de contacto inválido.");
+  if (mergedContact.website) {
+    try {
+      const url = new URL(mergedContact.website);
+      if (!/^https?:$/.test(url.protocol)) throw new Error();
+    } catch {
+      throw new Error("Sitio web inválido.");
+    }
+  }
+
   const [{ error: restaurantError }, { error: settingsError }] = await Promise.all([
-    supabase.from("restaurants").update({ name: required(formData, "name"), timezone, supported_locales, default_locale, branding }).eq("id", restaurantId),
-    supabase.from("restaurant_settings").update({ contact }).eq("restaurant_id", restaurantId),
+    supabase.from("restaurants").update({ name, timezone, supported_locales, default_locale, branding }).eq("id", restaurantId),
+    supabase.from("restaurant_settings").update({ contact: mergedContact }).eq("restaurant_id", restaurantId),
   ]);
   if (restaurantError) throw restaurantError;
   if (settingsError) throw settingsError;

@@ -7,6 +7,18 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 
 ## [Unreleased]
 
+### 🎨 UI & Diseño
+- **Configuración de imágenes remotas (`next.config.ts`):** Habilitación del patrón `images.unsplash.com` en `remotePatterns` para permitir el renderizado seguro de fotografías de prueba e imágenes de vista previa en `next/image`.
+- **Vista previa de diseño con componentes reales de tarjeta (`SettingsView`):** Integración de los componentes auténticos del menú público (`DishCardHorizontal`, `DishCardHero`, `DishCardCompact`) con selector interactivo de formato (*Rectángulo*, *Hero*, *Compacto*). Los cambios en colores, tipografía y radios aplican instantáneamente sobre las tarjetas reales utilizadas por los comensales.
+- **Reestructuración de la Pestaña de Configuración (`SettingsView`):** Rediseño completo de la página de administración (`/admin/settings`) organizada en 3 pestañas principales con navegación fluida y animaciones:
+  - **Información general:** Nombre público, año/fecha de fundación (`established_year`), uploader estructurado con vista previa del Logo y Banner de portada.
+  - **Diseño:** Paleta de colores completa (principal, secundario, superficie, texto, acento), tipografía, estilo de bordes (radios) y **vista previa interactiva en tiempo real** (*Live Theme Preview*) de una tarjeta del menú público.
+  - **Ajustes avanzados:** Idiomas habilitados y predeterminado, zona horaria del local, comportamiento de productos no disponibles (mostrar como agotados u ocultar) y datos de contacto.
+- **Header unificado del panel de administración (`AdminHeader`):** Se fusionaron el antiguo `<header>` y la barra de navegación `<AdminNav>` en una sola barra superior sticky con estilo glassmorphism (`backdrop-filter: blur(12px)`).
+  - **Izquierda:** Enlace sutil y moderno al **Menú público** con indicador de estado en vivo (*Live*).
+  - **Centro:** Control segmentado con dos botones de igual tamaño para **Cartas** (`/admin`) y **Configuración** (`/admin/settings`), con estado activo dinámico.
+  - **Derecha:** Foto de perfil / logo del restaurante que al hacer clic despliega un menú flotante con acceso a **Equipo** (`/admin/users`) y **Cerrar sesión**.
+
 ### 📚 Documentación & Configuración de Agentes
 - **Checklists interactivos en el Roadmap (`docs/ROADMAP-DESARROLLO.md`):** Se convirtieron todos los ítems de alcance, validaciones y actividades a formato de checklist interactivo (`- [ ]`), marcando automáticamente las Etapas 0, 1, 2 y 3 como completadas (`- [x]`) y dejando las etapas 4 en adelante preparadas para seguimiento de progreso.
 - **Actualización de decisiones de UX en `docs/DECISIONES-UX-MENU.md`:** Se documentó la transición hacia un feed continuo sin filtrado excluyente por categorías, navegación rápida por anclas con scroll suave, auto-centrado de tabs y Scrollspy vertical.

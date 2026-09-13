@@ -1,6 +1,6 @@
-import { updateRestaurantConfiguration, updateRestaurantSettings } from "../actions";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { brandingFor, contactFor, restaurantFonts } from "@/lib/restaurant-branding";
+import { brandingFor, contactFor } from "@/lib/restaurant-branding";
+import { SettingsView } from "./settings-view";
 
 type Settings = { unavailable_item_behavior: "hide" | "show_sold_out"; contact: Record<string, unknown> };
 type Restaurant = {
@@ -65,138 +65,19 @@ export default async function SettingsPage() {
         </div>
       </div>
 
-      <section className="admin-section">
-        <h2>Identidad del restaurante</h2>
-        <p className="admin-intro">El logo, la portada y los tokens visuales se aplican solo al menú de este restaurante.</p>
-
-        <form action={updateRestaurantConfiguration} className="settings-form branding-form">
-          <label>
-            Nombre público
-            <input defaultValue={restaurant.name} maxLength={120} name="name" required />
-          </label>
-
-          <div className="settings-grid">
-            <label>
-              Color principal
-              <input defaultValue={branding.primary_color} name="primary_color" pattern="#[0-9A-Fa-f]{6}" required type="color" />
-            </label>
-            <label>
-              Color secundario
-              <input defaultValue={branding.secondary_color} name="secondary_color" pattern="#[0-9A-Fa-f]{6}" required type="color" />
-            </label>
-            <label>
-              Fondo
-              <input defaultValue={branding.surface_color} name="surface_color" pattern="#[0-9A-Fa-f]{6}" required type="color" />
-            </label>
-            <label>
-              Color de texto
-              <input defaultValue={branding.text_color} name="text_color" pattern="#[0-9A-Fa-f]{6}" required type="color" />
-            </label>
-            <label>
-              Texto de acento <span className="field-optional">Links y acciones de texto</span>
-              <input defaultValue={branding.accent_text_color} name="accent_text_color" pattern="#[0-9A-Fa-f]{6}" required type="color" />
-            </label>
-            <label>
-              Tipografía
-              <select defaultValue={branding.font_family} name="font_family">
-                {Object.entries(restaurantFonts).map(([value, font]) => (
-                  <option key={value} value={value}>
-                    {font.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Estilo de bordes
-              <select defaultValue={branding.radius} name="radius">
-                <option value="soft">Suave</option>
-                <option value="rounded">Redondeado</option>
-                <option value="square">Recto</option>
-              </select>
-            </label>
-          </div>
-
-          <div className="settings-grid">
-            <label>
-              Logo <span className="field-optional">JPG, PNG o WebP · hasta 5 MB</span>
-              <input accept="image/jpeg,image/png,image/webp" name="logo" type="file" />
-            </label>
-            <label>
-              Imagen de portada <span className="field-optional">JPG, PNG o WebP · hasta 5 MB</span>
-              <input accept="image/jpeg,image/png,image/webp" name="cover_image" type="file" />
-            </label>
-          </div>
-
-          <fieldset>
-            <legend>Idiomas habilitados</legend>
-            <label>
-              <input defaultChecked={restaurant.supported_locales.includes("es")} name="supported_locales" type="checkbox" value="es" /> Español
-            </label>
-            <label>
-              <input defaultChecked={restaurant.supported_locales.includes("en")} name="supported_locales" type="checkbox" value="en" /> Inglés
-            </label>
-          </fieldset>
-
-          <div className="settings-grid">
-            <label>
-              Idioma predeterminado
-              <select defaultValue={restaurant.default_locale} name="default_locale">
-                <option value="es">Español</option>
-                <option value="en">Inglés</option>
-              </select>
-            </label>
-            <label>
-              Zona horaria
-              <input defaultValue={restaurant.timezone} name="timezone" placeholder="America/Argentina/Buenos_Aires" required />
-            </label>
-          </div>
-
-          <fieldset>
-            <legend>Datos de contacto</legend>
-            <div className="settings-grid">
-              <label>
-                Teléfono
-                <input defaultValue={contact.phone} name="phone" type="tel" />
-              </label>
-              <label>
-                Email
-                <input defaultValue={contact.email} name="email" type="email" />
-              </label>
-              <label>
-                Dirección
-                <input defaultValue={contact.address} name="address" />
-              </label>
-              <label>
-                Sitio web
-                <input defaultValue={contact.website} name="website" placeholder="https://…" type="url" />
-              </label>
-            </div>
-          </fieldset>
-
-          <button className="primary-link" type="submit">
-            Guardar identidad
-          </button>
-        </form>
-      </section>
-
-      <section className="admin-section">
-        <h2>Productos y cartas</h2>
-        <form action={updateRestaurantSettings} className="settings-form">
-          <fieldset>
-            <legend>Productos no disponibles</legend>
-            <label>
-              <input defaultChecked={settings.unavailable_item_behavior === "show_sold_out"} name="unavailable_item_behavior" type="radio" value="show_sold_out" /> Mostrar como agotados
-            </label>
-            <label>
-              <input defaultChecked={settings.unavailable_item_behavior === "hide"} name="unavailable_item_behavior" type="radio" value="hide" /> Ocultar del menú público
-            </label>
-          </fieldset>
-
-          <button className="primary-link" type="submit">
-            Guardar configuración
-          </button>
-        </form>
-      </section>
+      <SettingsView
+        restaurant={{
+          name: restaurant.name,
+          timezone: restaurant.timezone,
+          supported_locales: restaurant.supported_locales,
+          default_locale: restaurant.default_locale,
+          branding,
+        }}
+        settings={{
+          unavailable_item_behavior: settings.unavailable_item_behavior,
+          contact,
+        }}
+      />
     </main>
   );
 }

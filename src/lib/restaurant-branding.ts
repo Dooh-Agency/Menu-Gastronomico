@@ -8,6 +8,7 @@ export type RestaurantBranding = {
   radius?: "soft" | "rounded" | "square";
   logo_path?: string;
   cover_image_path?: string;
+  established_year?: string;
 };
 
 export const restaurantFonts = {
@@ -49,6 +50,7 @@ export function brandingFor(value: Record<string, unknown> | null | undefined): 
     radius: candidate.radius === "soft" || candidate.radius === "square" ? candidate.radius : defaultBranding.radius,
     logo_path: typeof candidate.logo_path === "string" ? candidate.logo_path : undefined,
     cover_image_path: typeof candidate.cover_image_path === "string" ? candidate.cover_image_path : undefined,
+    established_year: typeof candidate.established_year === "string" ? candidate.established_year : undefined,
   };
 }
 

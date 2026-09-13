@@ -9,7 +9,7 @@ import {
   RestaurantFont,
   menuImageUrl,
 } from "@/lib/restaurant-branding";
-import { DishCardHorizontal, DishCardHero, DishCardCompact } from "@/components/dish-cards";
+import { DishCardCompact } from "@/components/dish-cards";
 import type { MenuItem } from "@/components/dish-cards/types";
 
 interface SettingsViewProps {
@@ -48,7 +48,6 @@ const sampleDishItem: MenuItem = {
 
 export function SettingsView({ restaurant, settings }: SettingsViewProps) {
   const [activeTab, setActiveTab] = useState<"general" | "design" | "advanced">("general");
-  const [previewLayout, setPreviewLayout] = useState<"rectangle" | "hero" | "carousel">("rectangle");
 
   // Dynamic state for design live preview
   const [brandingState, setBrandingState] = useState<RestaurantBranding>({
@@ -344,40 +343,13 @@ export function SettingsView({ restaurant, settings }: SettingsViewProps) {
                 </div>
               </div>
 
-              {/* REAL PUBLIC DISH CARD LIVE PREVIEW */}
+              {/* REAL COMPACT DISH CARD LIVE PREVIEW */}
               <div className="theme-preview-wrapper">
                 <div className="preview-header-bar">
                   <span className="preview-heading-tag">Vista previa en vivo</span>
-                  {/* Format Layout Switcher */}
-                  <div className="preview-layout-tabs" role="tablist" aria-label="Formato de tarjeta">
-                    <button
-                      type="button"
-                      className={`preview-layout-btn ${previewLayout === "rectangle" ? "is-active" : ""}`}
-                      onClick={() => setPreviewLayout("rectangle")}
-                      title="Formato Rectángulo"
-                    >
-                      Rectángulo
-                    </button>
-                    <button
-                      type="button"
-                      className={`preview-layout-btn ${previewLayout === "hero" ? "is-active" : ""}`}
-                      onClick={() => setPreviewLayout("hero")}
-                      title="Formato Hero / Destacado"
-                    >
-                      Hero
-                    </button>
-                    <button
-                      type="button"
-                      className={`preview-layout-btn ${previewLayout === "carousel" ? "is-active" : ""}`}
-                      onClick={() => setPreviewLayout("carousel")}
-                      title="Formato Compacto"
-                    >
-                      Compacto
-                    </button>
-                  </div>
                 </div>
 
-                {/* Real Dish Card Frame with Injected CSS Variables */}
+                {/* Real Compact Dish Card Frame with Injected CSS Variables */}
                 <div
                   className="preview-card-frame"
                   style={{
@@ -397,17 +369,9 @@ export function SettingsView({ restaurant, settings }: SettingsViewProps) {
                     <span>Categoría: Carnes a la Parrilla</span>
                   </div>
 
-                  {previewLayout === "rectangle" && (
-                    <DishCardHorizontal item={sampleDishItem} locale="es" />
-                  )}
-                  {previewLayout === "hero" && (
-                    <DishCardHero item={sampleDishItem} locale="es" />
-                  )}
-                  {previewLayout === "carousel" && (
-                    <div className="preview-carousel-wrapper">
-                      <DishCardCompact item={sampleDishItem} locale="es" />
-                    </div>
-                  )}
+                  <div className="preview-carousel-wrapper">
+                    <DishCardCompact item={sampleDishItem} locale="es" />
+                  </div>
                 </div>
               </div>
             </div>

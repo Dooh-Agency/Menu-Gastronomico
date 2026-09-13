@@ -8,8 +8,14 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 ## [Unreleased]
 
 ### 🎨 UI & Diseño
+- **Rediseño del Header y Navegación en Cartas (`menu-publico.tsx`):**
+  - **Izquierda:** Incorporación de botón circular con icono de flecha atrás (`menu-back-arrow-btn`) para retornar limpiamente a la selección de cartas en menús con múltiples cartas activas, junto con el Isologo y nombre del restaurante.
+  - **Derecha:** Traslado del **Selector de Idiomas** (`LanguageSelector`) a la esquina superior derecha del header, haciéndolo accesible universalmente tanto en la selección de cartas como dentro de cada carta.
+- **Barra de Filtros y Alérgenos Lado a Lado (`menu-controls`):**
+  - Reestructuración de la barra inferior del header en una grilla flexible al 50% de ancho cada una.
+  - Contiene exclusivamente dos controles principales: **Filtros de Preferencias Dietarias** y el nuevo **Filtro de Alérgenos** (ej: *"Sin Lácteos"*, *"Sin Huevo"*, etc.) con filtrado dinámico en tiempo real por exclusión.
 - **Configuración de imágenes remotas (`next.config.ts`):** Habilitación del patrón `images.unsplash.com` en `remotePatterns` para permitir el renderizado seguro de fotografías de prueba e imágenes de vista previa en `next/image`.
-- **Vista previa de diseño con componentes reales de tarjeta (`SettingsView`):** Integración de los componentes auténticos del menú público (`DishCardHorizontal`, `DishCardHero`, `DishCardCompact`) con selector interactivo de formato (*Rectángulo*, *Hero*, *Compacto*). Los cambios en colores, tipografía y radios aplican instantáneamente sobre las tarjetas reales utilizadas por los comensales.
+- **Vista previa de diseño con tarjeta compacta real (`SettingsView`):** Integración exclusiva del componente de tarjeta compacta del menú público (`DishCardCompact`). Los cambios en colores, tipografía y radios aplican instantáneamente sobre la tarjeta real utilizada por los comensales.
 - **Reestructuración de la Pestaña de Configuración (`SettingsView`):** Rediseño completo de la página de administración (`/admin/settings`) organizada en 3 pestañas principales con navegación fluida y animaciones:
   - **Información general:** Nombre público, año/fecha de fundación (`established_year`), uploader estructurado con vista previa del Logo y Banner de portada.
   - **Diseño:** Paleta de colores completa (principal, secundario, superficie, texto, acento), tipografía, estilo de bordes (radios) y **vista previa interactiva en tiempo real** (*Live Theme Preview*) de una tarjeta del menú público.

@@ -211,6 +211,7 @@ export function MenuPublico({
   }, [menuQueryParam, activeMenus]);
 
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null);
+  const [allergenFilter, setAllergenFilter] = useState<string | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>("all");
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const isManualScrollRef = useRef(false);
@@ -341,6 +342,8 @@ export function MenuPublico({
 
   function handleSelectMenu(menuId: string | null) {
     setSelectedCategoryId("all");
+    setDietaryFilter(null);
+    setAllergenFilter(null);
     setSelectedMenuId(menuId);
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "instant" });
@@ -622,49 +625,75 @@ export function MenuPublico({
   const activeBannerPath = currentMenu.banner_path || branding.cover_image_path;
   const isCurrentMenuInSchedule = isMenuScheduleActive(currentMenu.schedules, menu.restaurant.timezone);
 
-  const dietaryTags = Array.from(new Set(menu.items.flatMap((item) => item.dietary_tags))).sort();
+  const dietaryTags = useMemo(
+    () => Array.from(new Set(menu.items.flatMap((item) => item.dietary_tags || []))).sort(),
+    [menu.items]
+  );
+  const allAllergens = useMemo(
+    () => Array.from(new Set(menu.items.flatMap((item) => item.allergens || []))).sort(),
+    [menu.items]
+  );
   const categoriesToRender = categories;
 
   return (
     <main className="menu-shell" style={brandStyle}>
       <header className="menu-header">
-        <a className="brand" href="#menu-content" aria-label={`${menu.restaurant.name}, ${copy.menu}`}>
-          {branding.logo_path ? (
-            <Image
-              alt=""
-              className="brand-logo"
-              height={72}
-              src={menuImageUrl(branding.logo_path)}
-              width={72}
-            />
-          ) : (
-            <span className="brand-mark" aria-hidden="true" />
-          )}
-          {menu.restaurant.name}
-        </a>
-
-        <div className="menu-header-actions">
+        <div className="menu-header-left">
           {activeMenus.length > 1 ? (
             <button
-              className="back-to-menus-header-btn"
+              aria-label={copy.allMenus}
+              className="menu-back-arrow-btn"
               onClick={() => handleSelectMenu(null)}
               type="button"
             >
               <svg
                 aria-hidden="true"
                 fill="none"
-                height="14"
+                height="18"
                 stroke="currentColor"
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2.5"
                 viewBox="0 0 24 24"
-                width="14"
+                width="18"
               >
                 <polyline points="15 18 9 12 15 6" />
               </svg>
-              {copy.allMenus}
             </button>
+          ) : null}
+
+          <a className="brand" href="#menu-content" aria-label={`${menu.restaurant.name}, ${copy.menu}`}>
+            {branding.logo_path ? (
+              <Image
+                alt=""
+                className="brand-logo"
+                height={72}
+                src={menuImageUrl(branding.logo_path)}
+                width={72}
+              />
+            ) : (
+              <span className="brand-mark" aria-hidden="true" />
+            )}
+            {menu.restaurant.name}
+          </a>
+        </div>
+
+        <div className="menu-header-actions">
+          {menu.restaurant.supported_locales.length > 1 ? (
+            <label className="menu-control language-control" style={{ margin: 0 }}>
+              <span className="visually-hidden">{copy.languages}</span>
+              <select
+                aria-label={copy.languages}
+                onChange={(event) => selectLocale(event.target.value)}
+                value={locale}
+              >
+                {menu.restaurant.supported_locales.map((supportedLocale) => (
+                  <option key={supportedLocale} value={supportedLocale}>
+                    {supportedLocale.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </label>
           ) : null}
         </div>
       </header>
@@ -717,43 +746,40 @@ export function MenuPublico({
         </div>
       )}
 
-      {/* Controles: Preferencias e Idioma */}
-      {dietaryTags.length > 0 || menu.restaurant.supported_locales.length > 1 ? (
+      {/* Controles: Preferencias y Alérgenos uno al lado del otro */}
+      {dietaryTags.length > 0 || allAllergens.length > 0 ? (
         <section className="menu-controls" aria-label={copy.menu}>
-          {dietaryTags.length ? (
-            <label className="menu-control">
-              <span>{copy.filters}</span>
-              <select
-                aria-label={copy.filters}
-                onChange={(event) => setDietaryFilter(event.target.value || null)}
-                value={dietaryFilter ?? ""}
-              >
-                <option value="">{copy.all}</option>
-                {dietaryTags.map((tag) => (
-                  <option key={tag} value={tag}>
-                    {tag}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
+          <label className="menu-control">
+            <span>{copy.filters}</span>
+            <select
+              aria-label={copy.filters}
+              onChange={(event) => setDietaryFilter(event.target.value || null)}
+              value={dietaryFilter ?? ""}
+            >
+              <option value="">{copy.all}</option>
+              {dietaryTags.map((tag) => (
+                <option key={tag} value={tag}>
+                  {tag}
+                </option>
+              ))}
+            </select>
+          </label>
 
-          {menu.restaurant.supported_locales.length > 1 ? (
-            <label className="menu-control language-control">
-              <span>{copy.languages}</span>
-              <select
-                aria-label={copy.languages}
-                onChange={(event) => selectLocale(event.target.value)}
-                value={locale}
-              >
-                {menu.restaurant.supported_locales.map((supportedLocale) => (
-                  <option key={supportedLocale} value={supportedLocale}>
-                    {supportedLocale.toUpperCase()}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
+          <label className="menu-control">
+            <span>{copy.allergens}</span>
+            <select
+              aria-label={copy.allergens}
+              onChange={(event) => setAllergenFilter(event.target.value || null)}
+              value={allergenFilter ?? ""}
+            >
+              <option value="">{copy.all}</option>
+              {allAllergens.map((allergen) => (
+                <option key={allergen} value={allergen}>
+                  {locale.startsWith("en") ? `Free of ${allergen}` : `Sin ${allergen}`}
+                </option>
+              ))}
+            </select>
+          </label>
         </section>
       ) : null}
 
@@ -802,8 +828,9 @@ export function MenuPublico({
               const matchesCategory = item.category_id === category.id;
               const matchesAvailability =
                 menu.settings.unavailable_item_behavior === "show_sold_out" || item.is_available;
-              const matchesFilter = !dietaryFilter || item.dietary_tags.includes(dietaryFilter);
-              return matchesCategory && matchesAvailability && matchesFilter;
+              const matchesFilter = !dietaryFilter || (item.dietary_tags && item.dietary_tags.includes(dietaryFilter));
+              const matchesAllergen = !allergenFilter || !(item.allergens && item.allergens.includes(allergenFilter));
+              return matchesCategory && matchesAvailability && matchesFilter && matchesAllergen;
             });
 
             if (items.length > 0) {

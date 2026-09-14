@@ -11,6 +11,26 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Cumplimiento estricto de las Reglas de Hooks de React (`MenuPublico`):** Se trasladaron las llamadas `useMemo` de `dietaryTags` y `allAllergens` al nivel superior incondicional del componente, antes de cualquier sentencia `if (!selectedMenuId) return`, resolviendo el error `Rendered more hooks than during the previous render`.
 
 ### 🎨 UI & Diseño
+- **Remoción del Badge `FAVORITO` (`menu-publico.tsx`):** Se eliminó la etiqueta traslúcida "FAVORITO" sobre la imagen de portada de las cartas disponibles, dejando únicamente las fotos limpias y los indicadores de horario en las cartas cerradas.
+- **Remoción del Botón de Mensaje / Mailto (`restaurant-footer.tsx` / `menu-publico.tsx`):** Se eliminó el botón flotante de asistencia tipo mensaje (FAB) y la tarjeta con enlace `mailto:` del footer de contacto.
+- **Reutilización y Unificación del Header Cápsula Flotante (`menu-publico.tsx`):**
+  - **Selector de Cartas:** En el extremo izquierdo del header cápsula se muestra la foto de perfil/logo del restaurante, y en el medio el nombre del restaurante (`Muud`).
+  - **Dentro de una Carta:** La foto de perfil se retira automáticamente y en el extremo izquierdo se posiciona el botón circular con la flechita de volver atrás (`<`), manteniendo el nombre del restaurante en el centro.
+  - **Remoción del Puntito:** Se eliminó el punto separador (`•`) al lado del nombre del restaurante en todas las variantes del header.
+- **Rediseño y Simplificación del Selector de Cartas / Landing View (`menu-publico.tsx` / `globals.css`):**
+  - **Nombre de Marca Limpio:** Remoción del punto (`•`) tras el nombre del restaurante en la barra superior cápsula nav (`Muud`).
+  - **Hero Simplificado:** Título limpio de gran escala (`¿Qué te gustaría disfrutar hoy?`), removiendo badges y párrafos descriptivos innecesarios.
+  - **Pestañas por Estado Fijas 50%/50%:** Barra de navegación segmentada fija al 50% de ancho sin barra de desplazamiento horizontal, para alternar rápidamente entre `● Disponibles ahora [N]` y `⏰ Más tarde [N]`.
+  - **Portadas de Tarjetas Limpias (`public-menu-card-v2`):** Remoción total de textos, marcas de agua y taglines superpuestos en las fotos de portada de las tarjetas. Conserva únicamente los badges superiores (`● Servicio Actual`, `FAVORITO` / `Desde 19:30 hs`), manteniendo la fotografía clara y sin saturación.
+  - **Filas de Metadatos & Estado:** Conteo dinámico de categorías y platos/bebidas, horario y badge de disponibilidad en tiempo real (`Activo` en verde / `Fuera de horario` en ámbar).
+  - **Botones Cápsula Diferenciados:** Botón púrpura profundo (`#3D144C`) `Ver carta completa →` para cartas activas y secundario claro para cartas fuera de horario.
+  - **Sección Servicios & Opciones Especiales:** Tarjetas rápidas accesibles para `Filtro Sin TACC` y `Llamar Camarero`.
+  - **Footer del Selector & Botón Flotante (FAB):** Marca en itálica con puntos cromáticos (`● Muud Cocina & Café ●`), aclaraciones de precios e IVA y botón flotante morado de asistencia en la esquina inferior derecha.
+- **Header Hero de las Cartas estilo Cápsula y Editorial (`menu-publico.tsx` / `globals.css`):**
+  - **Barra de Navegación Flotante estilo Cápsula (`menu-hero-pill-nav`):** Rediseño completo de la barra superior en un contenedor traslúcido flotante (`border-radius: 9999px`) con efecto glassmorphism, botón de retorno circular a la izquierda, nombre e isologo del restaurante centrado con acento cromático (`MUUD •`), y selector de idiomas integrado en cápsula con icono de traducción a la derecha.
+  - **Tarjeta Hero Principal (`menu-hero-card`):** Diseño *full-bleed* que abarca el 100% del ancho del dispositivo de borde a borde y se extiende hasta el borde superior de la pantalla (0 padding superior), con bordes inferiormente redondeados (`2.25rem`), imagen de portada de la carta/restaurante e iluminación con degradado oscuro de alto contraste.
+  - **Pill de Estado de Horario (`menu-hero-status-pill`):** Insignia flotante traslúcida con punto luminoso verde (`●`) y formato dinámico de franjas horarias (ej: `"Abierto hoy • 8:00 a 20:00"`).
+  - **Tipografía Editorial (`menu-hero-title`):** Título principal de la carta renderizado en tipografía Serif elegante de gran escala (`var(--font-serif)` / *Playfair Display*) y bajada descriptiva en texto blanco nítido.
 - **Rediseño del Header y Navegación en Cartas (`menu-publico.tsx`):**
   - **Izquierda:** Incorporación de botón circular con icono de flecha atrás (`menu-back-arrow-btn`) para retornar limpiamente a la selección de cartas en menús con múltiples cartas activas, junto con el Isologo y nombre del restaurante.
   - **Derecha:** Traslado del **Selector de Idiomas** (`LanguageSelector`) a la esquina superior derecha del header, haciéndolo accesible universalmente tanto en la selección de cartas como dentro de cada carta.

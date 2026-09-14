@@ -179,6 +179,67 @@ function isMenuScheduleActive(schedules: PublicMenuSchedule[], timezone: string)
   }
 }
 
+function formatHeroStatus(
+  schedules: PublicMenuSchedule[],
+  isAvailable: boolean,
+  timezone: string,
+  locale: string,
+): string {
+  const isEn = locale.startsWith("en");
+  if (!schedules || schedules.length === 0) {
+    return isAvailable
+      ? isEn ? "Open today • All day" : "Abierto hoy • Todo el día"
+      : isEn ? "Outside hours" : "Fuera de horario";
+  }
+
+  let targetSchedule = schedules[0];
+  if (schedules.length > 1 && isAvailable) {
+    try {
+      const date = new Date();
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: timezone || "America/Argentina/Buenos_Aires",
+        hour: "2-digit",
+        minute: "2-digit",
+        weekday: "short",
+        hourCycle: "h23",
+      }).formatToParts(date);
+      const hour = Number(parts.find((p) => p.type === "hour")?.value ?? 0);
+      const minute = Number(parts.find((p) => p.type === "minute")?.value ?? 0);
+      const dayStr = parts.find((p) => p.type === "weekday")?.value?.toLowerCase() ?? "";
+      const dayMap: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
+      const currentDay = dayMap[dayStr] ?? date.getDay();
+      const currentMins = hour * 60 + minute;
+
+      const active = schedules.find((s) => {
+        if (s.day_of_week !== null && s.day_of_week !== currentDay) return false;
+        const [startH, startM] = s.starts_at.slice(0, 5).split(":").map(Number);
+        const [endH, endM] = s.ends_at.slice(0, 5).split(":").map(Number);
+        const startMins = startH * 60 + startM;
+        const endMins = endH * 60 + endM;
+        return startMins < endMins
+          ? currentMins >= startMins && currentMins <= endMins
+          : currentMins >= startMins || currentMins <= endMins;
+      });
+      if (active) targetSchedule = active;
+    } catch {
+      // fallback to first schedule
+    }
+  }
+
+  const start = targetSchedule.starts_at.slice(0, 5);
+  const end = targetSchedule.ends_at.slice(0, 5);
+  const timeRange =
+    start === "00:00" && (end === "23:59" || end === "00:00")
+      ? isEn ? "All day" : "Todo el día"
+      : `${start} a ${end}`;
+
+  if (isAvailable) {
+    return isEn ? `Open today • ${timeRange}` : `Abierto hoy • ${timeRange}`;
+  } else {
+    return isEn ? `Outside hours • ${timeRange}` : `Fuera de horario • ${timeRange}`;
+  }
+}
+
 export function MenuPublico({
   menu,
   locale,
@@ -198,6 +259,8 @@ export function MenuPublico({
     }
     return initialMenuId ?? null;
   });
+
+  const [landingTab, setLandingTab] = useState<"available" | "outside" | "all">("available");
 
   useEffect(() => {
     if (activeMenus.length === 1) {
@@ -397,6 +460,119 @@ export function MenuPublico({
     }
   }
 
+  function renderPublicHeader(isInsideMenu: boolean) {
+    return (
+      <header className="menu-hero-pill-nav" style={!isInsideMenu ? { marginBottom: "1.75rem" } : undefined}>
+        {/* Extremo Izquierdo: Flecha si está dentro de la carta, Foto de Perfil si está en el selector */}
+        <div className="menu-hero-pill-left">
+          {isInsideMenu ? (
+            <button
+              aria-label={copy.allMenus}
+              className="menu-pill-back-btn"
+              onClick={() => handleSelectMenu(null)}
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                fill="none"
+                height="16"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                viewBox="0 0 24 24"
+                width="16"
+              >
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+          ) : branding.logo_path ? (
+            <Image
+              alt={`Logo ${menu.restaurant.name}`}
+              className="menu-pill-logo"
+              height={40}
+              src={menuImageUrl(branding.logo_path)}
+              width={40}
+            />
+          ) : (
+            <span
+              style={{
+                width: "2.1rem",
+                height: "2.1rem",
+                borderRadius: "50%",
+                backgroundColor: "#3D144C",
+                color: "#ffffff",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontWeight: 800,
+                fontSize: "1rem",
+              }}
+            >
+              {menu.restaurant.name.charAt(0)}
+            </span>
+          )}
+        </div>
+
+        {/* Centro: Únicamente el nombre del restaurante (sin foto en el centro, sin punto) */}
+        <a className="menu-pill-brand" href={isInsideMenu ? "#menu-content" : "#landing-content"} aria-label={`${menu.restaurant.name}, ${copy.menu}`}>
+          <span className="menu-pill-brand-text">
+            {menu.restaurant.name}
+          </span>
+        </a>
+
+        {/* Extremo Derecho: Selector de Idioma */}
+        <div className="menu-hero-pill-right">
+          {menu.restaurant.supported_locales.length > 1 ? (
+            <div className="menu-pill-lang-wrapper">
+              <span className="menu-pill-lang-icon" aria-hidden="true">
+                <svg
+                  fill="none"
+                  height="15"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.8"
+                  viewBox="0 0 24 24"
+                  width="15"
+                >
+                  <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" />
+                  <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10z" />
+                </svg>
+              </span>
+              <span className="menu-pill-lang-label">{locale.toUpperCase()}</span>
+              <svg
+                className="menu-pill-lang-chevron"
+                fill="none"
+                height="12"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                width="12"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+              <select
+                aria-label={copy.languages}
+                className="menu-pill-lang-select"
+                onChange={(event) => selectLocale(event.target.value)}
+                value={locale}
+              >
+                {menu.restaurant.supported_locales.map((supportedLocale) => (
+                  <option key={supportedLocale} value={supportedLocale}>
+                    {supportedLocale.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+        </div>
+      </header>
+    );
+  }
+
   // =========================================================================
   // VISTA 1: Selector de Cartas (Separadas en Disponibles y Fuera de horario)
   // =========================================================================
@@ -419,10 +595,14 @@ export function MenuPublico({
       params.set("menu", m.id);
       const menuHref = `${pathname}?${params.toString()}`;
 
+      const tagline = isAvailable
+        ? (m.description ? "Despertá tus sentidos" : "Experiencia Gastronómica")
+        : "Cenas & Experiencia Gourmet";
+
       return (
         <Link
           aria-label={`Ver carta ${m.name}`}
-          className={`public-menu-card ${!isAvailable ? "is-outside-hours" : ""}`}
+          className="public-menu-card-v2"
           href={menuHref}
           key={m.id}
           onClick={(e) => {
@@ -430,11 +610,12 @@ export function MenuPublico({
             handleSelectMenu(m.id);
           }}
         >
-          <div className="public-menu-card-cover">
+          {/* Cover Box con Imagen y Gradient Overlay */}
+          <div className="public-menu-card-v2-cover">
             {bannerPath ? (
               <Image
                 alt={`Portada ${m.name}`}
-                className="public-menu-card-image"
+                className="public-menu-card-v2-image"
                 fill
                 sizes="(max-width: 40rem) 100vw, (max-width: 64rem) 50vw, 33vw"
                 src={menuImageUrl(bannerPath)}
@@ -444,189 +625,207 @@ export function MenuPublico({
                 <span className="public-menu-placeholder-mark" />
               </div>
             )}
+            <div className="public-menu-card-v2-overlay" />
 
-            {!isAvailable ? (
-              <div className="public-menu-outside-badge">
-                <svg
-                  aria-hidden="true"
-                  fill="none"
-                  height="13"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.3"
-                  viewBox="0 0 24 24"
-                  width="13"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-                <span>{copy.outsideHoursBadge}</span>
+            {/* Badges Overlay Superior */}
+            <div className="public-menu-card-badge-left">
+              <span
+                style={{
+                  width: "0.5rem",
+                  height: "0.5rem",
+                  borderRadius: "50%",
+                  backgroundColor: isAvailable ? "#10B981" : "#F59E0B",
+                  display: "inline-block",
+                }}
+              />
+              <span>{isAvailable ? "Servicio Actual" : "Servicio Nocturno"}</span>
+            </div>
+
+            {!isAvailable && (
+              <div className="public-menu-card-badge-right is-schedule">
+                {m.schedules?.[0] ? `Desde ${m.schedules[0].starts_at.slice(0, 5)} hs` : "Próximamente"}
               </div>
-            ) : null}
+            )}
           </div>
 
-          <div className="public-menu-card-body">
-            <div className="public-menu-card-info">
-              <h2 className="public-menu-card-name">{m.name}</h2>
-              {m.description ? (
-                <p className="public-menu-card-desc">{m.description}</p>
-              ) : null}
-            </div>
+          {/* Cuerpo de la Tarjeta */}
+          <div className="public-menu-card-v2-body">
+            <h2 className="public-menu-card-v2-title">{m.name}</h2>
 
-            <div className="public-menu-card-meta-list">
-              <div className="public-menu-card-meta-item">
-                <svg
-                  aria-hidden="true"
-                  fill="none"
-                  height="14"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  width="14"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-                <span>{scheduleText}</span>
-              </div>
-              <div className="public-menu-card-meta-item">
-                <svg
-                  aria-hidden="true"
-                  fill="none"
-                  height="14"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  width="14"
-                >
-                  <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
-                  <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
-                  <line x1="6" x2="6" y1="1" y2="4" />
-                  <line x1="10" x2="10" y1="1" y2="4" />
-                  <line x1="14" x2="14" y1="1" y2="4" />
-                </svg>
-                <span>
-                  {menuCats.length} {menuCats.length === 1 ? copy.category : copy.categories} · {menuDishCount}{" "}
-                  {menuDishCount === 1 ? copy.dish : copy.dishes}
+            {m.description && (
+              <p className="public-menu-card-v2-desc">{m.description}</p>
+            )}
+
+            {/* Filas de Meta Información */}
+            <div className="public-menu-card-v2-meta">
+              <div className="public-menu-card-v2-meta-row">
+                <div className="public-menu-card-v2-meta-left">
+                  <svg
+                    aria-hidden="true"
+                    fill="none"
+                    height="15"
+                    stroke="#8C7F77"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    width="15"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
+                  <span>{scheduleText}</span>
+                </div>
+                <span className={`public-menu-card-status-badge ${isAvailable ? "is-active" : "is-pending"}`}>
+                  {isAvailable ? "Activo" : "Fuera de horario"}
                 </span>
               </div>
+
+              <div className="public-menu-card-v2-meta-row">
+                <div className="public-menu-card-v2-meta-left">
+                  <svg
+                    aria-hidden="true"
+                    fill="none"
+                    height="15"
+                    stroke="#8C7F77"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    width="15"
+                  >
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                    <line x1="6" x2="6" y1="1" y2="4" />
+                    <line x1="10" x2="10" y1="1" y2="4" />
+                    <line x1="14" x2="14" y1="1" y2="4" />
+                  </svg>
+                  <span>
+                    {menuCats.length} {menuCats.length === 1 ? copy.category : copy.categories} · {menuDishCount}{" "}
+                    {menuDishCount === 1 ? copy.dish : copy.dishes}
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <span
-              className={`public-menu-card-cta-btn ${!isAvailable ? "is-outside-hours" : ""}`}
-            >
-              {copy.viewMenu} →
-            </span>
+            {/* Botón de Acción Cápsula */}
+            {isAvailable ? (
+              <span className="public-menu-card-btn-primary">
+                {copy.viewMenu} →
+              </span>
+            ) : (
+              <span className="public-menu-card-btn-secondary">
+                Explorar detalles de carta ›
+              </span>
+            )}
           </div>
         </Link>
       );
     }
 
-    return (
-      <main className="menu-shell public-menus-landing" style={brandStyle}>
-        {/* Header con marca y controles */}
-        <header className="menu-header">
-          <div className="brand" aria-label={`${menu.restaurant.name}, ${copy.menu}`}>
-            {branding.logo_path ? (
-              <Image
-                alt=""
-                className="brand-logo"
-                height={72}
-                src={menuImageUrl(branding.logo_path)}
-                width={72}
-              />
+  return (
+    <main className="menu-shell public-menus-landing" style={brandStyle}>
+      {/* 1. Header Flotante Reutilizado (Foto a la izquierda, Nombre al centro, Idioma a la derecha) */}
+      {renderPublicHeader(false)}
+
+        {/* 2. Hero de Selección Simplificado */}
+        <section className="public-menus-hero" style={{ textAlign: "center", marginBottom: "1.75rem", marginTop: "0.5rem" }}>
+          <h1 className="public-menus-hero-title-v2">
+            ¿Qué te gustaría <span className="public-menus-hero-title-italic" style={{ display: "inline" }}>disfrutar hoy?</span>
+          </h1>
+        </section>
+
+        {/* 3. Pestañas de Filtrado Fijas por Horario (Tab Bar 50%/50%) */}
+        <div className="public-menus-tabs-bar" role="tablist">
+          <button
+            className={`public-menus-tab-btn ${landingTab === "available" ? "is-active" : ""}`}
+            onClick={() => setLandingTab("available")}
+            role="tab"
+            type="button"
+          >
+            <span style={{ color: "#10B981" }}>●</span>
+            <span>{copy.availableNow}</span>
+            <span className="public-menus-tab-count">{availableMenus.length}</span>
+          </button>
+
+          <button
+            className={`public-menus-tab-btn ${landingTab === "outside" ? "is-active" : ""}`}
+            onClick={() => setLandingTab("outside")}
+            role="tab"
+            type="button"
+          >
+            <span>⏰</span>
+            <span>{copy.outsideHoursTitle}</span>
+            <span className="public-menus-tab-count">{outsideHoursMenus.length}</span>
+          </button>
+        </div>
+
+        {/* 4. Grilla de Cartas Disponibles / Filtradas */}
+        <section aria-label={copy.chooseMenu} className="public-menus-section" id="landing-content">
+          <div className="public-menus-grid" style={{ display: "grid", gap: "1.5rem", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 20rem), 1fr))" }}>
+            {landingTab === "available" && availableMenus.map((m) => renderMenuCard(m, true))}
+            {landingTab === "outside" && outsideHoursMenus.map((m) => renderMenuCard(m, false))}
+          </div>
+        </section>
+
+        {/* 5. Servicios y Opciones Especiales */}
+        <section className="special-services-section">
+          <div className="special-services-eyebrow">Servicios & Opciones Especiales</div>
+          <div className="special-services-grid">
+            <div className="special-service-card">
+              <div className="special-service-icon golden">
+                <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+              </div>
+              <div className="special-service-info">
+                <span className="special-service-title">Filtro Sin TACC</span>
+                <span className="special-service-subtitle">Vegetariano y celíaco</span>
+              </div>
+            </div>
+
+            {menu.settings.contact.phone ? (
+              <a href={`tel:${menu.settings.contact.phone}`} className="special-service-card">
+                <div className="special-service-icon purple">
+                  <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                  </svg>
+                </div>
+                <div className="special-service-info">
+                  <span className="special-service-title">Llamar Camarero</span>
+                  <span className="special-service-subtitle">Asistencia directa</span>
+                </div>
+              </a>
             ) : (
-              <span className="brand-mark" aria-hidden="true" />
-            )}
-            {menu.restaurant.name}
-          </div>
-
-          <div className="menu-header-actions">
-            {menu.restaurant.supported_locales.length > 1 ? (
-              <label className="menu-control language-control" style={{ margin: 0 }}>
-                <span className="visually-hidden">{copy.languages}</span>
-                <select
-                  aria-label={copy.languages}
-                  onChange={(event) => selectLocale(event.target.value)}
-                  value={locale}
-                >
-                  {menu.restaurant.supported_locales.map((supportedLocale) => (
-                    <option key={supportedLocale} value={supportedLocale}>
-                      {supportedLocale.toUpperCase()}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
-          </div>
-        </header>
-
-        {/* Hero de Selección de Cartas */}
-        <section className="public-menus-hero">
-          <span className="public-menus-hero-badge">{copy.chooseMenu}</span>
-          <h1 className="public-menus-hero-title">{copy.chooseMenuTitle}</h1>
-          <p className="public-menus-hero-subtitle">{copy.chooseMenuSubtitle}</p>
-        </section>
-
-        {/* Secciones de Cartas: Disponibles y Fuera de Horario */}
-        <section aria-label={copy.chooseMenu} className="public-menus-section">
-          <div className="public-menus-groups">
-            {/* Cartas Disponibles Ahora */}
-            {availableMenus.length > 0 && (
-              <div className="public-menus-group">
-                {outsideHoursMenus.length > 0 && (
-                  <div className="public-menus-group-header">
-                    <div className="public-menus-group-status is-available">
-                      <span className="status-dot" />
-                      <h2>{copy.availableNow}</h2>
-                    </div>
-                    <span className="public-menus-group-count">{availableMenus.length}</span>
-                  </div>
-                )}
-                <div className="public-menus-grid">
-                  {availableMenus.map((m) => renderMenuCard(m, true))}
+              <div className="special-service-card">
+                <div className="special-service-icon purple">
+                  <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                  </svg>
                 </div>
-              </div>
-            )}
-
-            {/* Cartas Fuera de Horario */}
-            {outsideHoursMenus.length > 0 && (
-              <div className="public-menus-group public-menus-group-closed">
-                <div className="public-menus-group-header">
-                  <div className="public-menus-group-status is-outside-hours">
-                    <svg
-                      aria-hidden="true"
-                      fill="none"
-                      height="18"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2.2"
-                      viewBox="0 0 24 24"
-                      width="18"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
-                    </svg>
-                    <h2>{copy.outsideHoursTitle}</h2>
-                  </div>
-                  <span className="public-menus-group-count">{outsideHoursMenus.length}</span>
-                </div>
-                <div className="public-menus-grid">
-                  {outsideHoursMenus.map((m) => renderMenuCard(m, false))}
+                <div className="special-service-info">
+                  <span className="special-service-title">Llamar Camarero</span>
+                  <span className="special-service-subtitle">Asistencia directa</span>
                 </div>
               </div>
             )}
           </div>
         </section>
 
-        {/* Footer con información de contacto */}
-        <RestaurantFooter restaurantName={menu.restaurant.name} contact={menu.settings.contact} />
+        {/* 6. Footer de la Landing con Puntos & Datos */}
+        <footer className="public-menus-landing-footer">
+          <div className="landing-footer-brand">
+            <span className="landing-footer-brand-dot">•</span>
+            <span>{menu.restaurant.name}</span>
+            <span className="landing-footer-brand-dot">•</span>
+          </div>
+          <p className="landing-footer-sub">Precios expresados en moneda local • IVA incluido</p>
+          <p className="landing-footer-domain">
+            {menu.settings.contact.website || `${menu.restaurant.slug}.menu.com`}
+          </p>
+        </footer>
       </main>
     );
   }
@@ -637,114 +836,41 @@ export function MenuPublico({
 
   return (
     <main className="menu-shell" style={brandStyle}>
-      <header className="menu-header">
-        <div className="menu-header-left">
-          {activeMenus.length > 1 ? (
-            <button
-              aria-label={copy.allMenus}
-              className="menu-back-arrow-btn"
-              onClick={() => handleSelectMenu(null)}
-              type="button"
-            >
-              <svg
-                aria-hidden="true"
-                fill="none"
-                height="18"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2.5"
-                viewBox="0 0 24 24"
-                width="18"
-              >
-                <polyline points="15 18 9 12 15 6" />
-              </svg>
-            </button>
-          ) : null}
-
-          <a className="brand" href="#menu-content" aria-label={`${menu.restaurant.name}, ${copy.menu}`}>
-            {branding.logo_path ? (
-              <Image
-                alt=""
-                className="brand-logo"
-                height={72}
-                src={menuImageUrl(branding.logo_path)}
-                width={72}
-              />
-            ) : (
-              <span className="brand-mark" aria-hidden="true" />
-            )}
-            {menu.restaurant.name}
-          </a>
-        </div>
-
-        <div className="menu-header-actions">
-          {menu.restaurant.supported_locales.length > 1 ? (
-            <label className="menu-control language-control" style={{ margin: 0 }}>
-              <span className="visually-hidden">{copy.languages}</span>
-              <select
-                aria-label={copy.languages}
-                onChange={(event) => selectLocale(event.target.value)}
-                value={locale}
-              >
-                {menu.restaurant.supported_locales.map((supportedLocale) => (
-                  <option key={supportedLocale} value={supportedLocale}>
-                    {supportedLocale.toUpperCase()}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : null}
-        </div>
-      </header>
-
-      {/* Banner de la Carta Activa */}
-      {activeBannerPath ? (
-        <div aria-hidden="true" className="menu-cover">
+      {/* Hero Header de la Carta (Diseño Estilo Cápsula & Editorial) */}
+      <section className="menu-hero-card">
+        {/* Banner de Fondo con Gradient Overlay */}
+        {activeBannerPath ? (
           <Image
             alt={`Banner ${currentMenu.name}`}
-            className="menu-cover-image"
+            className="menu-hero-bg-image"
             fill
             priority
             sizes="(max-width: 72rem) 100vw, 72rem"
             src={menuImageUrl(activeBannerPath)}
           />
-        </div>
-      ) : null}
-
-      {/* Título y descripción de la carta activa */}
-      <div className="menu-info-header">
-        <div className="menu-info-header-top">
-          <h1 className="menu-active-title">{currentMenu.name}</h1>
-        </div>
-        {currentMenu.description && (
-          <p className="menu-active-description">{currentMenu.description}</p>
+        ) : (
+          <div className="menu-hero-bg-fallback" />
         )}
-      </div>
+        <div className="menu-hero-overlay" />
 
-      {/* Alerta si la carta está fuera de horario actual */}
-      {!isCurrentMenuInSchedule && (
-        <div className="menu-outside-hours-banner">
-          <svg
-            aria-hidden="true"
-            fill="none"
-            height="18"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2.2"
-            viewBox="0 0 24 24"
-            width="18"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <polyline points="12 6 12 12 16 14" />
-          </svg>
-          <div>
-            <strong>{copy.outsideHoursBadge}:</strong>{" "}
-            <span>{formatMenuSchedule(currentMenu.schedules, locale)}</span>
+        {/* 1. Header Flotante Reutilizado (Flecha de volver a la izquierda, Nombre al centro, Idioma a la derecha) */}
+        {renderPublicHeader(true)}
+
+        {/* 2. Contenido Inferior Overlay (Badge de Estado, Título Editorial y Descripción) */}
+        <div className="menu-hero-content">
+          <div className={`menu-hero-status-pill ${isCurrentMenuInSchedule ? "is-available" : "is-closed"}`}>
+            <span className="menu-hero-status-dot" />
+            <span>
+              {formatHeroStatus(currentMenu.schedules, isCurrentMenuInSchedule, menu.restaurant.timezone, locale)}
+            </span>
           </div>
+
+          <h1 className="menu-hero-title">{currentMenu.name}</h1>
+          {currentMenu.description && (
+            <p className="menu-hero-subtitle">{currentMenu.description}</p>
+          )}
         </div>
-      )}
+      </section>
 
       {/* Controles: Preferencias y Alérgenos uno al lado del otro */}
       {dietaryTags.length > 0 || allAllergens.length > 0 ? (

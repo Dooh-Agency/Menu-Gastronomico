@@ -1,6 +1,6 @@
 "use client";
 
-export type CardLayoutType = "rectangle" | "hero" | "carousel";
+export type CardLayoutType = "rectangle" | "hero" | "carousel" | "grid";
 
 interface CardLayoutSelectorProps {
   value: CardLayoutType;
@@ -50,6 +50,13 @@ export function CardLayoutSelector({
           </div>
         </div>
       ),
+    },
+    {
+      id: "grid",
+      title: "Grid de dos columnas",
+      badge: "Dos por fila",
+      description: "Tarjetas compactas apiladas en dos columnas. Ideal para salsas, extras y cartas con muchos productos.",
+      preview: <div className="mockup-grid"><div /><div /><div /><div /></div>,
     },
     {
       id: "carousel",

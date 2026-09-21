@@ -7,6 +7,12 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 
 ## [Unreleased]
 
+### ✨ Nuevas Funcionalidades
+- **Nuevo formato Grid de dos columnas:** Las categorías pueden mostrar tarjetas compactas en una cuadrícula de dos columnas, con imagen, título, descripción y precio.
+
+### 🗄️ Backend & Base de Datos
+- **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
+
 ### 🎨 UI & Diseño
 - **Precios en negro:** Los precios de las tarjetas y del detalle de plato dejaron de usar el color de acento del restaurante.
 - **Color del panel de filtros:** Se cambiaron sus textos, controles y cierre a negro sobre fondo blanco.

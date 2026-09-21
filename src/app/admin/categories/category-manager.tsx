@@ -13,7 +13,7 @@ type Category = {
   description: string | null;
   sort_order: number;
   is_active: boolean;
-  card_layout?: "rectangle" | "hero" | "carousel";
+  card_layout?: "rectangle" | "hero" | "carousel" | "grid";
   menu_ids?: string[];
   menu_category_translations?: Array<{ locale: string; name: string; description: string | null }>;
 };

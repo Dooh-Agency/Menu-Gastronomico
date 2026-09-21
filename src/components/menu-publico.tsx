@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { PublicMenu, PublicMenuSchedule } from "@/lib/supabase/public-menu";
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
-import { DishCardHorizontal, DishCardHero, DishCardCompact } from "@/components/dish-cards";
+import { DishCardHorizontal, DishCardHero, DishCardCompact, DishCardGrid } from "@/components/dish-cards";
 import { DishImageCarousel } from "@/components/dish-image-carousel";
 import { RestaurantFooter } from "@/components/restaurant-footer";
 
@@ -1011,7 +1011,11 @@ export function MenuPublico({
                   {localizedCategory.description ? <p>{localizedCategory.description}</p> : null}
                 </div>
 
-                {category.card_layout === "hero" ? (
+                {category.card_layout === "grid" ? (
+                  <div className="menu-items-grid">
+                    {items.map((item) => <DishCardGrid key={item.id} item={item} locale={locale} onSelect={setSelectedItem} labels={{ soldOut: copy.soldOut }} />)}
+                  </div>
+                ) : category.card_layout === "hero" ? (
                   <div className="menu-items-hero-grid">
                     {items.map((item) => (
                       <DishCardHero

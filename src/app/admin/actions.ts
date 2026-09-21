@@ -737,7 +737,7 @@ export async function createCategory(formData: FormData) {
     .maybeSingle<{ sort_order: number }>();
 
   const rawLayout = formData.get("card_layout");
-  const cardLayout = (rawLayout === "hero" || rawLayout === "carousel") ? rawLayout : "rectangle";
+  const cardLayout = (rawLayout === "hero" || rawLayout === "carousel" || rawLayout === "grid") ? rawLayout : "rectangle";
 
   const insertPayload: Record<string, unknown> = {
     restaurant_id: restaurantId,
@@ -864,7 +864,7 @@ export async function updateCategory(formData: FormData) {
   };
 
   const rawLayout = formData.get("card_layout");
-  if (typeof rawLayout === "string" && (rawLayout === "rectangle" || rawLayout === "hero" || rawLayout === "carousel")) {
+  if (typeof rawLayout === "string" && (rawLayout === "rectangle" || rawLayout === "hero" || rawLayout === "carousel" || rawLayout === "grid")) {
     updatePayload.card_layout = rawLayout;
   }
 

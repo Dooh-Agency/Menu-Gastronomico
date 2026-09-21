@@ -56,7 +56,7 @@ type CategoryRow = {
   name: string;
   description: string | null;
   sort_order: number;
-  card_layout: "rectangle" | "hero" | "carousel";
+  card_layout: "rectangle" | "hero" | "carousel" | "grid";
 };
 
 type ItemRow = {
@@ -204,7 +204,7 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
 
   const categories = categoriesRaw.map((c) => ({
     ...c,
-    card_layout: (c.card_layout === "hero" || c.card_layout === "carousel" ? c.card_layout : "rectangle") as "rectangle" | "hero" | "carousel",
+    card_layout: (c.card_layout === "hero" || c.card_layout === "carousel" || c.card_layout === "grid" ? c.card_layout : "rectangle") as "rectangle" | "hero" | "carousel" | "grid",
   })) as CategoryRow[];
   const rawMenus = (menusResult.data ?? []) as PublicMenuRecord[];
   const rawSchedules = (schedulesResult.data ?? []) as PublicMenuSchedule[];

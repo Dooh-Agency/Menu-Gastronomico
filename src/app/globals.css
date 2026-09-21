@@ -197,6 +197,33 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
   align-items: center;
 }
 
+.menu-pill-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  border: 0;
+  border-radius: 9999px;
+  background: #fff;
+  color: #2d2623;
+  cursor: pointer;
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 800;
+  padding: .55rem .85rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,.04);
+}
+.menu-pill-filter-btn:hover { background: #faf6f2; }
+.menu-controls-legacy { display: none; }
+.menu-filter-dialog-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1rem; background: rgba(0,0,0,.58); }
+.menu-filter-dialog { width: min(100%, 24rem); border-radius: 1rem; background: #fff; color: #000; padding: 1.5rem; box-shadow: 0 1rem 3rem rgba(0,0,0,.35); }
+.menu-filter-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.menu-filter-dialog h2 { margin: 0; font-size: 1.2rem; text-transform: uppercase; }
+.menu-filter-dialog p { color: #000; line-height: 1.45; margin: .9rem 0 1.2rem; }
+.menu-filter-dialog-close { border: 0; background: transparent; color: #000; cursor: pointer; font-size: 1.8rem; line-height: 1; }
+.menu-filter-field { display: grid; gap: .4rem; margin-top: .85rem; font-weight: 700; }
+.menu-filter-field select { width: 100%; border: 1px solid #777; border-radius: .45rem; background: #fff; color: #000; font: inherit; padding: .65rem .7rem; }
+.menu-filter-clear { margin-top: 1.25rem; border: 1px solid #000; border-radius: 999px; background: transparent; color: #000; cursor: pointer; font: inherit; font-weight: 700; padding: .55rem .85rem; }
+
 .menu-pill-lang-wrapper {
   position: relative;
   display: flex;
@@ -865,7 +892,7 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
 .menu-card-content { display: flex; flex: 1; flex-direction: column; padding: 1.25rem; }
 .menu-card-heading { align-items: flex-start; display: flex; gap: .75rem; justify-content: space-between; }
 .menu-card h3 { color: var(--color-ink); font-size: 1.2rem; margin: 0; }
-.menu-card strong { color: var(--color-accent); font-size: 1.1rem; white-space: nowrap; }
+.menu-card strong { color: #000; font-size: 1.1rem; white-space: nowrap; }
 .menu-card p { color: var(--color-ink); font-size: .96rem; margin: .65rem 0 0; }
 .tag-list { display: flex; flex-wrap: wrap; gap: .4rem; list-style: none; margin: 1rem 0 0; padding: 0; }
 .tag-list li, .sold-out { background: #edf2ea; border-radius: 999px; color: #42553a; font-size: .78rem; font-weight: 700; padding: .3rem .55rem; }
@@ -972,7 +999,7 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
 }
 
 .dish-card-horizontal-price {
-  color: var(--color-accent);
+  color: #000;
   font-size: 1.15rem;
   font-weight: 800;
   white-space: nowrap;
@@ -1189,7 +1216,7 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
 }
 
 .dish-card-hero-price {
-  color: var(--color-accent);
+  color: #000;
   font-size: 1.25rem;
   font-weight: 800;
   white-space: nowrap;
@@ -1393,7 +1420,7 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
 }
 
 .dish-card-compact-price {
-  color: var(--color-accent);
+  color: #000;
   font-size: 1.05rem;
   font-weight: 800;
   white-space: nowrap;
@@ -1789,7 +1816,7 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
 
 .item-dialog-content { padding: 1.25rem; }
 .item-dialog-content h2 { margin: 0; }
-.item-dialog-content strong { color: var(--color-accent); display: block; margin-top: .5rem; }
+.item-dialog-content strong { color: #000; display: block; margin-top: .5rem; }
 .qr-page { margin: 0 auto; max-width: 30rem; padding: clamp(2rem, 8vw, 5rem) var(--space-page); text-align: center; }
 .qr-page h1 { margin: .5rem auto 2rem; }
 .qr-simulation { background: repeating-linear-gradient(90deg, #1f2937 0 9px, transparent 9px 15px), repeating-linear-gradient(#1f2937 0 7px, transparent 7px 13px); border: 1rem solid white; box-shadow: 0 0 0 1px #c8c2b9; height: min(72vw, 18rem); margin: 0 auto 2rem; width: min(72vw, 18rem); }

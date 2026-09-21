@@ -63,3 +63,10 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
 8. **Estructura del Navbar de Administración (`AdminNav`):**
    - **Enlaces canónicos:** `Menú` (`/admin`), `Configuración` (`/admin/settings`), `Equipo` (`/admin/users`) y el acceso directo `Ver menú público`.
    - No exponer pestañas separadas de `Categorías` ni `Platos` en el navbar superior; toda la creación, edición, reordenamiento y configuración de cartas, categorías y platos se gestiona de forma centralizada y contextual en `/admin`.
+9. **Reutilización y Unificación del Header Flotante (`menu-hero-pill-nav`):**
+   - Toda vista pública del menú debe utilizar la función o componente auxiliar unificado `renderPublicHeader`.
+   - **En el selector de cartas (`!selectedMenuId`):** El slot izquierdo exhibe la foto de perfil/logo del restaurante.
+   - **Al ingresar a una carta (`selectedMenuId`):** La foto de perfil se retira automáticamente y el slot izquierdo muestra la flecha circular de retorno (`<`).
+   - **Nombre de marca:** Centrado sin el punto (`•`) ni caracteres decorativos extra.
+   - **Slot derecho:** Mantiene el selector de idiomas cápsula (`ES`, `EN`, etc.).
+

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import type { RestaurantContact } from "@/lib/restaurant-branding";
+import { toStandardError } from "./error-utils";
 
 type RestaurantRow = {
   id: string;
@@ -117,7 +118,7 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
     .eq("slug", slug)
     .maybeSingle<RestaurantRow>();
 
-  if (restaurantError) throw restaurantError;
+  if (restaurantError) throw toStandardError(restaurantError);
   if (!restaurant) return null;
 
   const [
@@ -162,8 +163,8 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
       .order("sort_order"),
   ]);
 
-  if (settingsResult.error) throw settingsResult.error;
-  if (daypartsResult.error) throw daypartsResult.error;
+  if (settingsResult.error) throw toStandardError(settingsResult.error);
+  if (daypartsResult.error) throw toStandardError(daypartsResult.error);
 
   let categoriesRaw: Array<Record<string, unknown>> = [];
   if (categoriesResult.error) {
@@ -173,10 +174,10 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
         .select("id, menu_id, daypart_id, name, description, sort_order")
         .eq("restaurant_id", restaurant.id)
         .order("sort_order");
-      if (fallbackCategoriesResult.error) throw fallbackCategoriesResult.error;
+      if (fallbackCategoriesResult.error) throw toStandardError(fallbackCategoriesResult.error);
       categoriesRaw = (fallbackCategoriesResult.data ?? []) as Array<Record<string, unknown>>;
     } else {
-      throw categoriesResult.error;
+      throw toStandardError(categoriesResult.error);
     }
   } else {
     categoriesRaw = (categoriesResult.data ?? []) as Array<Record<string, unknown>>;
@@ -192,10 +193,10 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
         )
         .eq("restaurant_id", restaurant.id)
         .order("sort_order");
-      if (fallbackResult.error) throw fallbackResult.error;
+      if (fallbackResult.error) throw toStandardError(fallbackResult.error);
       items = (fallbackResult.data ?? []) as ItemRow[];
     } else {
-      throw itemsResult.error;
+      throw toStandardError(itemsResult.error);
     }
   } else {
     items = (itemsResult.data ?? []) as ItemRow[];
@@ -236,9 +237,9 @@ export async function getPublicMenu(slug: string): Promise<PublicMenu | null> {
         : Promise.resolve({ data: [], error: null }),
     ]);
 
-  if (itemTranslationsResult.error) throw itemTranslationsResult.error;
-  if (categoryTranslationsResult.error) throw categoryTranslationsResult.error;
-  if (categoryDaypartsResult.error) throw categoryDaypartsResult.error;
+  if (itemTranslationsResult.error) throw toStandardError(itemTranslationsResult.error);
+  if (categoryTranslationsResult.error) throw toStandardError(categoryTranslationsResult.error);
+  if (categoryDaypartsResult.error) throw toStandardError(categoryDaypartsResult.error);
 
   const categoryTranslations = (categoryTranslationsResult.data ??
     []) as CategoryTranslationRow[];

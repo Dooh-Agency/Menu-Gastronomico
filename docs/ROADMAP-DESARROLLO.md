@@ -108,6 +108,8 @@ Mostrar un menú atractivo, rápido y navegable usando datos semilla.
 - [x] Carta única o cartas por franja horaria.
 - [x] Cambio automático de carta según horario.
 - [x] Diseño mobile-first.
+- [x] Header cápsula flotante unificado (foto de perfil en selector, flecha atrás dentro de carta, nombre sin punto).
+- [x] Selector de cartas landing con pestañas fijas 50%/50% y portadas limpias sin superposición de texto.
 - [x] PWA básica.
 - [x] Carga optimizada para conexiones lentas.
 

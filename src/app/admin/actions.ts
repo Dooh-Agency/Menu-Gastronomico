@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { brandingFor, contactFor, restaurantFonts, type RestaurantFont } from "@/lib/restaurant-branding";
+import { toStandardError } from "@/lib/supabase/error-utils";
 
 type Profile = { restaurant_id: string | null; role: "super_admin" | "restaurant_admin" };
 
@@ -57,10 +58,10 @@ async function replaceTranslations(table: "menu_item_translations" | "menu_categ
     const match = { [key]: id, locale: translation.locale };
     if (!translation.name) {
       const { error } = await supabase.from(table).delete().match(match);
-      if (error) throw error;
+      if (error) throw toStandardError(error);
     } else {
       const { error } = await supabase.from(table).upsert({ ...match, name: translation.name, description: translation.description || null });
-      if (error) throw error;
+      if (error) throw toStandardError(error);
     }
   }
 }
@@ -77,7 +78,7 @@ async function syncCategoryMenus(
       .select("id")
       .eq("restaurant_id", restaurantId)
       .in("id", targetMenuIds);
-    if (error) throw error;
+    if (error) throw toStandardError(error);
     if ((validMenus?.length ?? 0) !== targetMenuIds.length) {
       throw new Error("Una o más cartas no son válidas.");
     }
@@ -152,7 +153,7 @@ async function uploadItemImages(
     const { error } = await supabase.storage.from("menu-images").upload(path, image, { contentType: image.type, upsert: false });
     if (error) {
       console.error(`[DEBUG uploadItemImages] Storage upload error for ${path}:`, error);
-      throw error;
+      throw toStandardError(error);
     }
     newPaths.push(path);
   }
@@ -196,7 +197,7 @@ async function uploadBrandImage(kind: "logo" | "cover", restaurantId: string, im
   const extension = image.type === "image/png" ? "png" : image.type === "image/webp" ? "webp" : "jpg";
   const path = `${restaurantId}/branding/${kind}-${crypto.randomUUID()}.${extension}`;
   const { error } = await supabase.storage.from("menu-images").upload(path, image, { contentType: image.type, upsert: false });
-  if (error) throw error;
+  if (error) throw toStandardError(error);
   if (previousPath?.startsWith(`${restaurantId}/branding/`)) await supabase.storage.from("menu-images").remove([previousPath]);
   return path;
 }
@@ -207,7 +208,7 @@ async function uploadMenuBannerImage(menuId: string, restaurantId: string, image
   const extension = image.type === "image/png" ? "png" : image.type === "image/webp" ? "webp" : "jpg";
   const path = `${restaurantId}/menus/${menuId}-${crypto.randomUUID()}.${extension}`;
   const { error } = await supabase.storage.from("menu-images").upload(path, image, { contentType: image.type, upsert: false });
-  if (error) throw error;
+  if (error) throw toStandardError(error);
   if (previousPath?.startsWith(`${restaurantId}/menus/`)) await supabase.storage.from("menu-images").remove([previousPath]);
   return path;
 }
@@ -243,7 +244,7 @@ export async function createMenu(formData: FormData) {
     .select("id")
     .single();
 
-  if (error || !newMenu) throw error ?? new Error("No se pudo crear la carta.");
+  if (error || !newMenu) throw error ? toStandardError(error) : new Error("No se pudo crear la carta.");
 
   // Upload banner if provided
   const bannerImage = formData.get("banner_image");

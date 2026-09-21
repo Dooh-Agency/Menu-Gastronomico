@@ -38,13 +38,13 @@ La demo se validará primero dentro de la agencia. Después podrá desplegarse p
 
 ### Incluido (Etapas 0 a 3)
 
-- Menú público mobile-first con navegación horizontal y vista accesible.
+- Menú público mobile-first con navegación horizontal, vista accesible y header cápsula flotante unificado (`menu-hero-pill-nav`) con foto de perfil en el selector, botón circular de retorno al ingresar a la carta y nombre del restaurante limpio (sin acentos puntuales).
 - URL por restaurante mediante slug (`/{slug}`) o dominio configurado.
 - Categorías y platos con ordenamiento drag-and-drop.
 - Precios, descripciones, fotos individuales o carrusel de múltiples fotos (`item_image_paths`).
 - Etiquetas dietéticas y alérgenos.
 - Soporte multi-idioma (Español / Inglés) con traducciones dinámicas.
-- Sistema de cartas múltiples (`menus`) con categorías como grupos de platos reutilizables (`menu_category_menus`), personalización del formato de tarjetas por categoría (`rectangle`, `hero`, `carousel`) y cartas por franja horaria (`dayparts`).
+- Sistema de cartas múltiples (`menus`) con selector landing simplificado (pestañas fijas 50%/50% y portadas fotográficas limpias sin overlay de texto), categorías como grupos de platos reutilizables (`menu_category_menus`), personalización del formato de tarjetas por categoría (`rectangle`, `hero`, `carousel`) y cartas por franja horaria (`dayparts`).
 - Horarios y zona horaria configurables por restaurante.
 - Disponibilidad de productos en tiempo real.
 - Configuración de productos agotados: ocultar o mostrar como agotados.

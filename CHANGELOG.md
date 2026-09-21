@@ -7,7 +7,14 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 
 ## [Unreleased]
 
+### 🎨 UI & Diseño
+- **Precios en negro:** Los precios de las tarjetas y del detalle de plato dejaron de usar el color de acento del restaurante.
+- **Color del panel de filtros:** Se cambiaron sus textos, controles y cierre a negro sobre fondo blanco.
+- **Ajuste de centrado del header:** El botón de filtros del menú público muestra únicamente el ícono, conservando su etiqueta accesible.
+- **Panel unificado de filtros en el menú público:** Se reemplazó el selector de idioma del header por un botón “Filtros” que agrupa preferencias dietarias, alérgenos e idioma en un diálogo accesible. No se incluye guardado de preferencias.
+
 ### 🐛 Correcciones
+- **Normalización de Errores de Supabase (`error-utils.ts` / `public-menu.ts` / `actions.ts`):** Se implementó `toStandardError` para convertir los objetos de error puros de Supabase (`{ message, details, hint, code }`) a instancias nativas de `Error` de JavaScript. Esto evita que Next.js Turbopack dev overlay renderice errores serializados como objetos crudos `Runtime Error Server {message: ..., details: ..., hint: "", code: ...}` y en su lugar muestre el mensaje descriptivo exacto.
 - **Cumplimiento estricto de las Reglas de Hooks de React (`MenuPublico`):** Se trasladaron las llamadas `useMemo` de `dietaryTags` y `allAllergens` al nivel superior incondicional del componente, antes de cualquier sentencia `if (!selectedMenuId) return`, resolviendo el error `Rendered more hooks than during the previous render`.
 
 ### 🎨 UI & Diseño

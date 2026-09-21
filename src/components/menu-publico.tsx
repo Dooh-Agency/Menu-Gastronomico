@@ -46,6 +46,10 @@ const labels = {
     noItems: "No hay platos disponibles para esta selección.",
     outsideHours: "En este momento la carta no está disponible.",
     languages: "Idioma",
+    openFilters: "Abrir filtros",
+    filterTitle: "Filtros",
+    filterDescription: "Elegí las opciones para mostrar solo comidas acordes a tus preferencias.",
+    clearFilters: "Limpiar filtros",
     menus: "Cartas",
     unavailableMenu: "Esta carta se ofrece de",
   },
@@ -75,6 +79,10 @@ const labels = {
     noItems: "There are no dishes available for this selection.",
     outsideHours: "The menu is not available at this time.",
     languages: "Language",
+    openFilters: "Open filters",
+    filterTitle: "Filters",
+    filterDescription: "Choose the options to show only dishes that match your preferences.",
+    clearFilters: "Clear filters",
     menus: "Menus",
     unavailableMenu: "This menu is offered from",
   },
@@ -275,12 +283,20 @@ export function MenuPublico({
 
   const [dietaryFilter, setDietaryFilter] = useState<string | null>(null);
   const [allergenFilter, setAllergenFilter] = useState<string | null>(null);
+  const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>("all");
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const isManualScrollRef = useRef(false);
   const manualScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const categoryNavRef = useRef<HTMLElement>(null);
   const copy = copyFor(locale);
+
+  useEffect(() => {
+    if (!isFilterDialogOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") setIsFilterDialogOpen(false); };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isFilterDialogOpen]);
 
   const branding = brandingFor(menu.restaurant.branding);
   const brandStyle = {
@@ -521,9 +537,14 @@ export function MenuPublico({
           </span>
         </a>
 
-        {/* Extremo Derecho: Selector de Idioma */}
+        {/* Extremo Derecho: Filtros */}
         <div className="menu-hero-pill-right">
-          {menu.restaurant.supported_locales.length > 1 ? (
+          <button aria-label={copy.openFilters} className="menu-pill-filter-btn" onClick={() => setIsFilterDialogOpen(true)} type="button">
+            <svg aria-hidden="true" fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="16">
+              <path d="M4 6h16M7 12h10M10 18h4" />
+            </svg>
+          </button>
+          {false && menu.restaurant.supported_locales.length > 1 ? (
             <div className="menu-pill-lang-wrapper">
               <span className="menu-pill-lang-icon" aria-hidden="true">
                 <svg
@@ -872,9 +893,22 @@ export function MenuPublico({
         </div>
       </section>
 
+      {isFilterDialogOpen ? (
+        <div className="menu-filter-dialog-backdrop" onClick={(event) => { if (event.target === event.currentTarget) setIsFilterDialogOpen(false); }} role="presentation">
+          <section aria-labelledby="menu-filter-title" aria-modal="true" className="menu-filter-dialog" role="dialog">
+            <div className="menu-filter-dialog-header"><h2 id="menu-filter-title">{copy.filterTitle}</h2><button aria-label={copy.close} className="menu-filter-dialog-close" onClick={() => setIsFilterDialogOpen(false)} type="button">×</button></div>
+            <p>{copy.filterDescription}</p>
+            {dietaryTags.length > 0 ? <label className="menu-filter-field"><span>{copy.filters}</span><select aria-label={copy.filters} onChange={(event) => setDietaryFilter(event.target.value || null)} value={dietaryFilter ?? ""}><option value="">{copy.all}</option>{dietaryTags.map((tag) => <option key={tag} value={tag}>{tag}</option>)}</select></label> : null}
+            {allAllergens.length > 0 ? <label className="menu-filter-field"><span>{copy.allergens}</span><select aria-label={copy.allergens} onChange={(event) => setAllergenFilter(event.target.value || null)} value={allergenFilter ?? ""}><option value="">{copy.all}</option>{allAllergens.map((allergen) => <option key={allergen} value={allergen}>{locale.startsWith("en") ? `Free of ${allergen}` : `Sin ${allergen}`}</option>)}</select></label> : null}
+            {menu.restaurant.supported_locales.length > 1 ? <label className="menu-filter-field"><span>{copy.languages}</span><select aria-label={copy.languages} onChange={(event) => selectLocale(event.target.value)} value={locale}>{menu.restaurant.supported_locales.map((supportedLocale) => <option key={supportedLocale} value={supportedLocale}>{supportedLocale.toUpperCase()}</option>)}</select></label> : null}
+            <button className="menu-filter-clear" onClick={() => { setDietaryFilter(null); setAllergenFilter(null); }} type="button">{copy.clearFilters}</button>
+          </section>
+        </div>
+      ) : null}
+
       {/* Controles: Preferencias y Alérgenos uno al lado del otro */}
       {dietaryTags.length > 0 || allAllergens.length > 0 ? (
-        <section className="menu-controls" aria-label={copy.menu}>
+        <section className="menu-controls menu-controls-legacy" aria-label={copy.menu}>
           <label className="menu-control">
             <span>{copy.filters}</span>
             <select

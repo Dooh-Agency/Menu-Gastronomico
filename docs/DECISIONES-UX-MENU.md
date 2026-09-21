@@ -83,3 +83,28 @@ Para evitar sobrecargar los formularios y facilitar la comprensión visual de lo
   - **Paso 1: Información básica:** Nombre, descripción, cartas donde se muestra y traducciones.
   - **Paso 2: Formato visual:** Selector interactivo con mini-mockups gráficos (`CardLayoutSelector`) que muestran el comportamiento y estética de cada opción antes de guardar.
 
+---
+
+## Header flotante unificado y Selector de Cartas (Landing View)
+
+**Fecha:** 2026-09-14  
+**Alcance:** Menú público, selector de cartas y vista de carta activa.
+
+### Necesidad
+
+Para ofrecer una navegación coherente y fluida sin discontinuidades de interfaz entre la pantalla de selección de cartas y el contenido de cada menú:
+- El header cápsula flotante (`menu-hero-pill-nav`) debe **reutilizarse con la misma estructura y estética glassmorphism** en ambas pantallas.
+- El nombre del restaurante debe ser nítido y libre de marcas o puntos ornamentales redundantes (`Muud`).
+- En la vista del **Selector de Cartas (Landing)**, la zona izquierda del header exhibe la foto de perfil o logo del local, comunicando marca e identidad desde el primer impacto.
+- Al **entrar a una carta específica**, la foto de perfil se oculta para dar paso al botón circular con la flechita de volver atrás (`<`), facilitando el retorno sin recargar ni perder la sesión.
+- El selector de idiomas (`ES`, `EN`, etc.) se posiciona fijamente en el extremo derecho del header cápsula en ambas vistas.
+
+### Portadas de Cartas y Pestañas Fijas de Horario
+
+1. **Portadas de Tarjetas Limpias (`public-menu-card-v2`):**
+   - Se eliminaron las cajas de texto, títulos superpuestos y marcas de agua sobre las fotos de portada de las tarjetas, dejando ver la fotografía gastronómica completa.
+   - Omitidos los badges de texto no funcionales (como *"FAVORITO"*), conservando únicamente los indicadores de estado de servicio (`● Servicio Actual` o `Desde 19:30 hs`).
+2. **Pestañas Fijas de Estado (50% / 50%):**
+   - La barra de pestañas del selector (`public-menus-tabs-bar`) se fijó a una distribución exacta del 50% de ancho para cada opción (`● Disponibles ahora [N]` y `⏰ Más tarde [N]`), eliminando barras de scroll horizontal innecesarias.
+
+

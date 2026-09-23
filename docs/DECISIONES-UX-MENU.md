@@ -29,6 +29,7 @@ La identidad del restaurante se mantiene como una capa sutil y controlada. El co
 - Los espacios entre bloques, tarjetas y secciones se componen con múltiplos de 8 px. Los títulos se separan de su descripción por 8 px y las secciones por 48–64 px, según el contexto.
 - Las tarjetas de lista, grilla y carrusel comparten la misma lectura: nombre y precio en el primer nivel; descripción en el segundo; preferencias dietarias y alérgenos como chips secundarios. Los alérgenos se distinguen visualmente de las preferencias y ambos conservan un nombre accesible.
 - El detalle desplegado de un plato sigue la misma jerarquía: foto contenida, nombre y precio, descripción, chips de preferencias y un bloque separado de alérgenos. El modal no expone textos de control como “Filtrar por preferencias”.
+- El header público mantiene tres zonas estables: volver, marca centrada y filtros. Su superficie usa vidrio traslúcido con esquinas suaves —sin forma de cápsula extrema— y el hero modera su altura y contraste para priorizar el título y la descripción de la carta.
 
 ### Estrategia de adopción
 

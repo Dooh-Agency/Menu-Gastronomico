@@ -16,6 +16,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
 
 ### 🎨 UI & Diseño
+- **Navegación horizontal de categorías refinada (`menu-publico.tsx` / `globals.css`):** Se agregó una superficie sticky traslúcida, áreas táctiles consistentes, activo por subrayado y pista visual de continuidad lateral, preservando el scroll y Scrollspy existentes.
 - **Detalle de plato minimalista (`menu-publico.tsx` / `globals.css`):** Se reorganizó el modal de plato con una imagen más contenida, jerarquía de nombre y precio, chips de preferencias y bloque diferenciado de alérgenos. Se eliminó el texto técnico “Filtrar por preferencias”.
 - **Jerarquía unificada de tarjetas públicas (`dish-cards` / `globals.css`):** Lista, grilla, carrusel y formato destacado muestran nombre y precio en el primer nivel, descripción en el segundo y chips consistentes para preferencias dietarias y alérgenos.
 - **Sistema tipográfico controlado y ritmo de lectura (`restaurant-branding.ts` / `globals.css`):** La personalización se reduce a los estilos Contemporánea y Editorial, con compatibilidad automática para elecciones históricas. Se incorporó una escala de texto, interlineado y espaciado de 8 px aplicada a encabezados, secciones y los tres formatos de tarjetas públicas.

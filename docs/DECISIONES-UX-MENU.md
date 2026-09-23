@@ -68,6 +68,7 @@ Adoptar el patrón de **feed continuo con navegación por anclas y Scrollspy**:
   - A medida que se desplaza hacia abajo, se destaca la categoría en foco visual.
   - Al pulsar una categoría, se bloquea temporalmente la sobreescritura del Scrollspy durante la animación (800 ms) para evitar parpadeos intermedios.
 - **Auto-centrado suave en la barra horizontal:** Cuando la categoría activa cambia (por scroll vertical o clic), la barra horizontal desliza suavemente (`scrollTo`) para asegurar que la tab activa permanezca visible dentro del viewport, sin disparar eventos extra.
+- **Presentación minimalista:** La barra permanece en una sola línea horizontal y sticky, con áreas táctiles de al menos 44 px. La categoría activa se indica mediante texto de mayor peso y subrayado de color de marca; no se usan cápsulas ni filas múltiples. Un degradado discreto al borde derecho comunica que hay más categorías para explorar.
 
 ### Accesibilidad y rendimiento
 

@@ -833,39 +833,41 @@ export function MenuPublico({
       ) : null}
 
       {categories.length > 0 ? (
-        <nav
-          className="category-nav"
-          aria-label={copy.menu}
-          ref={categoryNavRef}
-          role="tablist"
-        >
-          <button
-            aria-selected={!selectedCategoryId || selectedCategoryId === "all"}
-            className={!selectedCategoryId || selectedCategoryId === "all" ? "is-active" : ""}
-            data-category-id="all"
-            id="tab-all"
-            onClick={() => selectCategory("all")}
-            role="tab"
-            type="button"
+        <div className="category-nav-wrap">
+          <nav
+            className="category-nav"
+            aria-label={copy.menu}
+            ref={categoryNavRef}
+            role="tablist"
           >
-            {copy.all}
-          </button>
-          {categories.map((category) => (
             <button
-              aria-controls={`category-${category.id}`}
-              aria-selected={selectedCategoryId === category.id}
-              className={selectedCategoryId === category.id ? "is-active" : ""}
-              data-category-id={category.id}
-              id={`tab-${category.id}`}
-              key={category.id}
-              onClick={() => selectCategory(category.id)}
+              aria-selected={!selectedCategoryId || selectedCategoryId === "all"}
+              className={!selectedCategoryId || selectedCategoryId === "all" ? "is-active" : ""}
+              data-category-id="all"
+              id="tab-all"
+              onClick={() => selectCategory("all")}
               role="tab"
               type="button"
             >
-              {translated(category, locale).name}
+              {copy.all}
             </button>
-          ))}
-        </nav>
+            {categories.map((category) => (
+              <button
+                aria-controls={`category-${category.id}`}
+                aria-selected={selectedCategoryId === category.id}
+                className={selectedCategoryId === category.id ? "is-active" : ""}
+                data-category-id={category.id}
+                id={`tab-${category.id}`}
+                key={category.id}
+                onClick={() => selectCategory(category.id)}
+                role="tab"
+                type="button"
+              >
+                {translated(category, locale).name}
+              </button>
+            ))}
+          </nav>
+        </div>
       ) : null}
 
       <section className="menu-content" id="menu-content" aria-live="polite">

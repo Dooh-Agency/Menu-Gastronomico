@@ -1,5 +1,29 @@
 # Decisiones de UX — menú público
 
+## Fundamentos visuales: minimalismo adaptable por restaurante
+
+**Fecha:** 2026-09-23
+
+**Alcance:** Fundamentos compartidos de menú público y administración.
+
+### Decisión
+
+La interfaz adopta una base visual minimalista de inspiración Apple: superficies neutras, tipografía de alto contraste, bordes tenues, espaciado basado en múltiplos de 8 px y movimiento reducido.
+
+La identidad del restaurante se mantiene como una capa sutil y controlada. El color principal se reserva para acciones, foco, enlaces y selección; el secundario para fondos de énfasis de baja intensidad. El fondo general, los textos de interfaz, bordes, errores, advertencias y estados de disponibilidad permanecen controlados por el sistema para preservar legibilidad y una experiencia consistente entre restaurantes.
+
+### Reglas
+
+- Los tokens `--ui-*` definen la base neutral, estable y no configurable de la interfaz; los tokens `--color-*` mantienen el branding específico de cada restaurante.
+- Las superficies, los controles y las tarjetas usan radios consistentes y bordes de 1 px de bajo contraste. Las sombras se reservan para elevación leve y nunca para crear contraste fuerte.
+- El color de marca no redefine fondos ni texto base: opera como acento sobre una composición predominantemente neutra.
+- Las transiciones se limitan a `transform` y `opacity`, con una duración objetivo de 300 a 500 ms. Se conserva el respeto por `prefers-reduced-motion`.
+- El foco de teclado, el contraste y los estados semánticos conservan una representación propia y no dependen exclusivamente de los colores configurables por tenant.
+
+### Estrategia de adopción
+
+La actualización se realiza por capas. Primero se incorporan los tokens y las primitivas globales sin modificar rutas, datos ni comportamiento. Luego, cada familia de componentes se migra y valida de forma independiente antes de reemplazar estilos locales, para evitar regresiones funcionales o una personalización descontrolada.
+
 ## Navegación entre categorías: feed continuo con scroll suave y Scrollspy
 
 **Fecha:** 2026-08-26 (Actualizado: 2026-09-06)  
@@ -106,5 +130,3 @@ Para ofrecer una navegación coherente y fluida sin discontinuidades de interfaz
    - Omitidos los badges de texto no funcionales (como *"FAVORITO"*), conservando únicamente los indicadores de estado de servicio (`● Servicio Actual` o `Desde 19:30 hs`).
 2. **Pestañas Fijas de Estado (50% / 50%):**
    - La barra de pestañas del selector (`public-menus-tabs-bar`) se fijó a una distribución exacta del 50% de ancho para cada opción (`● Disponibles ahora [N]` y `⏰ Más tarde [N]`), eliminando barras de scroll horizontal innecesarias.
-
-

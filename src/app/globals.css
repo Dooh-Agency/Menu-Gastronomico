@@ -2,6 +2,32 @@
 @import "tailwindcss";
 
 :root {
+  /*
+   * UI foundation: fixed, neutral system values. Restaurant branding stays
+   * in the --color-* tokens below, so it remains a subtle accent instead of
+   * redefining every surface in the product.
+   */
+  --ui-canvas: #f5f5f7;
+  --ui-surface: #ffffff;
+  --ui-surface-glass: rgb(255 255 255 / 80%);
+  --ui-text: #1d1d1f;
+  --ui-text-secondary: #86868b;
+  --ui-border: rgb(0 0 0 / 6%);
+  --ui-shadow-subtle: 0 1px 2px rgb(0 0 0 / 4%);
+  --ui-shadow-float: 0 8px 24px rgb(0 0 0 / 6%);
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Arial, sans-serif;
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2rem;
+  --space-5: 3rem;
+  --space-6: 4rem;
+  --radius-control: 0.75rem;
+  --radius-surface: 1.25rem;
+  --radius-pill: 999px;
+  --motion-duration: 360ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+
   --color-ink: #1f2937;
   --color-paper: #fffdf8;
   --color-accent: #ae4c2c;
@@ -14,25 +40,35 @@
 }
 
 * { box-sizing: border-box; }
-html { color-scheme: light; }
+html { background: var(--ui-canvas); color-scheme: light; }
 body {
   min-height: 100vh;
   margin: 0;
-  background: var(--color-paper);
-  color: var(--color-ink);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ui-canvas);
+  color: var(--ui-text);
+  font-family: var(--font-ui);
   overflow-x: hidden;
 }
+
+button,
+input,
+select,
+textarea { font: inherit; }
+
+::selection { background: var(--color-secondary); color: var(--ui-text); }
 
 :focus-visible { outline: 3px solid var(--color-accent); outline-offset: 3px; }
 
 .foundation-shell { max-width: 44rem; padding: var(--space-page); }
 .eyebrow { color: var(--color-accent); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 h1 { font-size: clamp(2rem, 7vw, 4rem); line-height: 1.05; }
-p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
-.primary-link { display: inline-block; border-radius: .6rem; background: var(--color-accent); color: white; font-weight: 700; padding: .85rem 1.1rem; text-decoration: none; }
+h1, h2, h3 { letter-spacing: -0.025em; }
+p { color: var(--ui-text-secondary); font-size: 1.125rem; line-height: 1.6; }
+.primary-link { display: inline-block; border: 1px solid transparent; border-radius: var(--radius-control); background: var(--color-accent); color: white; font-weight: 700; padding: .85rem 1.1rem; text-decoration: none; transition: transform var(--motion-duration) var(--motion-ease); }
+.primary-link:hover { transform: translateY(-1px); }
 .home-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
-.secondary-link { align-items: center; border: 1px solid #c8c2b9; border-radius: .6rem; color: var(--color-ink); display: inline-flex; font-weight: 700; padding: .8rem 1.05rem; text-decoration: none; }
+.secondary-link { align-items: center; background: var(--ui-surface); border: 1px solid var(--ui-border); border-radius: var(--radius-control); color: var(--ui-text); display: inline-flex; font-weight: 700; padding: .8rem 1.05rem; text-decoration: none; transition: transform var(--motion-duration) var(--motion-ease); }
+.secondary-link:hover { transform: translateY(-1px); }
 
 .sr-only { height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 .menu-shell { background: var(--color-paper); color: var(--color-ink); font-family: var(--menu-font, Arial, Helvetica, sans-serif); margin: 0 auto; max-width: 72rem; min-height: 100vh; padding: 1rem clamp(1rem, 4vw, 3rem) 4rem; }
@@ -5506,7 +5542,6 @@ p { color: var(--color-muted); font-size: 1.125rem; line-height: 1.6; }
   max-width: 16rem;
   width: 100%;
 }
-
 
 
 

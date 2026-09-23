@@ -16,6 +16,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
 
 ### 🎨 UI & Diseño
+- **Fundación visual minimalista y multi-tenant (`globals.css`):** Se incorporaron tokens neutros de interfaz, tipografía de sistema, controles de borde tenue y movimiento limitado a `transform`. El branding por restaurante conserva sus tokens actuales y se limita a acentos, sin alterar navegación, datos ni comportamiento.
 - **Remoción de Servicios & Opciones Especiales (`menu-publico.tsx` / `globals.css`):** Se eliminó el bloque de tarjetas rápidas (Filtro Sin TACC y Llamar Camarero) del selector de cartas para mantener la vista más despejada y centrada exclusivamente en la oferta gastronómica.
 - **Remoción del indicador de abierto/cerrado en banner de carta (menu-publico.tsx):** Se eliminó la píldora que indicaba si la carta estaba abierta o fuera de horario del banner principal una vez dentro de la carta.
 - **Precios en negro:** Los precios de las tarjetas y del detalle de plato dejaron de usar el color de acento del restaurante.
@@ -139,4 +140,3 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Migración de categorías reutilizables:** Archivo `supabase/migrations/20260905120000_reusable_menu_categories.sql` que crea la tabla `public.menu_category_menus`, migra datos existentes, establece triggers de integridad multi-tenant y configura RLS.
 - **Migración de limpieza de franjas obsoletas:** Archivo `supabase/migrations/20260905130000_cleanup_legacy_dayparts.sql` para purgar registros antiguos de `dayparts`.
 - **Migración Supabase:** Archivo `supabase/migrations/20260901010000_item_image_paths.sql` para el array/columnas de imágenes de ítems.
-

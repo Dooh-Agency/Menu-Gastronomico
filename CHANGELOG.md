@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 ## [Unreleased]
 
 ### ✨ Nuevas Funcionalidades
+- **Visibilidad de contraseña en acceso (`auth-form.tsx`):** El campo de contraseña permite alternar entre ocultar y mostrar el texto mediante un control accesible.
 - **Footer público centrado y de color fijo:** El footer de contacto usa ahora el tono fijo `#3D144C`, independiente del branding del restaurante, con tarjetas y contenido centrados.
 - **Nuevo formato Grid de dos columnas:** Las categorías pueden mostrar tarjetas compactas en una cuadrícula de dos columnas, con imagen, título, descripción y precio.
 - **Grid como formato público predeterminado:** Las categorías configuradas con el formato horizontal clásico ahora se muestran también con la nueva tarjeta Grid de dos columnas en todas las cartas.

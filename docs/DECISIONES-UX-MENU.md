@@ -34,6 +34,7 @@ La identidad del restaurante se mantiene como una capa sutil y controlada. El co
 - La navegación horizontal de categorías no agrega una franja de color en su posición inicial. Cuando queda *sticky*, una superficie neutra casi opaca de ancho completo aparece mediante opacidad para asegurar contraste sobre el contenido que pasa por debajo.
 - La página de inicio de la plataforma utiliza la misma base neutral: etiqueta auxiliar discreta, titular editorial, una acción primaria oscura y una acción secundaria de borde tenue. Las acciones se presentan en línea cuando el ancho lo permite y apiladas con texto centrado en móvil. No incorpora branding de un restaurante ni modifica los destinos de navegación.
 - El acceso de administración mantiene la base neutral de la plataforma: encabezado breve, descripción orientada a la gestión y formulario en una superficie contenida. La autenticación y recuperación de contraseña conservan sus flujos existentes.
+- El campo de contraseña del acceso permite alternar visibilidad con un control de ojo etiquetado para tecnologías asistivas; no modifica el valor ni el envío del formulario.
 
 ### Estrategia de adopción
 

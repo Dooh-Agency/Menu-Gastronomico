@@ -10,6 +10,7 @@ export function AuthForm({ next }: AuthFormProps) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -67,7 +68,31 @@ export function AuthForm({ next }: AuthFormProps) {
       </label>
       <label>
         Contraseña
-        <input autoComplete="current-password" minLength={8} onChange={(event) => setPassword(event.target.value)} required type="password" value={password} />
+        <span className="password-input-wrap">
+          <input autoComplete="current-password" minLength={8} onChange={(event) => setPassword(event.target.value)} required type={isPasswordVisible ? "text" : "password"} value={password} />
+          <button
+            aria-label={isPasswordVisible ? "Ocultar contraseña" : "Mostrar contraseña"}
+            aria-pressed={isPasswordVisible}
+            className="password-visibility-toggle"
+            onClick={() => setIsPasswordVisible((visible) => !visible)}
+            type="button"
+          >
+            <svg aria-hidden="true" fill="none" height="18" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" viewBox="0 0 24 24" width="18">
+              {isPasswordVisible ? (
+                <>
+                  <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                  <circle cx="12" cy="12" r="2.75" />
+                </>
+              ) : (
+                <>
+                  <path d="m3 3 18 18" />
+                  <path d="M10.6 5.3A10.9 10.9 0 0 1 12 5.2c6.5 0 10 6.8 10 6.8a18.8 18.8 0 0 1-3.2 3.9M6.1 6.1A18.8 18.8 0 0 0 2 12s3.5 6.8 10 6.8c1.3 0 2.5-.3 3.5-.7" />
+                  <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                </>
+              )}
+            </svg>
+          </button>
+        </span>
       </label>
       {message ? <p className="form-message" role="status">{message}</p> : null}
       <button className="primary-link" disabled={isSubmitting} type="submit">Ingresar</button>

@@ -28,14 +28,15 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
 
   return (
     <div className="admin-shell">
-      <AdminHeader
-        restaurantName={restaurant?.name ?? "Plataforma"}
-        publicMenuHref={restaurant ? `/${restaurant.slug}` : undefined}
-        logoUrl={logoUrl}
-        signOutAction={signOut}
-      />
-      {children}
+      <div className="admin-header-band">
+        <AdminHeader
+          restaurantName={restaurant?.name ?? "Plataforma"}
+          publicMenuHref={restaurant ? `/${restaurant.slug}` : undefined}
+          logoUrl={logoUrl}
+          signOutAction={signOut}
+        />
+      </div>
+      <div className="admin-shell-content">{children}</div>
     </div>
   );
 }
-

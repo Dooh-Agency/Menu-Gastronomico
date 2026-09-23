@@ -2383,23 +2383,27 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .auth-card .primary-link:disabled, .text-button:disabled { cursor: wait; opacity: .65; }
 .text-button { background: transparent; border: 0; color: var(--ui-text-secondary); cursor: pointer; font: inherit; font-size: var(--type-label); padding: .35rem 0; text-align: center; text-decoration: underline; text-decoration-color: rgb(0 0 0 / 18%); text-underline-offset: .25rem; }
 .form-message { font-size: var(--type-label); margin: 0; }
-.admin-shell { margin: 0 auto; width: 100%; max-width: 100%; padding: 0 clamp(1rem, 4vw, 3rem) 4rem; }
-
-/* Unified Admin Header */
-.admin-header-unified {
-  align-items: center;
-  background: var(--ui-surface-sticky);
+.admin-shell { margin: 0 auto; max-width: 100%; min-height: 100vh; padding: 0 0 4rem; width: 100%; }
+.admin-shell-content { margin: 0 auto; max-width: 100%; padding: 0 clamp(1rem, 4vw, 3rem); width: 100%; }
+.admin-header-band {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+  background: var(--ui-surface-sticky);
   border-bottom: 1px solid var(--ui-border);
-  display: flex;
-  height: 4rem;
-  justify-content: space-between;
-  padding: 0 clamp(0.25rem, 1vw, 0.75rem);
   position: sticky;
   top: 0;
   width: 100%;
   z-index: 50;
+}
+
+/* Unified Admin Header */
+.admin-header-unified {
+  align-items: center;
+  display: flex;
+  height: 4rem;
+  justify-content: space-between;
+  padding: 0 clamp(1rem, 4vw, 3rem);
+  width: 100%;
 }
 
 /* Left Section: Public menu button */
@@ -2683,7 +2687,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   .admin-header-unified {
     gap: 0.5rem;
     height: auto;
-    padding: 0.6rem 0;
+    padding: 0.6rem clamp(1rem, 4vw, 3rem);
   }
   .public-menu-text {
     display: none;

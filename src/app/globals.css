@@ -10,6 +10,7 @@
   --ui-canvas: #f5f5f7;
   --ui-surface: #ffffff;
   --ui-surface-glass: rgb(255 255 255 / 80%);
+  --ui-surface-sticky: rgb(255 255 255 / 97%);
   --ui-text: #1d1d1f;
   --ui-text-secondary: #86868b;
   --ui-border: rgb(0 0 0 / 6%);
@@ -807,9 +808,9 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 }
 
 .category-nav-wrap::before {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  background: var(--ui-surface-glass);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background: var(--ui-surface-sticky);
   border-bottom: 1px solid var(--ui-border);
   content: "";
   inset: 0;
@@ -832,7 +833,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 }
 
 .category-nav-wrap::after {
-  background: linear-gradient(90deg, transparent, var(--ui-surface) 88%);
+  background: linear-gradient(90deg, transparent, var(--ui-surface-sticky) 88%);
   content: "";
   height: 100%;
   opacity: 0;

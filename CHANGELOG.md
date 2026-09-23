@@ -17,7 +17,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
 
 ### 🎨 UI & Diseño
-- **Panel de Cartas administrativo refinado (`globals.css`):** El encabezado, la navegación principal, las acciones y las tarjetas de carta ahora comparten superficies neutras, bordes tenues, jerarquía tipográfica y elevación mínima. Se conservaron los accesos, los estados de carta y todas las acciones de gestión existentes.
+- **Panel de Cartas administrativo refinado (`menus-dashboard.tsx` / `globals.css`):** El encabezado, la navegación principal, las acciones y las tarjetas de carta ahora comparten superficies neutras, bordes tenues, jerarquía tipográfica y elevación mínima. Las acciones se compactaron, incorporan separación consistente entre icono y texto, y distinguen el acceso al editor de la edición rápida de datos; se conservaron los accesos, estados y operaciones existentes.
 - **Acceso de administración refinado (`login/page.tsx` / `globals.css`):** La pantalla de ingreso adopta la jerarquía neutral de la portada, nuevo copy orientado a la gestión y un formulario de controles contenidos, sin alterar la autenticación ni recuperación de contraseña.
 - **Título de portada más directo (`app/page.tsx`):** Se actualizó el titular a “Menú digital para locales gastronómicos”.
 - **Alineación de acciones en portada (`globals.css`):** Los CTA se muestran en línea cuando hay espacio y apilados en móvil; en ambos casos su texto queda centrado.

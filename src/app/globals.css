@@ -4391,7 +4391,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .admin-dashboard-header-actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-1);
   flex-wrap: wrap;
 }
 
@@ -4401,9 +4401,10 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   border-radius: var(--radius-control);
   display: inline-flex;
   font-size: var(--type-label);
+  gap: 0.5rem;
   justify-content: center;
-  min-height: 3rem;
-  padding: 0.65rem 1rem;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.85rem;
 }
 
 .admin-dashboard-header-actions .primary-button {
@@ -4612,13 +4613,13 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
+  gap: 0.5rem;
   background: var(--ui-text);
   border: 1px solid var(--ui-text);
   color: #fff;
   cursor: pointer;
-  min-height: 2.75rem;
-  padding: 0.65rem 1rem;
+  min-height: 2.5rem;
+  padding: 0.5rem 0.85rem;
   font-size: var(--type-label);
   font-weight: 700;
   border-radius: var(--radius-control);
@@ -4632,7 +4633,30 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .admin-menu-card-btn-group {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.4rem;
+}
+
+.admin-menu-card-btn-group .icon-button {
+  background: var(--ui-surface);
+  border-color: var(--ui-border);
+  border-radius: var(--radius-control);
+  color: var(--ui-text-secondary);
+  height: 2.5rem;
+  transition: transform var(--motion-duration) var(--motion-ease);
+  width: 2.5rem;
+}
+
+.admin-menu-card-btn-group .icon-button:hover {
+  background: var(--ui-canvas);
+  border-color: var(--ui-border);
+  color: var(--ui-text);
+  transform: translateY(-1px);
+}
+
+.admin-menu-card-btn-group .icon-button-danger:hover {
+  background: #fff5f4;
+  border-color: rgb(185 28 28 / 14%);
+  color: #b91c1c;
 }
 
 /* Tarjeta vacía para Crear Carta */

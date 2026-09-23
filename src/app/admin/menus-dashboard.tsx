@@ -271,7 +271,7 @@ export function MenusDashboard({
                     onClick={() => onSelectMenu(menu.id)}
                     type="button"
                   >
-                    Modificar carta
+                    Abrir editor
                     <svg
                       aria-hidden="true"
                       fill="none"
@@ -290,6 +290,7 @@ export function MenusDashboard({
                   <div className="admin-menu-card-btn-group">
                     <button
                       className="icon-button"
+                      aria-label={`Editar nombre y descripción de ${menu.name}`}
                       onClick={() => setEditingMenu(menu)}
                       title="Editar nombre y descripción"
                       type="button"
@@ -311,6 +312,7 @@ export function MenusDashboard({
 
                     <button
                       className="icon-button"
+                      aria-label={`Configurar horarios de ${menu.name}`}
                       onClick={() => setEditingSchedulesMenu(menu)}
                       title="Configurar horarios"
                       type="button"
@@ -332,6 +334,7 @@ export function MenusDashboard({
 
                     <button
                       className="icon-button"
+                      aria-label={`Cambiar foto de portada de ${menu.name}`}
                       onClick={() => setEditingBannerMenu(menu)}
                       title="Cambiar foto de portada"
                       type="button"
@@ -356,6 +359,7 @@ export function MenusDashboard({
                       <button
                         className="icon-button icon-button-danger"
                         disabled={isPending}
+                        aria-label={`Eliminar ${menu.name}`}
                         onClick={() => handleDelete(menu)}
                         title="Eliminar carta"
                         type="button"

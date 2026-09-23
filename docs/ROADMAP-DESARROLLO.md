@@ -200,6 +200,10 @@ Probar el producto dentro de la agencia antes de llevarlo a MUUD.
 - [x] Accesibilidad básica.
 - [ ] Comportamiento en distintos tamaños de pantalla.
 
+#### Pendiente de decisión UX — navegación administrativa
+
+- [ ] Reorganizar el header del editor de carta: conservar **Volver a Mis Cartas** como retorno contextual dentro de la barra superior, en lugar de una franja separada; luego redefinir **Carta** y **Configuración** como las dos áreas de trabajo de la carta activa y del restaurante, respectivamente. La decisión se validará visualmente antes de modificar rutas o comportamiento.
+
 #### Criterio de salida
 
 Existe una lista de ajustes priorizados y no quedan problemas críticos de navegación, seguridad o contenido antes de iniciar el piloto.

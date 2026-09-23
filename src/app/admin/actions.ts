@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import { brandingFor, contactFor, restaurantFonts, type RestaurantFont } from "@/lib/restaurant-branding";
+import { brandingFor, contactFor, isRestaurantFont, restaurantFontFor } from "@/lib/restaurant-branding";
 import { toStandardError } from "@/lib/supabase/error-utils";
 
 type Profile = { restaurant_id: string | null; role: "super_admin" | "restaurant_admin" };
@@ -1240,7 +1240,7 @@ export async function updateRestaurantConfiguration(formData: FormData) {
 
   const font_family = formData.has("font_family") ? required(formData, "font_family") : oldBranding.font_family;
   const radius = formData.has("radius") ? required(formData, "radius") : oldBranding.radius;
-  if (font_family && !(font_family in restaurantFonts)) throw new Error("Tipografía inválida.");
+  if (font_family && !isRestaurantFont(font_family)) throw new Error("Tipografía inválida.");
   if (radius && !["soft", "rounded", "square"].includes(radius)) throw new Error("Estilo visual inválido.");
 
   const established_year = formData.has("established_year")
@@ -1254,7 +1254,7 @@ export async function updateRestaurantConfiguration(formData: FormData) {
     surface_color: formData.has("surface_color") ? hexColor(formData, "surface_color") : oldBranding.surface_color,
     text_color: formData.has("text_color") ? hexColor(formData, "text_color") : oldBranding.text_color,
     accent_text_color: formData.has("accent_text_color") ? hexColor(formData, "accent_text_color") : oldBranding.accent_text_color,
-    font_family: (font_family as RestaurantFont) ?? oldBranding.font_family,
+    font_family: restaurantFontFor(font_family),
     radius: (radius as "soft" | "rounded" | "square") ?? oldBranding.radius,
     established_year: established_year || undefined,
     logo_path: await uploadBrandImage("logo", restaurantId, formData.get("logo") instanceof File ? (formData.get("logo") as File) : null, oldBranding.logo_path, supabase),

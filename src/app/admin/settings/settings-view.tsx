@@ -56,7 +56,7 @@ export function SettingsView({ restaurant, settings }: SettingsViewProps) {
     surface_color: restaurant.branding.surface_color || "#fffdf8",
     text_color: restaurant.branding.text_color || "#1f2937",
     accent_text_color: restaurant.branding.accent_text_color || "#ae4c2c",
-    font_family: restaurant.branding.font_family || "inter",
+    font_family: restaurant.branding.font_family || "contemporary",
     radius: restaurant.branding.radius || "rounded",
     established_year: restaurant.branding.established_year || "",
   });
@@ -225,7 +225,7 @@ export function SettingsView({ restaurant, settings }: SettingsViewProps) {
           <div className="section-header">
             <h2>Diseño e identidad visual</h2>
             <p className="admin-intro">
-              Personalizá la paleta de colores, tipografía y estilo de bordes para el menú público.
+              Personalizá los acentos de color y elegí un estilo tipográfico controlado para el menú público.
             </p>
           </div>
 
@@ -312,7 +312,7 @@ export function SettingsView({ restaurant, settings }: SettingsViewProps) {
 
                 <div className="settings-grid margin-top-1rem">
                   <label>
-                    Tipografía
+                    Estilo tipográfico
                     <select
                       value={brandingState.font_family}
                       name="font_family"
@@ -360,7 +360,7 @@ export function SettingsView({ restaurant, settings }: SettingsViewProps) {
                     ["--color-text" as string]: brandingState.text_color,
                     ["--color-accent-text" as string]: brandingState.accent_text_color,
                     ["--radius-card" as string]: getRadiusPx(brandingState.radius),
-                    fontFamily: restaurantFonts[brandingState.font_family || "inter"]?.cssFamily,
+                    fontFamily: restaurantFonts[brandingState.font_family || "contemporary"]?.cssFamily,
                     backgroundColor: brandingState.surface_color,
                     color: brandingState.text_color,
                   }}

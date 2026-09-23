@@ -12,14 +12,37 @@ export type RestaurantBranding = {
 };
 
 export const restaurantFonts = {
-  inter: { label: "Inter", cssFamily: "'Inter', Arial, sans-serif" },
-  dm_sans: { label: "DM Sans", cssFamily: "'DM Sans', Arial, sans-serif" },
-  nunito_sans: { label: "Nunito Sans", cssFamily: "'Nunito Sans', Arial, sans-serif" },
-  lora: { label: "Lora", cssFamily: "'Lora', Georgia, serif" },
-  playfair_display: { label: "Playfair Display", cssFamily: "'Playfair Display', Georgia, serif" },
+  contemporary: {
+    label: "Contemporánea",
+    cssFamily: "'Inter', Arial, sans-serif",
+    displayCssFamily: "'Inter', Arial, sans-serif",
+  },
+  editorial: {
+    label: "Editorial",
+    cssFamily: "'Inter', Arial, sans-serif",
+    displayCssFamily: "'Playfair Display', Georgia, serif",
+  },
 } as const;
 
 export type RestaurantFont = keyof typeof restaurantFonts;
+
+const legacyRestaurantFonts: Record<string, RestaurantFont> = {
+  inter: "contemporary",
+  dm_sans: "contemporary",
+  nunito_sans: "contemporary",
+  lora: "editorial",
+  playfair_display: "editorial",
+};
+
+export function isRestaurantFont(value: string): boolean {
+  return value in restaurantFonts || value in legacyRestaurantFonts;
+}
+
+export function restaurantFontFor(value: unknown): RestaurantFont {
+  if (typeof value !== "string") return "contemporary";
+  if (value in restaurantFonts) return value as RestaurantFont;
+  return legacyRestaurantFonts[value] ?? "contemporary";
+}
 
 export type RestaurantContact = {
   phone?: string;
@@ -34,7 +57,7 @@ export const defaultBranding: Required<Pick<RestaurantBranding, "primary_color" 
   surface_color: "#fffdf8",
   text_color: "#1f2937",
   accent_text_color: "#ae4c2c",
-  font_family: "inter",
+  font_family: "contemporary",
   radius: "rounded",
 };
 
@@ -46,7 +69,7 @@ export function brandingFor(value: Record<string, unknown> | null | undefined): 
     surface_color: typeof candidate.surface_color === "string" ? candidate.surface_color : defaultBranding.surface_color,
     text_color: typeof candidate.text_color === "string" ? candidate.text_color : defaultBranding.text_color,
     accent_text_color: typeof candidate.accent_text_color === "string" ? candidate.accent_text_color : defaultBranding.accent_text_color,
-    font_family: typeof candidate.font_family === "string" && candidate.font_family in restaurantFonts ? candidate.font_family as RestaurantFont : defaultBranding.font_family,
+    font_family: restaurantFontFor(candidate.font_family),
     radius: candidate.radius === "soft" || candidate.radius === "square" ? candidate.radius : defaultBranding.radius,
     logo_path: typeof candidate.logo_path === "string" ? candidate.logo_path : undefined,
     cover_image_path: typeof candidate.cover_image_path === "string" ? candidate.cover_image_path : undefined,
@@ -69,4 +92,3 @@ export function menuImageUrl(imagePath?: string | null): string {
   if (!baseUrl) return imagePath;
   return `${baseUrl}/storage/v1/object/public/menu-images/${imagePath.split("/").map(encodeURIComponent).join("/")}`;
 }
-

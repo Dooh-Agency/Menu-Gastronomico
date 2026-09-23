@@ -244,7 +244,8 @@ export function MenuPublico({
     "--color-paper": branding.surface_color,
     "--color-ink": branding.text_color,
     "--color-link": branding.accent_text_color,
-    "--menu-font": restaurantFonts[branding.font_family ?? "inter"].cssFamily,
+    "--menu-font": restaurantFonts[branding.font_family ?? "contemporary"].cssFamily,
+    "--menu-display-font": restaurantFonts[branding.font_family ?? "contemporary"].displayCssFamily,
     "--radius-card": branding.radius === "soft" ? ".65rem" : branding.radius === "square" ? ".15rem" : "1rem",
   } as CSSProperties;
 

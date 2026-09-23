@@ -20,6 +20,14 @@ La identidad del restaurante se mantiene como una capa sutil y controlada. El co
 - Las transiciones se limitan a `transform` y `opacity`, con una duración objetivo de 300 a 500 ms. Se conserva el respeto por `prefers-reduced-motion`.
 - El foco de teclado, el contraste y los estados semánticos conservan una representación propia y no dependen exclusivamente de los colores configurables por tenant.
 
+### Tipografía y ritmo de lectura
+
+- La interfaz administrativa, los controles, los precios, filtros y textos de lectura usan Inter como familia fija. No forman parte de la personalización del restaurante.
+- Cada restaurante puede elegir únicamente entre dos estilos: **Contemporánea** (Inter en toda la carta) y **Editorial** (Inter para lectura y Playfair Display solo en títulos destacados). Una carta nunca combina más de dos familias de lectura.
+- Las elecciones históricas se conservan sin migración: Inter, DM Sans y Nunito Sans se interpretan como *Contemporánea*; Lora y Playfair Display como *Editorial*. Al guardar nuevamente la configuración, se normalizan al nuevo estilo.
+- La escala compartida define texto auxiliar de 12 px, etiquetas de 14 px, cuerpo de 16 px, cuerpo destacado de 18 px y títulos fluidos. Los títulos usan interlineado compacto; los párrafos y descripciones, interlineado 1.5.
+- Los espacios entre bloques, tarjetas y secciones se componen con múltiplos de 8 px. Los títulos se separan de su descripción por 8 px y las secciones por 48–64 px, según el contexto.
+
 ### Estrategia de adopción
 
 La actualización se realiza por capas. Primero se incorporan los tokens y las primitivas globales sin modificar rutas, datos ni comportamiento. Luego, cada familia de componentes se migra y valida de forma independiente antes de reemplazar estilos locales, para evitar regresiones funcionales o una personalización descontrolada.

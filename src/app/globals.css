@@ -174,7 +174,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgb(255 255 255 / 58%);
-  border-radius: var(--radius-surface);
+  border-radius: 9999px;
   padding: 0.4rem;
   box-shadow: var(--ui-shadow-subtle);
 }

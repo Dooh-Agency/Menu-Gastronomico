@@ -8,12 +8,16 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 ## [Unreleased]
 
 ### ✨ Nuevas Funcionalidades
+- **Footer público centrado y de color fijo:** El footer de contacto usa ahora el tono fijo `#3D144C`, independiente del branding del restaurante, con tarjetas y contenido centrados.
 - **Nuevo formato Grid de dos columnas:** Las categorías pueden mostrar tarjetas compactas en una cuadrícula de dos columnas, con imagen, título, descripción y precio.
+- **Grid como formato público predeterminado:** Las categorías configuradas con el formato horizontal clásico ahora se muestran también con la nueva tarjeta Grid de dos columnas en todas las cartas.
 
 ### 🗄️ Backend & Base de Datos
 - **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
 
 ### 🎨 UI & Diseño
+- **Remoción de Servicios & Opciones Especiales (`menu-publico.tsx` / `globals.css`):** Se eliminó el bloque de tarjetas rápidas (Filtro Sin TACC y Llamar Camarero) del selector de cartas para mantener la vista más despejada y centrada exclusivamente en la oferta gastronómica.
+- **Remoción del indicador de abierto/cerrado en banner de carta (menu-publico.tsx):** Se eliminó la píldora que indicaba si la carta estaba abierta o fuera de horario del banner principal una vez dentro de la carta.
 - **Precios en negro:** Los precios de las tarjetas y del detalle de plato dejaron de usar el color de acento del restaurante.
 - **Color del panel de filtros:** Se cambiaron sus textos, controles y cierre a negro sobre fondo blanco.
 - **Ajuste de centrado del header:** El botón de filtros del menú público muestra únicamente el ícono, conservando su etiqueta accesible.

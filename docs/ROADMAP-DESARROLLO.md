@@ -43,15 +43,15 @@ MUUD se ofreció como primer cliente de prueba. La implementación real se reali
 
 ## 4. Estado Actual del Desarrollo
 
-| Etapa | Módulo | Estado | Documento de Validación |
-| :--- | :--- | :--- | :--- |
-| **Etapa 0** | Fundaciones técnicas y Supabase | ✅ **Completada** | `SPEC.md` / `supabase/README.md` |
-| **Etapa 1** | Menú público digital | ✅ **Completada** | [`docs/VALIDACION-ETAPA-1.md`](./VALIDACION-ETAPA-1.md) |
-| **Etapa 2** | Panel de administración del menú | ✅ **Completada** | [`docs/VALIDACION-ETAPA-2.md`](./VALIDACION-ETAPA-2.md) |
-| **Etapa 3** | Branding y configuración por restaurante | ✅ **Completada** | [`docs/VALIDACION-ETAPA-3.md`](./VALIDACION-ETAPA-3.md) |
-| **Etapa 4** | Validación interna y estabilización | 🔄 **En Curso** | — |
-| **Etapa 5** | Mesas y códigos QR | ⏳ *Planificada* | — |
-| **Etapas 6–21** | Pedidos, Comandas/KDS, Reservas, Pagos, IA, etc. | ⏳ *Planificadas* | — |
+| Etapa           | Módulo                                           | Estado            | Documento de Validación                                 |
+| :-------------- | :----------------------------------------------- | :---------------- | :------------------------------------------------------ |
+| **Etapa 0**     | Fundaciones técnicas y Supabase                  | ✅ **Completada** | `SPEC.md` / `supabase/README.md`                        |
+| **Etapa 1**     | Menú público digital                             | ✅ **Completada** | [`docs/VALIDACION-ETAPA-1.md`](./VALIDACION-ETAPA-1.md) |
+| **Etapa 2**     | Panel de administración del menú                 | ✅ **Completada** | [`docs/VALIDACION-ETAPA-2.md`](./VALIDACION-ETAPA-2.md) |
+| **Etapa 3**     | Branding y configuración por restaurante         | ✅ **Completada** | [`docs/VALIDACION-ETAPA-3.md`](./VALIDACION-ETAPA-3.md) |
+| **Etapa 4**     | Validación interna y estabilización              | 🔄 **En Curso**   | —                                                       |
+| **Etapa 5**     | Mesas y códigos QR                               | ⏳ _Planificada_  | —                                                       |
+| **Etapas 6–21** | Pedidos, Comandas/KDS, Reservas, Pagos, IA, etc. | ⏳ _Planificadas_ | —                                                       |
 
 ---
 
@@ -189,16 +189,15 @@ Probar el producto dentro de la agencia antes de llevarlo a MUUD.
 
 #### Validaciones
 
-- [ ] Navegación en celulares y escritorio.
-- [ ] Cambio de idioma.
-- [ ] Cambio de carta por horario.
-- [ ] Edición de platos y precios.
-- [ ] Carga y visualización de imágenes (incluyendo carrusel interactivo de múltiples fotos y badges de conteo).
-- [ ] Productos agotados.
+- [x] Navegación en celulares y escritorio.
+- [x] Cambio de idioma.
+- [x] Edición de platos y precios.
+- [x] Carga y visualización de imágenes (incluyendo carrusel interactivo de múltiples fotos y badges de conteo).
+- [x] Productos agotados.
 - [ ] Permisos de usuarios.
 - [ ] Separación de datos entre tenants.
-- [ ] Rendimiento con conexión lenta.
-- [ ] Accesibilidad básica.
+- [x] Rendimiento con conexión lenta.
+- [x] Accesibilidad básica.
 - [ ] Comportamiento en distintos tamaños de pantalla.
 
 #### Criterio de salida

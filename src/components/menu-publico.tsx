@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { PublicMenu, PublicMenuSchedule } from "@/lib/supabase/public-menu";
 import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
-import { DishCardHorizontal, DishCardHero, DishCardCompact, DishCardGrid } from "@/components/dish-cards";
+import { DishCardHero, DishCardCompact, DishCardGrid } from "@/components/dish-cards";
 import { DishImageCarousel } from "@/components/dish-image-carousel";
 import { RestaurantFooter } from "@/components/restaurant-footer";
 
@@ -184,67 +184,6 @@ function isMenuScheduleActive(schedules: PublicMenuSchedule[], timezone: string)
     });
   } catch {
     return true;
-  }
-}
-
-function formatHeroStatus(
-  schedules: PublicMenuSchedule[],
-  isAvailable: boolean,
-  timezone: string,
-  locale: string,
-): string {
-  const isEn = locale.startsWith("en");
-  if (!schedules || schedules.length === 0) {
-    return isAvailable
-      ? isEn ? "Open today • All day" : "Abierto hoy • Todo el día"
-      : isEn ? "Outside hours" : "Fuera de horario";
-  }
-
-  let targetSchedule = schedules[0];
-  if (schedules.length > 1 && isAvailable) {
-    try {
-      const date = new Date();
-      const parts = new Intl.DateTimeFormat("en-US", {
-        timeZone: timezone || "America/Argentina/Buenos_Aires",
-        hour: "2-digit",
-        minute: "2-digit",
-        weekday: "short",
-        hourCycle: "h23",
-      }).formatToParts(date);
-      const hour = Number(parts.find((p) => p.type === "hour")?.value ?? 0);
-      const minute = Number(parts.find((p) => p.type === "minute")?.value ?? 0);
-      const dayStr = parts.find((p) => p.type === "weekday")?.value?.toLowerCase() ?? "";
-      const dayMap: Record<string, number> = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 };
-      const currentDay = dayMap[dayStr] ?? date.getDay();
-      const currentMins = hour * 60 + minute;
-
-      const active = schedules.find((s) => {
-        if (s.day_of_week !== null && s.day_of_week !== currentDay) return false;
-        const [startH, startM] = s.starts_at.slice(0, 5).split(":").map(Number);
-        const [endH, endM] = s.ends_at.slice(0, 5).split(":").map(Number);
-        const startMins = startH * 60 + startM;
-        const endMins = endH * 60 + endM;
-        return startMins < endMins
-          ? currentMins >= startMins && currentMins <= endMins
-          : currentMins >= startMins || currentMins <= endMins;
-      });
-      if (active) targetSchedule = active;
-    } catch {
-      // fallback to first schedule
-    }
-  }
-
-  const start = targetSchedule.starts_at.slice(0, 5);
-  const end = targetSchedule.ends_at.slice(0, 5);
-  const timeRange =
-    start === "00:00" && (end === "23:59" || end === "00:00")
-      ? isEn ? "All day" : "Todo el día"
-      : `${start} a ${end}`;
-
-  if (isAvailable) {
-    return isEn ? `Open today • ${timeRange}` : `Abierto hoy • ${timeRange}`;
-  } else {
-    return isEn ? `Outside hours • ${timeRange}` : `Fuera de horario • ${timeRange}`;
   }
 }
 
@@ -789,53 +728,7 @@ export function MenuPublico({
           </div>
         </section>
 
-        {/* 5. Servicios y Opciones Especiales */}
-        <section className="special-services-section">
-          <div className="special-services-eyebrow">Servicios & Opciones Especiales</div>
-          <div className="special-services-grid">
-            <div className="special-service-card">
-              <div className="special-service-icon golden">
-                <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                  <path d="m9 12 2 2 4-4" />
-                </svg>
-              </div>
-              <div className="special-service-info">
-                <span className="special-service-title">Filtro Sin TACC</span>
-                <span className="special-service-subtitle">Vegetariano y celíaco</span>
-              </div>
-            </div>
-
-            {menu.settings.contact.phone ? (
-              <a href={`tel:${menu.settings.contact.phone}`} className="special-service-card">
-                <div className="special-service-icon purple">
-                  <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                  </svg>
-                </div>
-                <div className="special-service-info">
-                  <span className="special-service-title">Llamar Camarero</span>
-                  <span className="special-service-subtitle">Asistencia directa</span>
-                </div>
-              </a>
-            ) : (
-              <div className="special-service-card">
-                <div className="special-service-icon purple">
-                  <svg fill="none" height="20" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="20">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                  </svg>
-                </div>
-                <div className="special-service-info">
-                  <span className="special-service-title">Llamar Camarero</span>
-                  <span className="special-service-subtitle">Asistencia directa</span>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* 6. Footer de la Landing con Puntos & Datos */}
+        {/* 5. Footer de la Landing con Puntos & Datos */}
         <footer className="public-menus-landing-footer">
           <div className="landing-footer-brand">
             <span className="landing-footer-brand-dot">•</span>
@@ -852,7 +745,6 @@ export function MenuPublico({
   }
 
   const activeBannerPath = currentMenu.banner_path || branding.cover_image_path;
-  const isCurrentMenuInSchedule = isMenuScheduleActive(currentMenu.schedules, menu.restaurant.timezone);
   const categoriesToRender = categories;
 
   return (
@@ -877,14 +769,8 @@ export function MenuPublico({
         {/* 1. Header Flotante Reutilizado (Flecha de volver a la izquierda, Nombre al centro, Idioma a la derecha) */}
         {renderPublicHeader(true)}
 
-        {/* 2. Contenido Inferior Overlay (Badge de Estado, Título Editorial y Descripción) */}
+        {/* 2. Contenido Inferior Overlay (Título Editorial y Descripción) */}
         <div className="menu-hero-content">
-          <div className={`menu-hero-status-pill ${isCurrentMenuInSchedule ? "is-available" : "is-closed"}`}>
-            <span className="menu-hero-status-dot" />
-            <span>
-              {formatHeroStatus(currentMenu.schedules, isCurrentMenuInSchedule, menu.restaurant.timezone, locale)}
-            </span>
-          </div>
 
           <h1 className="menu-hero-title">{currentMenu.name}</h1>
           {currentMenu.description && (
@@ -1055,17 +941,12 @@ export function MenuPublico({
                     ))}
                   </div>
                 ) : (
-                  <div className="menu-items-horizontal-list">
+                  <div className="menu-items-grid">
                     {items.map((item) => (
-                      <DishCardHorizontal
+                      <DishCardGrid
                         key={item.id}
                         item={item}
-                        labels={{
-                          allergens: copy.allergens,
-                          details: copy.details,
-                          filters: copy.filters,
-                          soldOut: copy.soldOut,
-                        }}
+                        labels={{ soldOut: copy.soldOut }}
                         locale={locale}
                         onSelect={setSelectedItem}
                       />

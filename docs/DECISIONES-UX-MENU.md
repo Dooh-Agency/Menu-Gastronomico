@@ -28,6 +28,7 @@ La identidad del restaurante se mantiene como una capa sutil y controlada. El co
 - La escala compartida define texto auxiliar de 12 px, etiquetas de 14 px, cuerpo de 16 px, cuerpo destacado de 18 px y títulos fluidos. Los títulos usan interlineado compacto; los párrafos y descripciones, interlineado 1.5.
 - Los espacios entre bloques, tarjetas y secciones se componen con múltiplos de 8 px. Los títulos se separan de su descripción por 8 px y las secciones por 48–64 px, según el contexto.
 - Las tarjetas de lista, grilla y carrusel comparten la misma lectura: nombre y precio en el primer nivel; descripción en el segundo; preferencias dietarias y alérgenos como chips secundarios. Los alérgenos se distinguen visualmente de las preferencias y ambos conservan un nombre accesible.
+- El detalle desplegado de un plato sigue la misma jerarquía: foto contenida, nombre y precio, descripción, chips de preferencias y un bloque separado de alérgenos. El modal no expone textos de control como “Filtrar por preferencias”.
 
 ### Estrategia de adopción
 

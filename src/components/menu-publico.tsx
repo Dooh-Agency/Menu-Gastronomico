@@ -37,6 +37,7 @@ const labels = {
     dishes: "platos",
     availableAllDay: "Disponible todo el día",
     filters: "Filtrar por preferencias",
+    dietary: "Preferencias dietarias",
     all: "Todos",
     details: "Ver detalle",
     close: "Cerrar",
@@ -70,6 +71,7 @@ const labels = {
     dishes: "dishes",
     availableAllDay: "Available all day",
     filters: "Filter by dietary preference",
+    dietary: "Dietary preferences",
     all: "All",
     details: "View details",
     close: "Close",
@@ -1013,18 +1015,21 @@ export function MenuPublico({
                 images={images}
               />
               <div className="item-dialog-content">
-                <h2>{localizedItem.name}</h2>
-                <strong>{formattedPrice}</strong>
-                {localizedItem.description ? <p>{localizedItem.description}</p> : null}
+                <div className="item-dialog-heading">
+                  <h2>{localizedItem.name}</h2>
+                  <strong>{formattedPrice}</strong>
+                </div>
+                {localizedItem.description ? <p className="item-dialog-description">{localizedItem.description}</p> : null}
                 {dietaryTags.length > 0 ? (
-                  <p>
-                    <b>{copy.filters}:</b> {dietaryTags.join(", ")}
-                  </p>
+                  <div aria-label={copy.dietary} className="item-dialog-tags">
+                    {dietaryTags.map((tag) => <span className="item-dialog-tag" key={tag}>{tag}</span>)}
+                  </div>
                 ) : null}
                 {allergens.length > 0 ? (
-                  <p>
-                    <b>{copy.allergens}:</b> {allergens.join(", ")}
-                  </p>
+                  <div aria-label={copy.allergens} className="item-dialog-allergens">
+                    <span>{copy.allergens}</span>
+                    <p>{allergens.join(", ")}</p>
+                  </div>
                 ) : null}
                 {!selectedItem.is_available ? <span className="sold-out">{copy.soldOut}</span> : null}
               </div>

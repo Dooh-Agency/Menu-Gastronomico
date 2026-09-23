@@ -2,7 +2,6 @@
 
 import { type CSSProperties, useEffect, useState, useTransition } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AdminDialog } from "./admin-dialog";
 import { MenusDashboard } from "./menus-dashboard";
@@ -324,31 +323,6 @@ export function AdminMenuView({
 
   return (
     <div className="admin-menu-editor-layout">
-      {/* Barra superior de navegación de vuelta a Mis Cartas */}
-      <div className="admin-editor-top-nav">
-        <button
-          className="admin-back-to-menus-btn"
-          onClick={() => setSelectedMenuId(null)}
-          type="button"
-        >
-          <svg
-            aria-hidden="true"
-            fill="none"
-            height="16"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2.5"
-            viewBox="0 0 24 24"
-            width="16"
-          >
-            <line x1="19" x2="5" y1="12" y2="12" />
-            <polyline points="12 19 5 12 12 5" />
-          </svg>
-          Volver a Mis Cartas
-        </button>
-      </div>
-
       {/* Lienzo de la Carta */}
       <div className="admin-menu-view" style={brandStyle}>
         {/* 1. Header general del restaurante */}
@@ -414,31 +388,6 @@ export function AdminMenuView({
               </button>
             )}
             <span className="admin-menu-title">{restaurant.name}</span>
-          </div>
-
-          <div className="admin-menu-header-actions">
-            <Link
-              className="secondary-link admin-preview-link"
-              href={`/${restaurant.slug}`}
-              rel="noreferrer"
-              target="_blank"
-            >
-              <svg
-                aria-hidden="true"
-                fill="none"
-                height="16"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                width="16"
-              >
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              Ver menú comensal
-            </Link>
           </div>
         </header>
 

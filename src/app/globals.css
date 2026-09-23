@@ -2407,7 +2407,26 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   align-items: center;
   display: flex;
   flex: 1 1 0;
+  gap: var(--space-1);
   justify-content: flex-start;
+}
+
+.admin-header-back-link {
+  align-items: center;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: 50%;
+  color: var(--ui-text);
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 2.5rem;
+  justify-content: center;
+  transition: transform var(--motion-duration) var(--motion-ease);
+  width: 2.5rem;
+}
+
+.admin-header-back-link:hover {
+  transform: translateX(-2px);
 }
 
 .admin-public-menu-btn {

@@ -18,6 +18,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 
 ### 🎨 UI & Diseño
 - **Panel de Cartas administrativo refinado (`menus-dashboard.tsx` / `globals.css`):** El encabezado, la navegación principal, las acciones y las tarjetas de carta ahora comparten superficies neutras, bordes tenues, jerarquía tipográfica y elevación mínima. Las acciones se compactaron y concentran el acceso al editor en un único CTA “Gestionar carta”; las tareas de mantenimiento (datos, horarios, portada y eliminación) quedan reunidas en un menú contextual. Se conservaron los accesos, estados y operaciones existentes.
+- **Retorno contextual y acceso público único en editor (`admin-header.tsx` / `admin-menu-view.tsx`):** “Volver a Mis Cartas” se trasladó como icono al header cuando hay una carta activa. Se eliminó el acceso duplicado “Ver menú comensal” del editor y se conserva “Ver menú” como única vista pública.
 - **Acceso de administración refinado (`login/page.tsx` / `globals.css`):** La pantalla de ingreso adopta la jerarquía neutral de la portada, nuevo copy orientado a la gestión y un formulario de controles contenidos, sin alterar la autenticación ni recuperación de contraseña.
 - **Título de portada más directo (`app/page.tsx`):** Se actualizó el titular a “Menú digital para locales gastronómicos”.
 - **Alineación de acciones en portada (`globals.css`):** Los CTA se muestran en línea cuando hay espacio y apilados en móvil; en ambos casos su texto queda centrado.

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 interface AdminHeaderProps {
   restaurantName: string;
@@ -18,6 +18,7 @@ export function AdminHeader({
   signOutAction,
 }: AdminHeaderProps) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -51,6 +52,7 @@ export function AdminHeader({
   const isSettingsActive = pathname.startsWith("/admin/settings");
   const isCartasActive = !isSettingsActive && !pathname.startsWith("/admin/users");
   const isEquipoActive = pathname.startsWith("/admin/users");
+  const isEditingMenu = pathname === "/admin" && Boolean(searchParams.get("menu"));
 
   const initial = restaurantName ? restaurantName.charAt(0).toUpperCase() : "R";
 
@@ -85,6 +87,29 @@ export function AdminHeader({
           </a>
         ) : (
           <span className="admin-brand-logo">{restaurantName}</span>
+        )}
+        {isEditingMenu && (
+          <Link
+            aria-label="Volver a Mis Cartas"
+            className="admin-header-back-link"
+            href="/admin"
+            title="Volver a Mis Cartas"
+          >
+            <svg
+              aria-hidden="true"
+              fill="none"
+              height="17"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2.25"
+              viewBox="0 0 24 24"
+              width="17"
+            >
+              <line x1="19" x2="5" y1="12" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+          </Link>
         )}
       </div>
 

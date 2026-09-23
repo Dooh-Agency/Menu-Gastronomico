@@ -203,6 +203,7 @@ Probar el producto dentro de la agencia antes de llevarlo a MUUD.
 #### Pendiente de decisión UX — navegación administrativa
 
 - [ ] Reorganizar el header del editor de carta: conservar **Volver a Mis Cartas** como retorno contextual dentro de la barra superior, en lugar de una franja separada; luego redefinir **Carta** y **Configuración** como las dos áreas de trabajo de la carta activa y del restaurante, respectivamente. La decisión se validará visualmente antes de modificar rutas o comportamiento.
+- [ ] Evaluar el traslado de la edición de foto de perfil/logo desde la cabecera interna del editor al desplegable de perfil. Al resolverlo, el lienzo de edición podrá comenzar directamente con el banner de la carta sin perder el acceso a esa configuración.
 
 #### Criterio de salida
 

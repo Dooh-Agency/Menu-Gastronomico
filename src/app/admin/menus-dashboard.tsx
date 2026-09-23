@@ -161,12 +161,7 @@ export function MenusDashboard({
               className={`admin-menu-card ${!menu.is_active ? "is-inactive" : ""}`}
             >
               {/* Banner de la Carta */}
-              <div
-                className="admin-menu-card-cover"
-                onClick={() => onSelectMenu(menu.id)}
-                role="button"
-                tabIndex={0}
-              >
+              <div className="admin-menu-card-cover">
                 {bannerSrc ? (
                   <Image
                     alt={menu.name}
@@ -202,21 +197,12 @@ export function MenusDashboard({
                     <span className="admin-badge-inactive">Oculta</span>
                   )}
                 </div>
-
-                <div className="admin-menu-card-hover-overlay">
-                  <span className="admin-menu-card-enter-btn">Entrar a modificar →</span>
-                </div>
               </div>
 
               {/* Contenido de la tarjeta */}
               <div className="admin-menu-card-body">
                 <div className="admin-menu-card-info">
-                  <h2
-                    className="admin-menu-card-name"
-                    onClick={() => onSelectMenu(menu.id)}
-                    role="button"
-                    tabIndex={0}
-                  >
+                  <h2 className="admin-menu-card-name">
                     {menu.name}
                   </h2>
                   {menu.description && (
@@ -271,7 +257,7 @@ export function MenusDashboard({
                     onClick={() => onSelectMenu(menu.id)}
                     type="button"
                   >
-                    Abrir editor
+                    Gestionar carta
                     <svg
                       aria-hidden="true"
                       fill="none"

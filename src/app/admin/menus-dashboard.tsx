@@ -59,6 +59,7 @@ export function MenusDashboard({
   const [editingMenu, setEditingMenu] = useState<Menu | null>(null);
   const [editingSchedulesMenu, setEditingSchedulesMenu] = useState<Menu | null>(null);
   const [editingBannerMenu, setEditingBannerMenu] = useState<Menu | null>(null);
+  const [openOptionsMenuId, setOpenOptionsMenuId] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
   function handleDelete(menu: Menu) {
@@ -154,11 +155,12 @@ export function MenusDashboard({
           const menuItemsCount = items.filter((i) => menuCategoryIds.has(i.category_id)).length;
           const scheduleSummary = formatScheduleSummary(menu);
           const bannerSrc = menu.banner_path || defaultCover;
+          const isOptionsOpen = openOptionsMenuId === menu.id;
 
           return (
             <div
               key={menu.id}
-              className={`admin-menu-card ${!menu.is_active ? "is-inactive" : ""}`}
+              className={`admin-menu-card ${!menu.is_active ? "is-inactive" : ""} ${isOptionsOpen ? "has-options-open" : ""}`}
             >
               {/* Banner de la Carta */}
               <div className="admin-menu-card-cover">
@@ -275,13 +277,15 @@ export function MenusDashboard({
 
                   <div className="admin-menu-card-btn-group">
                     <button
-                      className="icon-button"
-                      aria-label={`Editar nombre y descripción de ${menu.name}`}
-                      onClick={() => setEditingMenu(menu)}
-                      title="Editar nombre y descripción"
+                      aria-controls={`menu-options-${menu.id}`}
+                      aria-expanded={isOptionsOpen}
+                      aria-label={`Más opciones para ${menu.name}`}
+                      className="admin-menu-options-trigger"
+                      onClick={() => setOpenOptionsMenuId((current) => current === menu.id ? null : menu.id)}
                       type="button"
                     >
                       <svg
+                        aria-hidden="true"
                         fill="none"
                         height="15"
                         stroke="currentColor"
@@ -291,79 +295,76 @@ export function MenusDashboard({
                         viewBox="0 0 24 24"
                         width="15"
                       >
-                        <path d="M12 20h9" />
-                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                        <circle cx="5" cy="12" r="1.25" />
+                        <circle cx="12" cy="12" r="1.25" />
+                        <circle cx="19" cy="12" r="1.25" />
                       </svg>
                     </button>
 
-                    <button
-                      className="icon-button"
-                      aria-label={`Configurar horarios de ${menu.name}`}
-                      onClick={() => setEditingSchedulesMenu(menu)}
-                      title="Configurar horarios"
-                      type="button"
-                    >
-                      <svg
-                        fill="none"
-                        height="15"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                        width="15"
-                      >
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
-                    </button>
-
-                    <button
-                      className="icon-button"
-                      aria-label={`Cambiar foto de portada de ${menu.name}`}
-                      onClick={() => setEditingBannerMenu(menu)}
-                      title="Cambiar foto de portada"
-                      type="button"
-                    >
-                      <svg
-                        fill="none"
-                        height="15"
-                        stroke="currentColor"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        viewBox="0 0 24 24"
-                        width="15"
-                      >
-                        <rect height="18" rx="2" ry="2" width="18" x="3" y="3" />
-                        <circle cx="8.5" cy="8.5" r="1.5" />
-                        <polyline points="21 15 16 10 5 21" />
-                      </svg>
-                    </button>
-
-                    {menus.length > 1 && (
-                      <button
-                        className="icon-button icon-button-danger"
-                        disabled={isPending}
-                        aria-label={`Eliminar ${menu.name}`}
-                        onClick={() => handleDelete(menu)}
-                        title="Eliminar carta"
-                        type="button"
-                      >
-                        <svg
-                          fill="none"
-                          height="15"
-                          stroke="currentColor"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          width="15"
+                    {isOptionsOpen && (
+                      <div className="admin-menu-options-menu" id={`menu-options-${menu.id}`} role="menu">
+                        <button
+                          onClick={() => {
+                            setOpenOptionsMenuId(null);
+                            setEditingMenu(menu);
+                          }}
+                          role="menuitem"
+                          type="button"
                         >
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg>
-                      </button>
+                          <svg aria-hidden="true" fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="16">
+                            <path d="M12 20h9" />
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                          </svg>
+                          Editar datos
+                        </button>
+                        <button
+                          onClick={() => {
+                            setOpenOptionsMenuId(null);
+                            setEditingSchedulesMenu(menu);
+                          }}
+                          role="menuitem"
+                          type="button"
+                        >
+                          <svg aria-hidden="true" fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="16">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                          </svg>
+                          Configurar horarios
+                        </button>
+                        <button
+                          onClick={() => {
+                            setOpenOptionsMenuId(null);
+                            setEditingBannerMenu(menu);
+                          }}
+                          role="menuitem"
+                          type="button"
+                        >
+                          <svg aria-hidden="true" fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="16">
+                            <rect height="18" rx="2" ry="2" width="18" x="3" y="3" />
+                            <circle cx="8.5" cy="8.5" r="1.5" />
+                            <polyline points="21 15 16 10 5 21" />
+                          </svg>
+                          Cambiar portada
+                        </button>
+                        {menus.length > 1 && (
+                          <button
+                            className="is-danger"
+                            disabled={isPending}
+                            onClick={() => {
+                              setOpenOptionsMenuId(null);
+                              handleDelete(menu);
+                            }}
+                            role="menuitem"
+                            type="button"
+                          >
+                            <svg aria-hidden="true" fill="none" height="16" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="16">
+                              <polyline points="3 6 5 6 21 6" />
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg>
+                            Eliminar carta
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>

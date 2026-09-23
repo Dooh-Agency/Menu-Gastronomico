@@ -36,6 +36,7 @@ La identidad del restaurante se mantiene como una capa sutil y controlada. El co
 - El acceso de administración mantiene la base neutral de la plataforma: encabezado breve, descripción orientada a la gestión y formulario en una superficie contenida. La autenticación y recuperación de contraseña conservan sus flujos existentes.
 - El campo de contraseña del acceso permite alternar visibilidad con un control de ojo etiquetado para tecnologías asistivas; no modifica el valor ni el envío del formulario.
 - El panel de Cartas administrativo aplica la misma jerarquía sin trasladar el branding de cada restaurante a toda la interfaz: navegación y tarjetas sobre superficies neutras, acciones primarias en alto contraste, metadatos de baja jerarquía y color de marca reservado para foco, selección o información contextual. Los estados activa/oculta conservan semántica propia y no dependen del color configurable por tenant.
+- En las tarjetas administrativas, una única acción visible conduce al editor de la carta. Las acciones auxiliares de mantenimiento se agrupan en un menú contextual con etiquetas de texto, de modo que no compiten con la gestión de contenido ni se reducen a iconos ambiguos.
 
 ### Estrategia de adopción
 

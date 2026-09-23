@@ -2388,14 +2388,14 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 /* Unified Admin Header */
 .admin-header-unified {
   align-items: center;
-  background: rgba(255, 253, 248, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid #e7e1d8;
+  background: var(--ui-surface-sticky);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--ui-border);
   display: flex;
-  height: 4.25rem;
+  height: 4rem;
   justify-content: space-between;
-  padding: 0 0.5rem;
+  padding: 0 clamp(0.25rem, 1vw, 0.75rem);
   position: sticky;
   top: 0;
   width: 100%;
@@ -2412,30 +2412,27 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 
 .admin-public-menu-btn {
   align-items: center;
-  background: #f7f4ed;
-  border: 1px solid #e2dad0;
-  border-radius: 2rem;
-  color: #5c4e43;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-control);
+  color: var(--ui-text);
   display: inline-flex;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: var(--type-label);
+  font-weight: 650;
   gap: 0.5rem;
-  padding: 0.45rem 0.85rem;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.8rem;
   text-decoration: none;
-  transition: all 0.18s ease;
+  transition: transform var(--motion-duration) var(--motion-ease);
 }
 
 .admin-public-menu-btn:hover {
-  background: #eae2d6;
-  border-color: #d4c8b8;
-  color: #1f2937;
   transform: translateY(-1px);
 }
 
 .public-live-indicator {
   background-color: #10b981;
   border-radius: 50%;
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
   display: inline-block;
   height: 0.45rem;
   width: 0.45rem;
@@ -2460,9 +2457,9 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 /* Center Section: Equal-sized Main Tabs */
 .admin-header-center-nav {
   align-items: center;
-  background: #f1ebd8;
-  border: 1px solid #e2dad0;
-  border-radius: 2rem;
+  background: var(--ui-canvas);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-control);
   display: inline-flex;
   gap: 0.25rem;
   max-width: 22rem;
@@ -2473,28 +2470,28 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .admin-nav-tab {
   align-items: center;
   background: transparent;
-  border-radius: 1.75rem;
-  color: #6b5c50;
+  border-radius: calc(var(--radius-control) - 0.25rem);
+  color: var(--ui-text-secondary);
   display: inline-flex;
   flex: 1 1 0px;
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: var(--type-label);
+  font-weight: 650;
   gap: 0.45rem;
   justify-content: center;
   padding: 0.5rem 1rem;
   text-decoration: none;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--motion-duration) var(--motion-ease);
   white-space: nowrap;
 }
 
 .admin-nav-tab:hover {
-  color: #2c1e16;
+  color: var(--ui-text);
 }
 
 .admin-nav-tab.is-active {
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  color: #ae4c2c;
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow-subtle);
+  color: var(--ui-text);
 }
 
 .tab-icon {
@@ -2514,23 +2511,23 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .admin-profile-trigger {
   align-items: center;
   background: transparent;
-  border: 1.5px solid transparent;
-  border-radius: 2rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
   cursor: pointer;
   display: inline-flex;
   gap: 0.4rem;
   padding: 0.2rem 0.4rem 0.2rem 0.2rem;
-  transition: all 0.15s ease;
+  transition: transform var(--motion-duration) var(--motion-ease);
 }
 
 .admin-profile-trigger:hover,
 .admin-profile-trigger.is-active {
-  background: #f7f4ed;
-  border-color: #e7e1d8;
+  background: var(--ui-surface);
+  border-color: var(--ui-border);
 }
 
 .admin-profile-avatar-img {
-  border: 1.5px solid #d4c8b8;
+  border: 1px solid var(--ui-border);
   border-radius: 50%;
   height: 2.25rem;
   object-fit: cover;
@@ -2539,7 +2536,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 
 .admin-profile-avatar-fallback {
   align-items: center;
-  background: linear-gradient(135deg, #ae4c2c, #823718);
+  background: var(--ui-text);
   border-radius: 50%;
   color: white;
   display: inline-flex;
@@ -2551,7 +2548,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 }
 
 .admin-profile-chevron {
-  color: #7a6b5d;
+  color: var(--ui-text-secondary);
   height: 1rem;
   transition: transform 0.2s ease;
   width: 1rem;
@@ -2564,10 +2561,10 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 /* Dropdown Menu Popover */
 .admin-profile-dropdown {
   animation: dropdownFadeIn 0.15s ease-out;
-  background: #ffffff;
-  border: 1px solid #e7e1d8;
-  border-radius: 0.85rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.06);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-surface);
+  box-shadow: var(--ui-shadow-float);
   min-width: 13rem;
   overflow: hidden;
   padding: 0.4rem;
@@ -2596,7 +2593,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 }
 
 .dropdown-restaurant-name {
-  color: #1f2937;
+  color: var(--ui-text);
   font-size: 0.9rem;
   font-weight: 700;
   overflow: hidden;
@@ -2605,14 +2602,14 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 }
 
 .dropdown-badge {
-  color: #823718;
+  color: var(--ui-text-secondary);
   font-size: 0.72rem;
   font-weight: 600;
   text-transform: uppercase;
 }
 
 .dropdown-divider {
-  background: #f1ebd8;
+  background: var(--ui-border);
   height: 1px;
   margin: 0.3rem 0;
 }
@@ -2621,25 +2618,25 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   align-items: center;
   border: 0;
   border-radius: 0.5rem;
-  color: #374151;
+  color: var(--ui-text);
   display: flex;
   font-size: 0.875rem;
   font-weight: 600;
   gap: 0.6rem;
   padding: 0.5rem 0.65rem;
   text-decoration: none;
-  transition: background 0.12s ease, color 0.12s ease;
+  transition: transform var(--motion-duration) var(--motion-ease);
   width: 100%;
 }
 
 .dropdown-item:hover {
-  background: #f7f4ed;
-  color: #ae4c2c;
+  background: var(--ui-canvas);
+  color: var(--ui-text);
 }
 
 .dropdown-item.is-active {
-  background: #f3e5df;
-  color: #823718;
+  background: var(--ui-canvas);
+  color: var(--ui-text);
 }
 
 .dropdown-item-danger {
@@ -4343,55 +4340,52 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   width: 100%;
   max-width: 100%;
   margin: 0 auto;
-  padding: 1.5rem 0 3rem;
+  padding: clamp(2rem, 5vw, 4rem) 0 3rem;
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--space-4);
 }
 
 .admin-dashboard-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: var(--space-3);
   flex-wrap: wrap;
-  border-bottom: 1px solid #e7e1d8;
-  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--ui-border);
+  padding-bottom: var(--space-3);
   width: 100%;
 }
 
 .admin-dashboard-header-left {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--space-1);
 }
 
 .admin-dashboard-tag {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.75rem;
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-accent, #ae4c2c);
-  background: #fdf3ef;
-  padding: 0.2rem 0.6rem;
-  border-radius: 999px;
-  width: fit-content;
+  letter-spacing: 0.12em;
+  margin: 0;
 }
 
 .admin-dashboard-title {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--color-ink, #26211c);
+  color: var(--ui-text);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 700;
   margin: 0;
-  line-height: 1.2;
+  line-height: var(--leading-tight);
 }
 
 .admin-dashboard-subtitle {
-  font-size: 0.95rem;
-  color: var(--color-muted, #72685d);
+  color: var(--ui-text-secondary);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
   margin: 0;
+  max-width: 40rem;
 }
 
 .admin-dashboard-header-actions {
@@ -4401,42 +4395,65 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   flex-wrap: wrap;
 }
 
+.admin-dashboard-header-actions .secondary-link,
+.admin-dashboard-header-actions .primary-button {
+  align-items: center;
+  border-radius: var(--radius-control);
+  display: inline-flex;
+  font-size: var(--type-label);
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0.65rem 1rem;
+}
+
+.admin-dashboard-header-actions .primary-button {
+  background: var(--ui-text);
+  border: 1px solid var(--ui-text);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  transition: transform var(--motion-duration) var(--motion-ease);
+}
+
+.admin-dashboard-header-actions .primary-button:hover {
+  transform: translateY(-1px);
+}
+
 /* Grilla de Cartas */
 .admin-menus-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
-  gap: 1.75rem;
+  gap: var(--space-3);
   width: 100%;
 }
 
 .admin-menu-card {
-  background: white;
-  border: 1px solid #e7e1d8;
-  border-radius: 1rem;
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-surface);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--ui-shadow-subtle);
+  transition: transform var(--motion-duration) var(--motion-ease);
 }
 
 .admin-menu-card:hover {
-  border-color: #cbbfae;
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--ui-shadow-float);
+  transform: translateY(-2px);
 }
 
 .admin-menu-card.is-inactive {
   opacity: 0.8;
-  background: #faf8f5;
+  background: var(--ui-canvas);
 }
 
 /* Portada de la tarjeta de carta */
 .admin-menu-card-cover {
   position: relative;
   width: 100%;
-  height: 11rem;
-  background: #f0eae1;
+  height: 12rem;
+  background: var(--ui-canvas);
   cursor: pointer;
   overflow: hidden;
 }
@@ -4456,8 +4473,8 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #a89f91;
-  background: linear-gradient(135deg, #f5f0e8 0%, #ebe3d5 100%);
+  color: var(--ui-text-secondary);
+  background: var(--ui-canvas);
 }
 
 .admin-menu-card-badges {
@@ -4468,20 +4485,21 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 }
 
 .admin-badge-active {
-  background: rgba(255, 255, 255, 0.94);
-  color: #2b7a1f;
-  font-size: 0.75rem;
+  background: rgb(255 255 255 / 94%);
+  border: 1px solid rgb(0 0 0 / 6%);
+  color: #237a4a;
+  font-size: var(--type-caption);
   font-weight: 700;
   padding: 0.25rem 0.6rem;
   border-radius: 999px;
   backdrop-filter: blur(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .admin-badge-inactive {
-  background: rgba(255, 255, 255, 0.94);
+  background: rgb(255 255 255 / 94%);
+  border: 1px solid rgb(0 0 0 / 6%);
   color: #dc2626;
-  font-size: 0.75rem;
+  font-size: var(--type-caption);
   font-weight: 700;
   padding: 0.25rem 0.6rem;
   border-radius: 999px;
@@ -4491,12 +4509,12 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .admin-menu-card-hover-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgb(0 0 0 / 28%);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--motion-duration) var(--motion-ease);
   z-index: 3;
 }
 
@@ -4505,15 +4523,15 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 }
 
 .admin-menu-card-enter-btn {
-  background: white;
-  color: var(--color-ink);
+  background: var(--ui-surface);
+  color: var(--ui-text);
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: var(--type-label);
   padding: 0.55rem 1.1rem;
-  border-radius: 999px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-control);
+  box-shadow: var(--ui-shadow-subtle);
   transform: translateY(4px);
-  transition: transform 0.2s ease;
+  transition: transform var(--motion-duration) var(--motion-ease);
 }
 
 .admin-menu-card-cover:hover .admin-menu-card-enter-btn {
@@ -4522,37 +4540,36 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 
 /* Cuerpo de la tarjeta */
 .admin-menu-card-body {
-  padding: 1.25rem;
+  padding: var(--space-3);
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 1rem;
+  gap: var(--space-3);
   justify-content: space-between;
 }
 
 .admin-menu-card-info {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--space-1);
 }
 
 .admin-menu-card-name {
+  color: var(--ui-text);
   font-size: 1.25rem;
-  font-weight: 800;
-  color: var(--color-ink);
+  font-weight: 700;
   margin: 0;
   line-height: 1.3;
   cursor: pointer;
-  transition: color 0.15s ease;
 }
 
 .admin-menu-card-name:hover {
-  color: var(--color-accent, #ae4c2c);
+  color: var(--ui-text);
 }
 
 .admin-menu-card-desc {
-  font-size: 0.88rem;
-  color: var(--color-muted);
+  color: var(--ui-text-secondary);
+  font-size: var(--type-label);
   margin: 0;
   line-height: 1.4;
   display: -webkit-box;
@@ -4564,32 +4581,30 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .admin-menu-card-meta-list {
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
-  background: #fbf9f6;
-  padding: 0.75rem 0.85rem;
-  border-radius: 0.65rem;
-  border: 1px solid #f0eae1;
+  gap: var(--space-1);
+  border-top: 1px solid var(--ui-border);
+  padding-top: var(--space-2);
 }
 
 .admin-menu-card-meta-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.82rem;
-  color: var(--color-muted);
+  color: var(--ui-text-secondary);
+  font-size: var(--type-label);
 }
 
 .admin-menu-card-meta-item svg {
-  color: var(--color-accent, #ae4c2c);
+  color: var(--ui-text-secondary);
   flex-shrink: 0;
 }
 
 .admin-menu-card-actions {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #f0eae1;
+  gap: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--ui-border);
 }
 
 .admin-menu-open-btn {
@@ -4598,10 +4613,20 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
+  background: var(--ui-text);
+  border: 1px solid var(--ui-text);
+  color: #fff;
+  cursor: pointer;
+  min-height: 2.75rem;
   padding: 0.65rem 1rem;
-  font-size: 0.88rem;
+  font-size: var(--type-label);
   font-weight: 700;
-  border-radius: 0.55rem;
+  border-radius: var(--radius-control);
+  transition: transform var(--motion-duration) var(--motion-ease);
+}
+
+.admin-menu-open-btn:hover {
+  transform: translateY(-1px);
 }
 
 .admin-menu-card-btn-group {
@@ -4612,9 +4637,9 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 
 /* Tarjeta vacía para Crear Carta */
 .admin-create-menu-card {
-  background: #fbf9f6;
-  border: 2px dashed #d5cec5;
-  border-radius: 1rem;
+  background: transparent;
+  border: 1px dashed rgb(0 0 0 / 18%);
+  border-radius: var(--radius-surface);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -4622,13 +4647,11 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   min-height: 20rem;
   padding: 2rem 1.5rem;
   text-align: center;
-  transition: all 0.2s ease;
+  transition: transform var(--motion-duration) var(--motion-ease);
 }
 
 .admin-create-menu-card:hover {
-  background: #fdf6f2;
-  border-color: var(--color-accent, #ae4c2c);
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 }
 
 .admin-create-menu-card-content {
@@ -4643,30 +4666,29 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   width: 3.5rem;
   height: 3.5rem;
   border-radius: 50%;
-  background: white;
-  border: 2px dashed var(--color-accent, #ae4c2c);
-  color: var(--color-accent, #ae4c2c);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  color: var(--ui-text);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 0.35rem;
-  transition: transform 0.2s ease, background 0.2s ease;
+  transition: transform var(--motion-duration) var(--motion-ease);
 }
 
 .admin-create-menu-card:hover .admin-create-menu-plus-icon {
-  background: var(--color-secondary, #f3e5df);
-  transform: scale(1.1);
+  transform: scale(1.04);
 }
 
 .admin-create-menu-card strong {
   font-size: 1.1rem;
   font-weight: 800;
-  color: var(--color-ink);
+  color: var(--ui-text);
 }
 
 .admin-create-menu-card p {
-  font-size: 0.85rem;
-  color: var(--color-muted);
+  color: var(--ui-text-secondary);
+  font-size: var(--type-label);
   margin: 0;
   line-height: 1.4;
 }

@@ -35,6 +35,7 @@ La identidad del restaurante se mantiene como una capa sutil y controlada. El co
 - La página de inicio de la plataforma utiliza la misma base neutral: etiqueta auxiliar discreta, titular editorial, una acción primaria oscura y una acción secundaria de borde tenue. Las acciones se presentan en línea cuando el ancho lo permite y apiladas con texto centrado en móvil. No incorpora branding de un restaurante ni modifica los destinos de navegación.
 - El acceso de administración mantiene la base neutral de la plataforma: encabezado breve, descripción orientada a la gestión y formulario en una superficie contenida. La autenticación y recuperación de contraseña conservan sus flujos existentes.
 - El campo de contraseña del acceso permite alternar visibilidad con un control de ojo etiquetado para tecnologías asistivas; no modifica el valor ni el envío del formulario.
+- El panel de Cartas administrativo aplica la misma jerarquía sin trasladar el branding de cada restaurante a toda la interfaz: navegación y tarjetas sobre superficies neutras, acciones primarias en alto contraste, metadatos de baja jerarquía y color de marca reservado para foco, selección o información contextual. Los estados activa/oculta conservan semántica propia y no dependen del color configurable por tenant.
 
 ### Estrategia de adopción
 

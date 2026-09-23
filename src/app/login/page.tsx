@@ -7,10 +7,12 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const safeNext = next?.startsWith("/") ? next : "/admin";
   return (
     <main className="auth-shell">
-      <p className="eyebrow">Administración</p>
-      <h1>Ingresar al menú</h1>
-      <p>Acceso exclusivo para las personas administradoras del restaurante.</p>
-      <AuthForm next={safeNext} />
+      <section aria-labelledby="login-title" className="auth-intro">
+        <p className="eyebrow auth-eyebrow">Administración</p>
+        <h1 id="login-title">Administrá tu carta digital</h1>
+        <p className="auth-description">Gestioná platos, horarios y diseño desde un solo lugar.</p>
+        <AuthForm next={safeNext} />
+      </section>
     </main>
   );
 }

@@ -17,10 +17,14 @@ export function DishCardHero({
   const defaultDetails = locale.startsWith("en") ? "View details" : "Ver detalle";
   const defaultSoldOut = locale.startsWith("en") ? "Agotado" : "Agotado";
   const defaultFilters = locale.startsWith("en") ? "Filter by dietary preference" : "Filtrar por preferencias";
+  const defaultAllergens = locale.startsWith("en") ? "Contains" : "Contiene";
 
   const detailsLabel = labels?.details || defaultDetails;
   const soldOutLabel = labels?.soldOut || defaultSoldOut;
   const filtersLabel = labels?.filters || defaultFilters;
+  const allergensLabel = labels?.allergens || defaultAllergens;
+  const dietaryTags = Array.isArray(item.dietary_tags) ? item.dietary_tags : [];
+  const allergens = Array.isArray(item.allergens) ? item.allergens : [];
 
   function handleClick() {
     if (onSelect) {
@@ -98,13 +102,21 @@ export function DishCardHero({
         ) : null}
 
         <div className="dish-card-hero-footer">
-          {Array.isArray(item.dietary_tags) && item.dietary_tags.length > 0 && (
+          {dietaryTags.length > 0 && (
             <div className="dish-card-hero-tags" aria-label={filtersLabel}>
-              {item.dietary_tags.map((tag) => (
+              {dietaryTags.slice(0, 3).map((tag) => (
                 <span className="dish-card-hero-tag" key={tag}>
                   {tag}
                 </span>
               ))}
+              {dietaryTags.length > 3 && <span className="dish-card-hero-tag is-more">+{dietaryTags.length - 3}</span>}
+            </div>
+          )}
+
+          {allergens.length > 0 && (
+            <div className="dish-card-hero-tags" aria-label={labels?.allergens || (locale.startsWith("en") ? "Allergens" : "Alérgenos")}>
+              <span className="dish-card-hero-tag is-allergen">{allergensLabel} {allergens[0]}</span>
+              {allergens.length > 1 && <span className="dish-card-hero-tag is-more">+{allergens.length - 1}</span>}
             </div>
           )}
 

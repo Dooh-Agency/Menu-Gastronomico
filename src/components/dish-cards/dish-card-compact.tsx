@@ -16,9 +16,13 @@ export function DishCardCompact({
 
   const defaultSoldOut = locale.startsWith("en") ? "Sold out" : "Agotado";
   const defaultFilters = locale.startsWith("en") ? "Filter by dietary preference" : "Filtrar por preferencias";
+  const defaultAllergens = locale.startsWith("en") ? "Contains" : "Contiene";
 
   const soldOutLabel = labels?.soldOut || defaultSoldOut;
   const filtersLabel = labels?.filters || defaultFilters;
+  const allergensLabel = labels?.allergens || defaultAllergens;
+  const dietaryTags = Array.isArray(item.dietary_tags) ? item.dietary_tags : [];
+  const allergens = Array.isArray(item.allergens) ? item.allergens : [];
 
   function handleClick() {
     if (onSelect) {
@@ -106,28 +110,37 @@ export function DishCardCompact({
 
       {/* Contenido / Información Compacta */}
       <div className="dish-card-compact-body">
-        <h3 className="dish-card-compact-title">{localized.name}</h3>
+        <div className="dish-card-compact-heading">
+          <h3 className="dish-card-compact-title">{localized.name}</h3>
+          <strong className="dish-card-compact-price">{priceFormatted}</strong>
+        </div>
 
         {localized.description ? (
           <p className="dish-card-compact-desc">{localized.description}</p>
         ) : null}
 
-        <div className="dish-card-compact-footer">
-          <strong className="dish-card-compact-price">{priceFormatted}</strong>
-
-          {Array.isArray(item.dietary_tags) && item.dietary_tags.length > 0 && (
-            <div className="dish-card-compact-tags" aria-label={filtersLabel}>
-              <span className="dish-card-compact-tag">
-                {item.dietary_tags[0]}
-              </span>
-              {item.dietary_tags.length > 1 && (
-                <span className="dish-card-compact-tag is-more">
-                  +{item.dietary_tags.length - 1}
+        {(dietaryTags.length > 0 || allergens.length > 0) && (
+          <div className="dish-card-compact-footer">
+            {dietaryTags.length > 0 && (
+              <div className="dish-card-compact-tags" aria-label={filtersLabel}>
+                <span className="dish-card-compact-tag">
+                  {dietaryTags[0]}
                 </span>
-              )}
-            </div>
-          )}
-        </div>
+                {dietaryTags.length > 1 && (
+                  <span className="dish-card-compact-tag is-more">
+                    +{dietaryTags.length - 1}
+                  </span>
+                )}
+              </div>
+            )}
+            {allergens.length > 0 && (
+              <div className="dish-card-compact-tags" aria-label={labels?.allergens || (locale.startsWith("en") ? "Allergens" : "Alérgenos")}>
+                <span className="dish-card-compact-tag is-allergen">{allergensLabel} {allergens[0]}</span>
+                {allergens.length > 1 && <span className="dish-card-compact-tag is-more">+{allergens.length - 1}</span>}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </article>
   );

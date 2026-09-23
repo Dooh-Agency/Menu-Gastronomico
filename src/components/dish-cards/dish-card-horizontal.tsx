@@ -17,10 +17,14 @@ export function DishCardHorizontal({
   const defaultDetails = locale.startsWith("en") ? "View details" : "Ver detalle";
   const defaultSoldOut = locale.startsWith("en") ? "Agotado" : "Agotado";
   const defaultFilters = locale.startsWith("en") ? "Filter by dietary preference" : "Filtrar por preferencias";
+  const defaultAllergens = locale.startsWith("en") ? "Contains" : "Contiene";
 
   const detailsLabel = labels?.details || defaultDetails;
   const soldOutLabel = labels?.soldOut || defaultSoldOut;
   const filtersLabel = labels?.filters || defaultFilters;
+  const allergensLabel = labels?.allergens || defaultAllergens;
+  const dietaryTags = Array.isArray(item.dietary_tags) ? item.dietary_tags : [];
+  const allergens = Array.isArray(item.allergens) ? item.allergens : [];
 
   function handleClick() {
     if (onSelect) {
@@ -48,6 +52,7 @@ export function DishCardHorizontal({
       <div className="dish-card-horizontal-main">
         <div className="dish-card-horizontal-header">
           <h3 className="dish-card-horizontal-title">{localized.name}</h3>
+          <strong className="dish-card-horizontal-price">{priceFormatted}</strong>
         </div>
 
         {localized.description ? (
@@ -55,23 +60,28 @@ export function DishCardHorizontal({
         ) : null}
 
         <div className="dish-card-horizontal-footer">
-          <div className="dish-card-horizontal-price-wrap">
-            <strong className="dish-card-horizontal-price">{priceFormatted}</strong>
-          </div>
-
           <div className="dish-card-horizontal-meta">
-            {Array.isArray(item.dietary_tags) && item.dietary_tags.length > 0 && (
+            {dietaryTags.length > 0 && (
               <div className="dish-card-horizontal-tags" aria-label={filtersLabel}>
-                {item.dietary_tags.slice(0, 3).map((tag) => (
+                {dietaryTags.slice(0, 2).map((tag) => (
                   <span className="dish-card-horizontal-tag" key={tag}>
                     {tag}
                   </span>
                 ))}
-                {item.dietary_tags.length > 3 && (
+                {dietaryTags.length > 2 && (
                   <span className="dish-card-horizontal-tag is-more">
-                    +{item.dietary_tags.length - 3}
+                    +{dietaryTags.length - 2}
                   </span>
                 )}
+              </div>
+            )}
+
+            {allergens.length > 0 && (
+              <div className="dish-card-horizontal-tags" aria-label={labels?.allergens || (locale.startsWith("en") ? "Allergens" : "Alérgenos")}>
+                <span className="dish-card-horizontal-tag is-allergen">
+                  {allergensLabel} {allergens[0]}
+                </span>
+                {allergens.length > 1 && <span className="dish-card-horizontal-tag is-more">+{allergens.length - 1}</span>}
               </div>
             )}
 

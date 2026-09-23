@@ -926,6 +926,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   display: flex;
   gap: 0.5rem;
   justify-content: space-between;
+  min-width: 0;
 }
 
 .dish-card-horizontal-title {
@@ -935,6 +936,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   font-weight: 700;
   line-height: var(--leading-title);
   margin: 0;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
@@ -957,7 +959,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   align-items: center;
   display: flex;
   gap: var(--space-1);
-  justify-content: space-between;
+  justify-content: flex-start;
   margin-top: auto;
   padding-top: var(--space-1);
 }
@@ -969,6 +971,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 
 .dish-card-horizontal-price {
   color: #000;
+  flex-shrink: 0;
   font-size: var(--type-body-large);
   line-height: var(--leading-tight);
   font-weight: 800;
@@ -978,13 +981,14 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .dish-card-horizontal-meta {
   align-items: center;
   display: flex;
-  gap: 0.4rem;
+  gap: var(--space-1);
   flex-wrap: wrap;
 }
 
 .dish-card-horizontal-tags {
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
   gap: 0.3rem;
 }
 
@@ -1090,9 +1094,13 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .dish-card-grid-img { object-fit: cover; }
 .dish-card-grid-soldout { background: rgba(0, 0, 0, 0.58); color: white; font-size: 0.62rem; font-weight: 700; inset: 0; display: grid; place-items: center; position: absolute; text-transform: uppercase; }
 .dish-card-grid-body { display: flex; flex: 1; flex-direction: column; gap: var(--space-1); min-height: 8.5rem; padding: var(--space-2); }
-.dish-card-grid-body h3 { color: #050505; display: -webkit-box; font-size: var(--type-body); font-weight: 700; line-height: var(--leading-title); margin: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+.dish-card-grid-heading { align-items: flex-start; display: flex; gap: var(--space-1); justify-content: space-between; min-width: 0; }
+.dish-card-grid-body h3 { color: #050505; display: -webkit-box; flex: 1; font-size: var(--type-body); font-weight: 700; line-height: var(--leading-title); margin: 0; min-width: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
 .dish-card-grid-body p { color: #575757; display: -webkit-box; font-size: var(--type-label); line-height: var(--leading-body); margin: 0; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
-.dish-card-grid-body strong { color: #000; font-size: var(--type-body); line-height: var(--leading-tight); margin-top: auto; }
+.dish-card-grid-body strong { color: #000; flex-shrink: 0; font-size: var(--type-label); line-height: var(--leading-tight); white-space: nowrap; }
+.dish-card-grid-meta { display: flex; flex-wrap: wrap; gap: var(--space-1); margin-top: auto; }
+.dish-card-grid-tags { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.dish-card-grid-tag { background: #edf4ec; border-radius: var(--radius-pill); color: #385532; font-size: var(--type-caption); font-weight: 600; line-height: 1.2; padding: 0.2rem 0.45rem; white-space: nowrap; }
 
 .menu-items-hero-grid {
   display: grid;
@@ -1252,6 +1260,23 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   padding: 0.2rem 0.6rem;
 }
 
+.dish-card-hero-tag.is-allergen,
+.dish-card-horizontal-tag.is-allergen,
+.dish-card-grid-tag.is-allergen,
+.dish-card-compact-tag.is-allergen {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #9a3412;
+}
+
+.dish-card-hero-tag.is-more,
+.dish-card-horizontal-tag.is-more,
+.dish-card-grid-tag.is-more,
+.dish-card-compact-tag.is-more {
+  background: #f4f4f5;
+  color: #52525b;
+}
+
 .dish-card-hero-soldout {
   background: #fee2e2;
   border-radius: 999px;
@@ -1384,13 +1409,23 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   padding: var(--space-2);
 }
 
+.dish-card-compact-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: var(--space-1);
+  justify-content: space-between;
+  min-width: 0;
+}
+
 .dish-card-compact-title {
   color: var(--color-ink);
   display: -webkit-box;
   font-size: var(--type-body);
   font-weight: 700;
+  flex: 1;
   line-height: var(--leading-title);
   margin: 0;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   -webkit-box-orient: vertical;
@@ -1413,13 +1448,15 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   align-items: center;
   display: flex;
   gap: var(--space-1);
-  justify-content: space-between;
+  flex-wrap: wrap;
+  justify-content: flex-start;
   margin-top: auto;
   padding-top: var(--space-1);
 }
 
 .dish-card-compact-price {
   color: #000;
+  flex-shrink: 0;
   font-size: var(--type-body);
   font-weight: 800;
   line-height: var(--leading-tight);
@@ -1428,6 +1465,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 
 .dish-card-compact-tags {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.2rem;
 }
 
@@ -5560,6 +5598,3 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   max-width: 16rem;
   width: 100%;
 }
-
-
-

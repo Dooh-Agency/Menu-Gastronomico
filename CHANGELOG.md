@@ -16,6 +16,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
 
 ### 🎨 UI & Diseño
+- **Fondo contextual en navegación de categorías (`menu-publico.tsx` / `globals.css`):** Las categorías permanecen transparentes al inicio. Al quedar fijas, una superficie de vidrio traslúcida de ancho completo aparece por opacidad para conservar contraste sin interferir con el hero.
 - **Header público más sobrio (`globals.css`):** Se conservó la composición de volver, marca centrada y filtros dentro de una cápsula de vidrio traslúcida. También se redujeron la altura y el contraste del hero para dar prioridad al nombre y la descripción de la carta.
 - **Navegación horizontal de categorías refinada (`menu-publico.tsx` / `globals.css`):** Se agregó una superficie sticky traslúcida, áreas táctiles consistentes, activo por subrayado y pista visual de continuidad lateral, preservando el scroll y Scrollspy existentes.
 - **Detalle de plato minimalista (`menu-publico.tsx` / `globals.css`):** Se reorganizó el modal de plato con una imagen más contenida, jerarquía de nombre y precio, chips de preferencias y bloque diferenciado de alérgenos. Se eliminó el texto técnico “Filtrar por preferencias”.

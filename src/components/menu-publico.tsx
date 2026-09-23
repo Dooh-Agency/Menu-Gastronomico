@@ -227,9 +227,11 @@ export function MenuPublico({
   const [isFilterDialogOpen, setIsFilterDialogOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>("all");
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
+  const [isCategoryNavSticky, setIsCategoryNavSticky] = useState(false);
   const isManualScrollRef = useRef(false);
   const manualScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const categoryNavRef = useRef<HTMLElement>(null);
+  const categoryNavSentinelRef = useRef<HTMLDivElement>(null);
   const copy = copyFor(locale);
 
   useEffect(() => {
@@ -361,6 +363,20 @@ export function MenuPublico({
       });
     }
   }, [selectedCategoryId]);
+
+  // La superficie de la navegación aparece solo al quedar fija, sin alterar el Scrollspy.
+  useEffect(() => {
+    const sentinel = categoryNavSentinelRef.current;
+    if (!selectedMenuId || !sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsCategoryNavSticky(!entry.isIntersecting),
+      { threshold: 0 },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [selectedMenuId, currentMenu.id, categories.length]);
 
   function selectLocale(nextLocale: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -833,41 +849,44 @@ export function MenuPublico({
       ) : null}
 
       {categories.length > 0 ? (
-        <div className="category-nav-wrap">
-          <nav
-            className="category-nav"
-            aria-label={copy.menu}
-            ref={categoryNavRef}
-            role="tablist"
-          >
-            <button
-              aria-selected={!selectedCategoryId || selectedCategoryId === "all"}
-              className={!selectedCategoryId || selectedCategoryId === "all" ? "is-active" : ""}
-              data-category-id="all"
-              id="tab-all"
-              onClick={() => selectCategory("all")}
-              role="tab"
-              type="button"
+        <>
+          <div aria-hidden="true" className="category-nav-sentinel" ref={categoryNavSentinelRef} />
+          <div className={`category-nav-wrap${isCategoryNavSticky ? " is-sticky" : ""}`}>
+            <nav
+              className="category-nav"
+              aria-label={copy.menu}
+              ref={categoryNavRef}
+              role="tablist"
             >
-              {copy.all}
-            </button>
-            {categories.map((category) => (
               <button
-                aria-controls={`category-${category.id}`}
-                aria-selected={selectedCategoryId === category.id}
-                className={selectedCategoryId === category.id ? "is-active" : ""}
-                data-category-id={category.id}
-                id={`tab-${category.id}`}
-                key={category.id}
-                onClick={() => selectCategory(category.id)}
+                aria-selected={!selectedCategoryId || selectedCategoryId === "all"}
+                className={!selectedCategoryId || selectedCategoryId === "all" ? "is-active" : ""}
+                data-category-id="all"
+                id="tab-all"
+                onClick={() => selectCategory("all")}
                 role="tab"
                 type="button"
               >
-                {translated(category, locale).name}
+                {copy.all}
               </button>
-            ))}
-          </nav>
-        </div>
+              {categories.map((category) => (
+                <button
+                  aria-controls={`category-${category.id}`}
+                  aria-selected={selectedCategoryId === category.id}
+                  className={selectedCategoryId === category.id ? "is-active" : ""}
+                  data-category-id={category.id}
+                  id={`tab-${category.id}`}
+                  key={category.id}
+                  onClick={() => selectCategory(category.id)}
+                  role="tab"
+                  type="button"
+                >
+                  {translated(category, locale).name}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </>
       ) : null}
 
       <section className="menu-content" id="menu-content" aria-live="polite">

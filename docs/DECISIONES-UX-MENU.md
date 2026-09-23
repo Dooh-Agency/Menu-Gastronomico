@@ -30,6 +30,7 @@ La identidad del restaurante se mantiene como una capa sutil y controlada. El co
 - Las tarjetas de lista, grilla y carrusel comparten la misma lectura: nombre y precio en el primer nivel; descripción en el segundo; preferencias dietarias y alérgenos como chips secundarios. Los alérgenos se distinguen visualmente de las preferencias y ambos conservan un nombre accesible.
 - El detalle desplegado de un plato sigue la misma jerarquía: foto contenida, nombre y precio, descripción, chips de preferencias y un bloque separado de alérgenos. El modal no expone textos de control como “Filtrar por preferencias”.
 - El header público mantiene tres zonas estables: volver, marca centrada y filtros. Su superficie es una cápsula de vidrio traslúcida y el hero modera su altura y contraste para priorizar el título y la descripción de la carta.
+- La navegación horizontal de categorías no agrega una franja de color en su posición inicial. Cuando queda *sticky*, una superficie de vidrio traslúcida de ancho completo aparece mediante opacidad para asegurar contraste sobre el contenido que pasa por debajo.
 
 ### Estrategia de adopción
 

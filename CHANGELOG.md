@@ -16,6 +16,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
 
 ### 🎨 UI & Diseño
+- **Título de portada más directo (`app/page.tsx`):** Se actualizó el titular a “Menú digital para locales gastronómicos”.
 - **Alineación de acciones en portada (`globals.css`):** Los CTA se muestran en línea cuando hay espacio y apilados en móvil; en ambos casos su texto queda centrado.
 - **Página de inicio minimalista (`app/page.tsx` / `globals.css`):** Se reordenó la portada del producto con jerarquía editorial, fondo neutro, CTA principal en negro y acceso secundario de borde tenue. Conserva los dos destinos existentes y adapta los accesos en móvil.
 - **Copy y escala del hero de demostración (`seed-demo-menu.sql` / `globals.css`):** La carta demo usa la bajada “Sabores que te cambian el día.”. El título baja a 28–40 px y la bajada a 14 px para una lectura más contenida.

@@ -1,6 +1,12 @@
 -- Demo content derived from the supplied reference menu.
 -- Prices and image assets are intentionally illustrative placeholders.
 
+-- Copy editorial exclusiva de la carta de demostración; no forma parte de la lógica multi-tenant.
+update public.menus
+set description = 'Sabores que te cambian el día.'
+where restaurant_id = '10000000-0000-0000-0000-000000000001'
+  and name = 'Carta Principal';
+
 insert into public.menu_categories (id, restaurant_id, daypart_id, name, description, sort_order)
 values
   ('12000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000001', null, 'Entradas', 'Para compartir.', 3),

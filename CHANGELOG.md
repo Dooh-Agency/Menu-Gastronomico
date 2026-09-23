@@ -16,6 +16,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
 
 ### 🎨 UI & Diseño
+- **Copy y escala del hero de demostración (`seed-demo-menu.sql` / `globals.css`):** La carta demo usa la bajada “Sabores que te cambian el día.”. El título baja a 28–40 px y la bajada a 14 px para una lectura más contenida.
 - **Jerarquía tipográfica del header público (`globals.css`):** La marca se ajustó a 17 px y el título de carta a una escala de 32–48 px, para diferenciar claramente la navegación del contenido editorial.
 - **Fondo contextual en navegación de categorías (`menu-publico.tsx` / `globals.css`):** Las categorías permanecen transparentes al inicio. Al quedar fijas, una superficie neutra casi opaca de ancho completo aparece por opacidad para asegurar legibilidad sobre tarjetas, fotos y precios.
 - **Header público más sobrio (`globals.css`):** Se conservó la composición de volver, marca centrada y filtros dentro de una cápsula de vidrio traslúcida. También se redujeron la altura y el contraste del hero para dar prioridad al nombre y la descripción de la carta.

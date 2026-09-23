@@ -32,6 +32,7 @@ La identidad del restaurante se mantiene como una capa sutil y controlada. El co
 - El header público mantiene tres zonas estables: volver, marca centrada y filtros. Su superficie es una cápsula de vidrio traslúcida y el hero modera su altura y contraste para priorizar el título y la descripción de la carta.
 - La marca dentro de la barra pública usa 17 px; el nombre de la carta usa una escala editorial de 28 a 40 px. La bajada usa 14 px y puede ser una frase breve propia de cada carta. Esto evita que la navegación compita con el contenido de la carta.
 - La navegación horizontal de categorías no agrega una franja de color en su posición inicial. Cuando queda *sticky*, una superficie neutra casi opaca de ancho completo aparece mediante opacidad para asegurar contraste sobre el contenido que pasa por debajo.
+- La página de inicio de la plataforma utiliza la misma base neutral: etiqueta auxiliar discreta, titular editorial, una acción primaria oscura y una acción secundaria de borde tenue. No incorpora branding de un restaurante ni modifica los destinos de navegación.
 
 ### Estrategia de adopción
 

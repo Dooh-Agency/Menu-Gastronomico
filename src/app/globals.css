@@ -82,6 +82,35 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .secondary-link { align-items: center; background: var(--ui-surface); border: 1px solid var(--ui-border); border-radius: var(--radius-control); color: var(--ui-text); display: inline-flex; font-weight: 700; padding: .8rem 1.05rem; text-decoration: none; transition: transform var(--motion-duration) var(--motion-ease); }
 .secondary-link:hover { transform: translateY(-1px); }
 
+.product-home {
+  align-items: center;
+  display: flex;
+  min-height: 100vh;
+  padding-block: clamp(3rem, 12vh, 8rem);
+}
+
+.product-home-intro { max-width: 42rem; }
+.product-home-eyebrow { color: var(--ui-text-secondary); font-size: var(--type-caption); letter-spacing: .12em; margin: 0 0 var(--space-2); }
+.product-home h1 { color: var(--ui-text); font-size: clamp(2.5rem, 6vw, 4.25rem); line-height: 1.04; margin: 0; max-width: 12ch; }
+.product-home-description { font-size: var(--type-body-large); line-height: var(--leading-body); margin: var(--space-2) 0 0; max-width: 35rem; }
+.product-home .home-actions { gap: var(--space-2); margin-top: var(--space-4); }
+.product-home-primary-link,
+.product-home-secondary-link {
+  align-items: center;
+  border-radius: var(--radius-control);
+  justify-content: center;
+  min-height: 3.25rem;
+  padding: .8rem 1.25rem;
+}
+.product-home-primary-link { background: var(--ui-text); color: #fff; }
+.product-home-secondary-link { box-shadow: var(--ui-shadow-subtle); }
+
+@media (max-width: 38rem) {
+  .product-home { align-items: flex-start; min-height: auto; }
+  .product-home h1 { font-size: clamp(2.25rem, 11vw, 3rem); }
+  .product-home .home-actions { display: grid; grid-template-columns: 1fr; width: 100%; }
+}
+
 .sr-only { height: 1px; margin: -1px; overflow: hidden; padding: 0; position: absolute; width: 1px; clip: rect(0, 0, 0, 0); white-space: nowrap; }
 .menu-shell { background: var(--color-paper); color: var(--color-ink); font-family: var(--menu-font, Arial, Helvetica, sans-serif); margin: 0 auto; max-width: 72rem; min-height: 100vh; padding: 1rem clamp(1rem, 4vw, 3rem) 4rem; }
 .menu-header { align-items: center; display: flex; justify-content: space-between; min-height: 3.5rem; }

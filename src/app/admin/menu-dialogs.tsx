@@ -336,12 +336,7 @@ export function MenuFormDialog({
           </div>
 
           {/* 3- DATOS BÁSICOS */}
-          <section aria-labelledby="menu-basics-heading" className="modal-form-section">
-            <div className="modal-section-header">
-              <h3 id="menu-basics-heading">Información de la carta</h3>
-              <p>Nombre y descripción visibles en el menú público.</p>
-            </div>
-
+          <div className="modal-form-section">
             <div className="modal-fields-group">
               <label>
                 Nombre de la carta
@@ -365,7 +360,7 @@ export function MenuFormDialog({
                 />
               </label>
             </div>
-          </section>
+          </div>
 
           {/* 4- DISPONIBILIDAD, FRANJAS Y DÍAS */}
           <section aria-labelledby="menu-availability-heading" className="modal-schedule-section">

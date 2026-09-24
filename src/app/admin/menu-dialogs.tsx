@@ -229,7 +229,7 @@ export function MenuFormDialog({
   }
 
   return (
-    <AdminDialog onClose={onClose} maxWidth="48rem">
+    <AdminDialog className="menu-form-dialog" onClose={onClose} maxWidth="48rem">
       <form className="admin-modal-form" onSubmit={handleSubmit}>
         {/* 1- FOTO (Banner de la carta) */}
         <div className="modal-hero-photo-section">

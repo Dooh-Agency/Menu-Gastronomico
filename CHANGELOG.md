@@ -17,6 +17,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
 
 ### 🎨 UI & Diseño
+- **Modal de carta alineado al dashboard (`menu-dialogs.tsx` / `globals.css`):** La edición de carta adopta superficies grises neutrales, controles de borde tenue, jerarquía tipográfica y selección en negro. La portada conserva un preview contenido con acciones compactas y el selector de archivo queda correctamente oculto detrás de su control accesible.
 - **Pendiente de claridad en acción destructiva (`ROADMAP-DESARROLLO.md`):** Se registró para análisis el alcance y la etiqueta del botón “Quitar” en la carta activa, para que su texto y confirmación expresen claramente si elimina la carta o solo su portada.
 - **Editor administrativo neutral (`admin-menu-view.tsx` / `globals.css`):** Como prueba acotada a la edición de una carta, el lienzo, la tipografía, controles, pestañas y superficies usan el sistema gris compartido del panel. El logo y la portada conservan la identidad visual del restaurante como contenido contextual.
 - **Encabezado unificado de carta en administración (`admin-menu-view.tsx` / `globals.css`):** La portada, el nombre y la descripción pasan a formar un único bloque. El acceso sobre la imagen se simplifica a “Editar carta” y los datos dejan de presentarse como una tarjeta blanca separada.

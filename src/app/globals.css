@@ -2821,6 +2821,253 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .admin-modal-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 0.75rem; }
 .admin-modal-actions button { cursor: pointer; font: inherit; }
 
+.visually-hidden {
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+/* Menu form: same neutral management language as the dashboard. */
+.admin-dialog.menu-form-dialog {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-surface);
+  box-shadow: var(--ui-shadow-float);
+  max-height: min(92vh, 54rem);
+  padding: var(--space-3);
+}
+
+.menu-form-dialog .admin-dialog-close-btn {
+  background: var(--ui-surface-glass);
+  border-color: var(--ui-border);
+  color: var(--ui-text);
+  height: 2.5rem;
+  right: var(--space-2);
+  top: var(--space-2);
+  width: 2.5rem;
+}
+
+.menu-form-dialog .admin-dialog-close-btn:hover {
+  background: var(--ui-canvas);
+  color: var(--ui-text);
+  transform: rotate(90deg);
+}
+
+.menu-form-dialog .admin-modal-form {
+  gap: var(--space-3);
+}
+
+.menu-form-dialog .admin-modal-form label,
+.menu-form-dialog .admin-modal-form h2,
+.menu-form-dialog .admin-modal-form h3 {
+  color: var(--ui-text);
+}
+
+.menu-form-dialog .admin-modal-form p,
+.menu-form-dialog .field-optional {
+  color: var(--ui-text-secondary);
+}
+
+.menu-form-dialog .admin-modal-form input:not([type="checkbox"]):not([type="radio"]),
+.menu-form-dialog .admin-modal-form select,
+.menu-form-dialog .admin-modal-form textarea {
+  border-color: var(--ui-border);
+  border-radius: var(--radius-control);
+  box-shadow: none;
+  color: var(--ui-text);
+}
+
+.menu-form-dialog .admin-modal-form input:not([type="checkbox"]):not([type="radio"]):focus,
+.menu-form-dialog .admin-modal-form select:focus,
+.menu-form-dialog .admin-modal-form textarea:focus {
+  border-color: var(--ui-text);
+  box-shadow: 0 0 0 3px rgb(0 0 0 / 8%);
+}
+
+.menu-form-dialog .modal-hero-photo-section {
+  margin: 0;
+}
+
+.menu-form-dialog .modal-banner-display {
+  background: var(--ui-canvas);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-surface);
+  box-shadow: none;
+  height: clamp(10rem, 24vw, 12.5rem);
+}
+
+.menu-form-dialog .modal-banner-actions-overlay {
+  bottom: var(--space-2);
+  right: var(--space-2);
+}
+
+.menu-form-dialog .modal-banner-upload-btn,
+.menu-form-dialog .modal-banner-remove-btn {
+  align-items: center;
+  backdrop-filter: blur(8px);
+  border-radius: var(--radius-control);
+  box-shadow: var(--ui-shadow-subtle);
+  display: inline-flex;
+  font-size: var(--type-label);
+  font-weight: 700;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: .55rem .8rem;
+  transition: transform var(--motion-duration) var(--motion-ease);
+}
+
+.menu-form-dialog .modal-banner-upload-btn {
+  background: var(--ui-surface-glass);
+  border-color: var(--ui-border);
+  color: var(--ui-text);
+}
+
+.menu-form-dialog .modal-banner-upload-btn:hover {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  transform: translateY(-1px);
+}
+
+.menu-form-dialog .modal-banner-remove-btn {
+  background: rgb(255 255 255 / 88%);
+  border: 1px solid rgb(220 38 38 / 22%);
+  color: #b42318;
+}
+
+.menu-form-dialog .modal-banner-remove-btn:hover {
+  background: #fef2f2;
+  transform: translateY(-1px);
+}
+
+.menu-form-dialog .modal-header-section {
+  gap: var(--space-1);
+  padding-right: 3.5rem;
+}
+
+.menu-form-dialog .modal-header-section .eyebrow {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  letter-spacing: .12em;
+  margin: 0;
+}
+
+.menu-form-dialog .modal-title {
+  color: var(--ui-text);
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  letter-spacing: -0.025em;
+  line-height: var(--leading-tight);
+}
+
+.menu-form-dialog .modal-description {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+}
+
+.menu-form-dialog .modal-schedule-section {
+  background: var(--ui-canvas);
+  border-color: var(--ui-border);
+  border-radius: var(--radius-control);
+  gap: var(--space-2);
+  padding: var(--space-2);
+}
+
+.menu-form-dialog .schedule-availability-mode {
+  background: rgb(0 0 0 / 6%);
+}
+
+.menu-form-dialog .availability-pill.is-active {
+  background: var(--ui-surface);
+  box-shadow: var(--ui-shadow-subtle);
+  color: var(--ui-text);
+}
+
+.menu-form-dialog .schedule-interval-card {
+  border-color: var(--ui-border);
+  border-radius: var(--radius-control);
+}
+
+.menu-form-dialog .interval-index-badge,
+.menu-form-dialog .preset-btn {
+  background: var(--ui-canvas);
+  border-color: var(--ui-border);
+  color: var(--ui-text-secondary);
+}
+
+.menu-form-dialog .preset-btn:hover {
+  background: var(--ui-surface);
+  color: var(--ui-text);
+}
+
+.menu-form-dialog .day-toggle-btn {
+  border-color: var(--ui-border);
+}
+
+.menu-form-dialog .day-toggle-btn:hover {
+  background: var(--ui-canvas);
+  border-color: rgb(0 0 0 / 16%);
+}
+
+.menu-form-dialog .day-toggle-btn.is-selected {
+  background: var(--ui-text);
+  border-color: var(--ui-text);
+  box-shadow: none;
+}
+
+.menu-form-dialog .time-field input[type="time"] {
+  border-color: var(--ui-border);
+}
+
+.menu-form-dialog .add-interval-btn {
+  border-color: rgb(0 0 0 / 18%);
+  color: var(--ui-text);
+}
+
+.menu-form-dialog .add-interval-btn:hover {
+  background: var(--ui-surface);
+  border-color: var(--ui-text);
+}
+
+.menu-form-dialog .admin-modal-actions {
+  border-top: 1px solid var(--ui-border);
+  margin-top: 0;
+  padding-top: var(--space-2);
+}
+
+.menu-form-dialog .admin-modal-actions .primary-link {
+  background: var(--ui-text);
+  border-color: var(--ui-text);
+}
+
+@media (max-width: 40rem) {
+  .admin-dialog.menu-form-dialog {
+    border-radius: var(--radius-control);
+    max-height: calc(100vh - 1rem);
+    padding: var(--space-2);
+  }
+
+  .menu-form-dialog .modal-header-section {
+    padding-right: 3rem;
+  }
+
+  .menu-form-dialog .schedule-section-header {
+    gap: var(--space-2);
+  }
+
+  .menu-form-dialog .schedule-availability-mode {
+    width: 100%;
+  }
+
+  .menu-form-dialog .availability-pill {
+    flex: 1;
+  }
+}
+
 /* 1- Foto / Hero */
 .modal-hero-photo-section {
   margin-bottom: 0.25rem;

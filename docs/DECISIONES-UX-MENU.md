@@ -40,6 +40,7 @@ La identidad del restaurante se mantiene como una capa sutil y controlada. El co
 - El header administrativo usa una superficie sticky a ancho completo, mientras que sus controles y el contenido conservan la misma caja horizontal. Así se mantiene continuidad visual al desplazarse sin perder el ritmo de márgenes del producto.
 - El encabezado de una carta activa en administración reúne portada, nombre y descripción en una única superficie. “Editar carta” es el único acceso visible sobre la imagen para abrir la edición integral; las acciones independientes, como quitar la portada, conservan su control propio.
 - Como prueba aplicada al editor de carta, el panel administrativo usa tokens neutrales fijos para lienzo, texto, tipografía y controles. El branding de cada restaurante se expresa mediante su logo y su portada, no mediante el color de las superficies administrativas.
+- El modal de edición de carta sigue la misma base neutral del dashboard: preview de portada contextual, contenido sobre superficie blanca, campos y bloques de programación sobre grises suaves, y selección activa en negro. La carga de portada se activa mediante un control etiquetado sin exponer el input nativo de archivo.
 
 ### Estrategia de adopción
 

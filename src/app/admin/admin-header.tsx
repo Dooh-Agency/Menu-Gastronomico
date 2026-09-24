@@ -24,8 +24,10 @@ export function AdminHeader({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isLogoDialogOpen, setIsLogoDialogOpen] = useState(false);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [selectedLogoFileName, setSelectedLogoFileName] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const logoFileInputRef = useRef<HTMLInputElement>(null);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -63,6 +65,7 @@ export function AdminHeader({
 
   function openLogoDialog() {
     setLogoPreview(null);
+    setSelectedLogoFileName(null);
     setDropdownOpen(false);
     setIsLogoDialogOpen(true);
   }
@@ -70,6 +73,7 @@ export function AdminHeader({
   function handleLogoFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     setLogoPreview(file ? URL.createObjectURL(file) : null);
+    setSelectedLogoFileName(file?.name ?? null);
   }
 
   function handleLogoSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -79,6 +83,7 @@ export function AdminHeader({
       await updateLogoImage(formData);
       setIsLogoDialogOpen(false);
       setLogoPreview(null);
+      setSelectedLogoFileName(null);
     });
   }
 
@@ -90,6 +95,7 @@ export function AdminHeader({
       await updateLogoImage(formData);
       setIsLogoDialogOpen(false);
       setLogoPreview(null);
+      setSelectedLogoFileName(null);
     });
   }
 
@@ -338,16 +344,32 @@ export function AdminHeader({
               <p className="modal-description">Esta imagen se muestra en la cabecera del menú digital.</p>
             </div>
 
-            <label className="profile-logo-file-field">
+            <label className="profile-logo-file-field" htmlFor="profile-logo-image">
               <span className="field-label">Seleccionar imagen <span className="field-optional">JPG, PNG o WebP · máx. 5 MB</span></span>
-              <input
-                accept="image/jpeg,image/png,image/webp"
-                name="logo_image"
-                onChange={handleLogoFileChange}
-                required
-                type="file"
-              />
             </label>
+            <input
+              accept="image/jpeg,image/png,image/webp"
+              className="profile-logo-file-input"
+              id="profile-logo-image"
+              name="logo_image"
+              onChange={handleLogoFileChange}
+              ref={logoFileInputRef}
+              required
+              tabIndex={-1}
+              type="file"
+            />
+            <div className="profile-logo-file-control">
+              <button
+                className="profile-logo-file-trigger"
+                onClick={() => logoFileInputRef.current?.click()}
+                type="button"
+              >
+                Seleccionar archivo
+              </button>
+              <span aria-live="polite" className="profile-logo-file-status">
+                {selectedLogoFileName ?? "Ningún archivo seleccionado"}
+              </span>
+            </div>
 
             <div className="admin-modal-actions">
               {logoUrl ? (
@@ -357,7 +379,7 @@ export function AdminHeader({
                   onClick={handleRemoveLogo}
                   type="button"
                 >
-                  Quitar logo
+                  Borrar logo
                 </button>
               ) : null}
               <button className="secondary-link" onClick={() => setIsLogoDialogOpen(false)} type="button">

@@ -2795,21 +2795,51 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   margin: 0;
 }
 
-.profile-logo-dialog .admin-modal-form input[type="file"] {
-  background: var(--ui-surface);
-  border-color: var(--ui-border);
-  border-radius: var(--radius-control);
-  box-shadow: none;
-  color: var(--ui-text);
-  font-size: var(--type-label);
-  min-height: 3rem;
-  margin-top: 0;
-  padding: var(--space-1);
+.profile-logo-dialog .profile-logo-file-input {
+  height: 1px;
+  margin: -1px;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
 }
 
-.profile-logo-dialog .admin-modal-form input[type="file"]:focus {
-  border-color: var(--ui-text);
-  box-shadow: 0 0 0 3px rgb(0 0 0 / 8%);
+.profile-logo-dialog .profile-logo-file-control {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.profile-logo-dialog .profile-logo-file-trigger {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-control);
+  color: var(--ui-text);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--type-label);
+  font-weight: 650;
+  min-height: 2.75rem;
+  padding: .55rem .85rem;
+  transition: transform var(--motion-duration) var(--motion-ease);
+}
+
+.profile-logo-dialog .profile-logo-file-trigger:hover {
+  background: var(--ui-canvas);
+  transform: translateY(-1px);
+}
+
+.profile-logo-dialog .profile-logo-file-trigger:focus-visible {
+  outline: 3px solid rgb(0 0 0 / 22%);
+  outline-offset: 3px;
+}
+
+.profile-logo-dialog .profile-logo-file-status {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  line-height: var(--leading-body);
 }
 
 .profile-logo-dialog .admin-modal-actions {

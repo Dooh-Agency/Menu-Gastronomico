@@ -17,6 +17,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
 
 ### 🎨 UI & Diseño
+- **Reglas reutilizables para formularios del admin (`src/AGENTS.md` / `DECISIONES-UX-MENU.md`):** Se documentaron la disposición inline de aclaraciones opcionales, la presentación compacta y accesible de traducciones únicas y el criterio para evitar superficies redundantes en selectores por tarjetas.
 - **Editor de categoría alineado al admin (`admin-menu-view.tsx` / `globals.css`):** Se eliminó el encabezado visual con branding del restaurante y se reorganizó la edición en un formulario neutral y por bloques: datos públicos, traducciones, formato de tarjetas y visibilidad mediante un switch accesible. Se conservan los campos, estados y guardado existentes.
 - **Jerarquía tipográfica del editor de categoría (`localization-fields.tsx` / `admin-menu-view.tsx` / `globals.css`):** Traducciones, formato y visibilidad comparten un mismo nivel de sección; etiquetas, contenido editable, ayudas y opciones visuales se ajustan a los roles tipográficos del admin y a una alineación de lectura única.
 - **Aclaraciones y traducciones más compactas (`localization-fields.tsx` / `globals.css`):** “Opcional” se presenta como aclaración gris en cursiva junto a cada etiqueta. Si hay una única traducción adicional, su idioma acompaña el título del bloque; con varios idiomas, cada grupo conserva su código visible.

@@ -391,11 +391,11 @@ export function AdminMenuView({
           </div>
         </header>
 
-        {/* 2. Banner de la Carta Activa (clic para modificar carta) */}
-        <section className="admin-menu-cover-section" aria-label="Banner de portada de la carta">
+        {/* 2. Encabezado de la carta: portada, nombre y descripción */}
+        <section className="admin-menu-cover-section" aria-label={`Encabezado de ${currentMenu.name}`}>
           {activeBannerPath ? (
             <div
-              aria-label={`Modificar carta ${currentMenu.name}`}
+              aria-label={`Editar carta ${currentMenu.name}`}
               className="admin-menu-cover admin-menu-cover-clickable"
               onClick={() => setIsMenuEditDialogOpen(true)}
               onKeyDown={(e) => {
@@ -406,7 +406,7 @@ export function AdminMenuView({
               }}
               role="button"
               tabIndex={0}
-              title="Hacé clic para modificar esta carta"
+              title="Hacé clic para editar esta carta"
             >
               <Image
                 alt={`Banner de ${currentMenu.name}`}
@@ -432,7 +432,7 @@ export function AdminMenuView({
                     <path d="M12 20h9" />
                     <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                   </svg>
-                  Modificar carta
+                  Editar carta
                 </span>
                 {currentMenu.banner_path && (
                   <button
@@ -468,7 +468,7 @@ export function AdminMenuView({
             <button
               className="admin-cover-placeholder admin-cover-placeholder-clickable"
               onClick={() => setIsMenuEditDialogOpen(true)}
-              title="Hacé clic para modificar esta carta"
+              title="Hacé clic para editar esta carta"
               type="button"
             >
               <div className="admin-cover-placeholder-content">
@@ -487,25 +487,23 @@ export function AdminMenuView({
                     <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
                   </svg>
                 </div>
-                <strong>Modificar carta &quot;{currentMenu.name}&quot;</strong>
-                <p>Hacé clic aquí para modificar la carta, cargar una foto de cabecera o configurar horarios</p>
+                <strong>Editar carta &quot;{currentMenu.name}&quot;</strong>
+                <p>Hacé clic aquí para editar la carta, cargar una foto de cabecera o configurar horarios</p>
               </div>
             </button>
           )}
-        </section>
-
-        {/* 3. Datos de la Carta (Nombre y Descripción) */}
-        <section className="admin-active-menu-info">
-          <div className="admin-active-menu-meta">
-            <div className="admin-active-menu-header-row">
-              <h1 className="admin-active-menu-title">{currentMenu.name}</h1>
-              {!currentMenu.is_active && (
-                <span className="status-badge is-inactive">Carta Oculta / Inactiva</span>
+          <div className="admin-active-menu-info">
+            <div className="admin-active-menu-meta">
+              <div className="admin-active-menu-header-row">
+                <h1 className="admin-active-menu-title">{currentMenu.name}</h1>
+                {!currentMenu.is_active && (
+                  <span className="status-badge is-inactive">Carta Oculta / Inactiva</span>
+                )}
+              </div>
+              {currentMenu.description && (
+                <p className="admin-active-menu-description">{currentMenu.description}</p>
               )}
             </div>
-            {currentMenu.description && (
-              <p className="admin-active-menu-description">{currentMenu.description}</p>
-            )}
           </div>
         </section>
 

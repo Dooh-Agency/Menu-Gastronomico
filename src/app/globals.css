@@ -3450,11 +3450,15 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 
 /* Banner / Cover Section */
 .admin-menu-cover-section {
+  background: var(--ui-surface, #fff);
+  border: 1px solid var(--ui-border, rgba(0, 0, 0, 0.06));
+  border-radius: var(--radius-surface, 1.25rem);
   margin-top: 0.5rem;
+  overflow: hidden;
 }
 
 .admin-menu-cover {
-  border-radius: calc(var(--radius-card, 1rem) * 0.75);
+  border-radius: 0;
   height: clamp(8rem, 20vw, 13rem);
   overflow: hidden;
   position: relative;
@@ -3556,7 +3560,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   align-items: center;
   background: #fcfbfa;
   border: 2px dashed #c8c2b9;
-  border-radius: calc(var(--radius-card, 1rem) * 0.75);
+  border-radius: 0;
   cursor: pointer;
   display: flex;
   justify-content: center;
@@ -4821,11 +4825,12 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 }
 
 .admin-active-menu-info {
-  background: white;
-  border: 1px solid #e7e1d8;
-  border-radius: 0.75rem;
-  padding: 1.1rem 1.4rem;
-  margin-top: 0.75rem;
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--ui-border, rgba(0, 0, 0, 0.06));
+  border-radius: 0;
+  margin: 0;
+  padding: 1.25rem 1.4rem;
 }
 
 .admin-active-menu-header-row {

@@ -17,6 +17,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
 
 ### 🎨 UI & Diseño
+- **Encabezado unificado de carta en administración (`admin-menu-view.tsx` / `globals.css`):** La portada, el nombre y la descripción pasan a formar un único bloque. El acceso sobre la imagen se simplifica a “Editar carta” y los datos dejan de presentarse como una tarjeta blanca separada.
 - **Panel de Cartas administrativo refinado (`menus-dashboard.tsx` / `globals.css`):** El encabezado, la navegación principal, las acciones y las tarjetas de carta ahora comparten superficies neutras, bordes tenues, jerarquía tipográfica y elevación mínima. Las acciones se compactaron y concentran el acceso al editor en un único CTA “Gestionar carta”; las tareas de mantenimiento (datos, horarios, portada y eliminación) quedan reunidas en un menú contextual. Se conservaron los accesos, estados y operaciones existentes.
 - **Retorno contextual y acceso público único en editor (`admin-header.tsx` / `admin-menu-view.tsx`):** “Volver a Mis Cartas” se trasladó como icono al header cuando hay una carta activa. Se eliminó el acceso duplicado “Ver menú comensal” del editor y se conserva “Ver menú” como única vista pública.
 - **Header administrativo a ancho completo (`admin/layout.tsx` / `globals.css`):** La superficie sticky ocupa todo el viewport; los controles y el contenido comparten el mismo contenedor horizontal para preservar alineación y márgenes.

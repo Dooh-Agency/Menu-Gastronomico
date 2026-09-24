@@ -338,8 +338,8 @@ export function AdminHeader({
               <p className="modal-description">Esta imagen se muestra en la cabecera del menú digital.</p>
             </div>
 
-            <label>
-              Seleccionar imagen <span className="field-optional">JPG, PNG o WebP · máx. 5 MB</span>
+            <label className="profile-logo-file-field">
+              <span className="field-label">Seleccionar imagen <span className="field-optional">JPG, PNG o WebP · máx. 5 MB</span></span>
               <input
                 accept="image/jpeg,image/png,image/webp"
                 name="logo_image"

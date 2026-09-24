@@ -2721,16 +2721,17 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   border: 1px solid var(--ui-border);
   border-radius: var(--radius-control);
   display: flex;
-  height: 7rem;
+  height: 6rem;
   justify-content: center;
   margin: 0 auto;
   overflow: hidden;
-  width: 7rem;
+  width: 6rem;
 }
 
 .profile-logo-dialog .profile-logo-preview img {
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  padding: var(--space-1);
   width: 100%;
 }
 
@@ -2753,7 +2754,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 
 .profile-logo-dialog .modal-title {
   color: var(--ui-text);
-  font-size: var(--type-title);
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
   letter-spacing: -0.025em;
   line-height: var(--leading-tight);
   margin: 0;
@@ -2775,6 +2776,17 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   line-height: var(--leading-title);
 }
 
+.profile-logo-dialog .profile-logo-file-field {
+  gap: var(--space-1);
+}
+
+.profile-logo-dialog .field-label {
+  align-items: baseline;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
 .profile-logo-dialog .field-optional {
   color: var(--ui-text-secondary);
   font-size: var(--type-label);
@@ -2784,12 +2796,15 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 }
 
 .profile-logo-dialog .admin-modal-form input[type="file"] {
+  background: var(--ui-surface);
   border-color: var(--ui-border);
   border-radius: var(--radius-control);
   box-shadow: none;
   color: var(--ui-text);
   font-size: var(--type-label);
+  min-height: 3rem;
   margin-top: 0;
+  padding: var(--space-1);
 }
 
 .profile-logo-dialog .admin-modal-form input[type="file"]:focus {

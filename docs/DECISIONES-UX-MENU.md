@@ -12,6 +12,8 @@ La interfaz adopta una base visual minimalista de inspiración Apple: superficie
 
 La identidad del restaurante se mantiene como una capa sutil y controlada. El color principal se reserva para acciones, foco, enlaces y selección; el secundario para fondos de énfasis de baja intensidad. El fondo general, los textos de interfaz, bordes, errores, advertencias y estados de disponibilidad permanecen controlados por el sistema para preservar legibilidad y una experiencia consistente entre restaurantes.
 
+La experiencia se divide en dos lenguajes visuales intencionalmente distintos: la **vista del comensal** presenta la carta y admite la identidad controlada de cada restaurante; la **vista administrativa** es una herramienta de gestión monocroma y neutral. Logo, fotos y previews pueden aportar contexto dentro del admin, pero la paleta, las superficies, los controles y la tipografía de gestión nunca heredan el branding del restaurante.
+
 ### Reglas
 
 - Los tokens `--ui-*` definen la base neutral, estable y no configurable de la interfaz; los tokens `--color-*` mantienen el branding específico de cada restaurante.

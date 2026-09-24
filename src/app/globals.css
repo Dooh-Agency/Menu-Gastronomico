@@ -3355,6 +3355,13 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   gap: var(--space-1);
 }
 
+.category-editor-dialog .category-editor-layout-section {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
 .category-editor-dialog .category-editor-section h3,
 .category-editor-dialog .category-editor-visibility h3 {
   color: var(--ui-text);

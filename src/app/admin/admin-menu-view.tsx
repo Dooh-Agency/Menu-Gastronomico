@@ -1449,7 +1449,7 @@ export function AdminMenuView({
                 variant="section"
               />
 
-              <section aria-labelledby="category-card-layout-heading" className="category-editor-section">
+              <section aria-labelledby="category-card-layout-heading" className="category-editor-section category-editor-layout-section">
                 <div className="category-editor-section-header">
                   <h3 id="category-card-layout-heading">Formato de tarjetas</h3>
                   <p>Elegí cómo se presentan los platos de esta categoría en el menú público.</p>

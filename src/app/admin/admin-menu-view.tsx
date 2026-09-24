@@ -1446,6 +1446,7 @@ export function AdminMenuView({
               <LocalizationFields
                 locales={restaurant.supported_locales}
                 translations={editingCategory.menu_category_translations ?? []}
+                variant="section"
               />
 
               <section aria-labelledby="category-card-layout-heading" className="category-editor-section">
@@ -1467,8 +1468,7 @@ export function AdminMenuView({
                 </div>
                 <label className="category-active-toggle">
                   <span className="category-active-toggle-copy">
-                    <strong>Categoría activa</strong>
-                    <span>Visible en el menú público</span>
+                    <strong>Activa</strong>
                   </span>
                   <input defaultChecked={editingCategory.is_active} name="is_active" role="switch" type="checkbox" />
                   <span aria-hidden="true" className="category-active-toggle-control" />

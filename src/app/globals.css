@@ -3248,7 +3248,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 
 .category-editor-dialog .modal-title {
   color: var(--ui-text);
-  font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+  font-size: var(--type-title);
   letter-spacing: -0.025em;
   line-height: var(--leading-tight);
   margin: 0;
@@ -3302,11 +3302,15 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   padding: var(--space-2);
 }
 
-.category-editor-dialog .translation-fields legend {
+.category-editor-dialog .translation-fields-section {
+  display: grid;
+}
+
+.category-editor-dialog .translation-fields-section h3 {
   color: var(--ui-text);
   font-size: var(--type-body-large);
   line-height: var(--leading-title);
-  padding: 0;
+  margin: 0;
 }
 
 .category-editor-dialog .translation-locale {
@@ -3390,6 +3394,11 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   color: var(--ui-text);
 }
 
+.category-editor-dialog .card-layout-option-title {
+  font-size: var(--type-label);
+  line-height: var(--leading-title);
+}
+
 .category-editor-dialog .card-layout-option-desc {
   color: var(--ui-text-secondary);
   font-size: var(--type-caption);
@@ -3424,12 +3433,6 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .category-editor-dialog .category-active-toggle-copy strong {
   color: var(--ui-text);
   font-size: var(--type-label);
-}
-
-.category-editor-dialog .category-active-toggle-copy span {
-  color: var(--ui-text-secondary);
-  font-size: var(--type-caption);
-  line-height: var(--leading-title);
 }
 
 .category-editor-dialog .category-active-toggle input[type="checkbox"] {

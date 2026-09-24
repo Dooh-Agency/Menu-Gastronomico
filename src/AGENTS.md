@@ -10,6 +10,8 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
 1. **Tokens y Diseño:**
    - Derivar colores, tipografías, espaciados y sombras de variables CSS y tokens centralizados.
    - Respetar [`/docs/DECISIONES-UX-MENU.md`](../docs/DECISIONES-UX-MENU.md) para la interacción del menú público (tabs, scroll y activación).
+   - La administración utiliza una interfaz monocroma y neutral: `--ui-canvas`, `--ui-surface`, `--ui-text`, `--ui-text-secondary` y `--ui-border`. El branding de un restaurante se limita a contenido contextual (logo, fotos y vistas previas), no a los fondos, controles o tipografía del admin.
+   - En administración, las acciones primarias de confirmación usan texto; las acciones de navegación o edición puntual usan texto + icono de 16 px; los controles icono-solo se reservan para acciones frecuentes e inequívocas y requieren `aria-label` o `title`. Los colores semánticos se restringen a feedback persistente o confirmaciones explícitas de riesgo.
 2. **Accesibilidad y Rendimiento:**
    - Respetar soporte para `prefers-reduced-motion`.
    - Garantizar accesibilidad por teclado (`role="tab"`, `aria-selected`, navegación accesible) y foco visible.
@@ -69,4 +71,3 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
    - **Al ingresar a una carta (`selectedMenuId`):** La foto de perfil se retira automáticamente y el slot izquierdo muestra la flecha circular de retorno (`<`).
    - **Nombre de marca:** Centrado sin el punto (`•`) ni caracteres decorativos extra.
    - **Slot derecho:** Mantiene el selector de idiomas cápsula (`ES`, `EN`, etc.).
-

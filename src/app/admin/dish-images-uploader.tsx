@@ -157,11 +157,9 @@ export function DishImagesUploader({
   return (
     <div className="dish-uploader-container">
       <div className="dish-uploader-header">
-        <span className="dish-uploader-title">
-          Fotos del plato{" "}
-          <span className="field-optional">
-            ({totalImages}/{maxImages} fotos · JPG, PNG o WebP, máx 5 MB c/u)
-          </span>
+        <span className="dish-uploader-title">Fotos del plato</span>
+        <span className="dish-uploader-meta">
+          {totalImages}/{maxImages} fotos · JPG, PNG o WebP · máx 5 MB c/u
         </span>
       </div>
 

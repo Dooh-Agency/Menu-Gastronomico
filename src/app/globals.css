@@ -6298,7 +6298,14 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   font-size: var(--type-label);
 }
 
-.item-editor-dialog .dish-uploader-title .field-optional {
+.item-editor-dialog .dish-uploader-header {
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem var(--space-1);
+  justify-content: flex-start;
+}
+
+.item-editor-dialog .dish-uploader-meta {
   color: var(--ui-text-secondary);
   font-size: var(--type-caption);
   font-style: normal;
@@ -6329,14 +6336,17 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .item-editor-dialog .dish-uploader-editor-layout {
   display: grid;
   gap: var(--space-1);
-  grid-template-columns: 4.5rem minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 4.5rem;
 }
 
 .item-editor-dialog .dish-uploader-editor-thumbnails {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: var(--space-1);
-  max-height: 16rem;
+  grid-auto-rows: minmax(0, 1fr);
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  grid-column: 2;
+  grid-row: 1;
+  height: 100%;
   overflow-y: auto;
   scrollbar-width: thin;
 }
@@ -6383,18 +6393,19 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 }
 
 .item-editor-dialog .dish-uploader-editor-thumbnails > .dish-uploader-add-btn {
-  aspect-ratio: 1;
-  flex: 0 0 auto;
+  align-self: stretch;
   min-height: 0;
   padding: 0.25rem;
 }
 
 .item-editor-dialog .dish-uploader-editor-main {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1;
   background: var(--ui-canvas);
   border: 1px solid var(--ui-border);
   border-radius: var(--radius-control);
-  min-height: 13rem;
+  grid-column: 1;
+  grid-row: 1;
+  min-height: 0;
   overflow: hidden;
   position: relative;
 }
@@ -6734,7 +6745,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   }
 
   .item-editor-dialog .dish-uploader-editor-main {
-    min-height: 12rem;
+    min-height: 14rem;
   }
 
   .item-editor-dialog .item-availability-toggle {

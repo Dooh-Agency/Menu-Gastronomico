@@ -1603,6 +1603,7 @@ export function AdminMenuView({
       {/* Modal: Editar Plato Existente */}
       {editingItem ? (
         <AdminDialog
+          className="item-editor-dialog"
           maxWidth="46rem"
           onClose={() => {
             setEditingItem(null);
@@ -1626,7 +1627,7 @@ export function AdminMenuView({
                 router.refresh();
               });
             }}
-            className="admin-modal-form"
+            className="admin-modal-form item-editor-form"
           >
             <input name="item_id" type="hidden" value={editingItem.id} />
             <input name="sort_order" type="hidden" value={editingItem.sort_order} />
@@ -1646,81 +1647,95 @@ export function AdminMenuView({
               />
             </div>
 
-            {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
+            {/* 2- TÍTULO */}
             <div className="modal-header-section">
               <p className="eyebrow">Editar plato</p>
               <h2 className="modal-title">{editingItem.name}</h2>
-              <p className="modal-description">
-                Modificá los datos del plato para actualizarlo en el menú público.
-              </p>
             </div>
 
-            <label>
-              Nombre del plato
-              <input autoFocus defaultValue={editingItem.name} name="name" required />
-            </label>
+            <div className="item-editor-content">
+              <section aria-labelledby="item-public-details-heading" className="item-editor-section">
+                <h3 id="item-public-details-heading">Información pública</h3>
+                <div className="modal-fields-group">
+                  <label>
+                    Nombre del plato
+                    <input autoFocus defaultValue={editingItem.name} name="name" required />
+                  </label>
 
-            <label>
-              Descripción <span className="field-optional">Opcional</span>
-              <textarea
-                defaultValue={editingItem.description ?? ""}
-                name="description"
-                rows={2}
-              />
-            </label>
+                  <label>
+                    <span className="field-label">Descripción <span className="field-optional">Opcional</span></span>
+                    <textarea
+                      defaultValue={editingItem.description ?? ""}
+                      name="description"
+                      rows={2}
+                    />
+                  </label>
+                </div>
+              </section>
 
-            <div className="admin-modal-grid">
-              <label>
-                Precio (ARS)
-                <input
-                  defaultValue={(editingItem.price_cents / 100).toFixed(2)}
-                  min="0"
-                  name="price"
-                  required
-                  step=".01"
-                  type="number"
+              <section aria-labelledby="item-classification-heading" className="item-editor-section">
+                <h3 id="item-classification-heading">Clasificación</h3>
+                <div className="admin-modal-grid item-editor-meta-grid">
+                  <label>
+                    Precio (ARS)
+                    <input
+                      defaultValue={(editingItem.price_cents / 100).toFixed(2)}
+                      min="0"
+                      name="price"
+                      required
+                      step=".01"
+                      type="number"
+                    />
+                  </label>
+
+                  <label>
+                    Categoría
+                    <select defaultValue={editingItem.category_id} name="category_id">
+                      {menuCategories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              </section>
+
+              <section aria-labelledby="item-availability-heading" className="item-editor-availability">
+                <div>
+                  <h3 id="item-availability-heading">Disponibilidad</h3>
+                  <p>Mostrá u ocultá este plato para los comensales.</p>
+                </div>
+                <label className="item-availability-toggle">
+                  <span className="item-availability-toggle-copy"><strong>Disponible</strong></span>
+                  <input defaultChecked={editingItem.is_available} name="is_available" role="switch" type="checkbox" />
+                  <span aria-hidden="true" className="item-availability-toggle-control" />
+                </label>
+              </section>
+
+              <section aria-labelledby="item-dietary-heading" className="item-editor-section item-editor-dietary-section">
+                <h3 id="item-dietary-heading">Información alimentaria</h3>
+                <TagMultiSelector
+                  initialValues={editingItem.dietary_tags}
+                  label="Etiquetas dietéticas"
+                  name="dietary_tags"
+                  options={DEFAULT_DIETARY_TAGS}
                 />
-              </label>
 
-              <label>
-                Categoría
-                <select defaultValue={editingItem.category_id} name="category_id">
-                  {menuCategories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                <TagMultiSelector
+                  initialValues={editingItem.allergens}
+                  label="Alérgenos"
+                  name="allergens"
+                  options={DEFAULT_ALLERGENS}
+                />
+              </section>
+
+              <LocalizationFields
+                locales={restaurant.supported_locales}
+                translations={editingItem.menu_item_translations ?? []}
+                variant="section"
+              />
             </div>
-
-            {/* SELECTOR MÚLTIPLE DE ETIQUETAS DIETÉTICAS (5 opciones) */}
-            <TagMultiSelector
-              helpText="Seleccioná las etiquetas que aplican a este plato"
-              initialValues={editingItem.dietary_tags}
-              label="Etiquetas dietéticas"
-              name="dietary_tags"
-              options={DEFAULT_DIETARY_TAGS}
-            />
-
-            {/* SELECTOR MÚLTIPLE DE ALÉRGENOS (5 opciones) */}
-            <TagMultiSelector
-              helpText="Indicá los alérgenos presentes para informar a los clientes"
-              initialValues={editingItem.allergens}
-              label="Alérgenos"
-              name="allergens"
-              options={DEFAULT_ALLERGENS}
-            />
-
-            <LocalizationFields
-              locales={restaurant.supported_locales}
-              translations={editingItem.menu_item_translations ?? []}
-            />
-
-            <label className="checkbox-label">
-              <input defaultChecked={editingItem.is_available} name="is_available" type="checkbox" />
-              <span>Disponible para comensales</span>
-            </label>
 
             <div className="admin-modal-actions">
               <button

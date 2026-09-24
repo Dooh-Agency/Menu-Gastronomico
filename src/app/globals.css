@@ -6251,6 +6251,394 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   color: var(--color-accent, #ae4c2c);
 }
 
+/* Item editor: the same neutral, sectioned language as the rest of the admin. */
+.admin-dialog.item-editor-dialog {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-surface);
+  box-shadow: var(--ui-shadow-float);
+  max-height: min(92vh, 58rem);
+  padding: var(--space-3);
+}
+
+.item-editor-dialog .admin-dialog-close-btn {
+  background: var(--ui-surface-glass);
+  border-color: var(--ui-border);
+  color: var(--ui-text);
+  height: 2.5rem;
+  right: var(--space-2);
+  top: var(--space-2);
+  transition: transform var(--motion-duration) var(--motion-ease);
+  width: 2.5rem;
+}
+
+.item-editor-dialog .admin-dialog-close-btn:hover {
+  background: var(--ui-canvas);
+  color: var(--ui-text);
+  transform: rotate(90deg);
+}
+
+.item-editor-dialog .item-editor-form,
+.item-editor-dialog .item-editor-content {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.item-editor-dialog .modal-hero-photo-section {
+  margin: 0;
+}
+
+.item-editor-dialog .dish-uploader-container {
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.item-editor-dialog .dish-uploader-title {
+  color: var(--ui-text);
+  font-size: var(--type-label);
+}
+
+.item-editor-dialog .dish-uploader-title .field-optional {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.item-editor-dialog .dish-uploader-grid {
+  gap: var(--space-1);
+  grid-template-columns: repeat(auto-fill, minmax(6rem, 7rem));
+}
+
+.item-editor-dialog .dish-uploader-thumb,
+.item-editor-dialog .dish-uploader-add-btn {
+  background: var(--ui-canvas);
+  border-color: var(--ui-border);
+  border-radius: var(--radius-control);
+}
+
+.item-editor-dialog .dish-uploader-thumb.is-new {
+  border-color: rgb(0 0 0 / 16%);
+}
+
+.item-editor-dialog .dish-uploader-badge,
+.item-editor-dialog .dish-uploader-badge.is-primary {
+  background: rgb(29 29 31 / 82%);
+}
+
+.item-editor-dialog .dish-uploader-remove-btn {
+  background: var(--ui-surface-glass);
+  border: 1px solid var(--ui-border);
+  color: var(--ui-text);
+  height: 1.65rem;
+  transition: transform var(--motion-duration) var(--motion-ease);
+  width: 1.65rem;
+}
+
+.item-editor-dialog .dish-uploader-remove-btn:hover {
+  background: var(--ui-surface);
+  transform: scale(1.05);
+}
+
+.item-editor-dialog .dish-uploader-add-btn {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  transition: transform var(--motion-duration) var(--motion-ease);
+}
+
+.item-editor-dialog .dish-uploader-add-btn:hover {
+  background: var(--ui-surface);
+  border-color: rgb(0 0 0 / 16%);
+  color: var(--ui-text);
+  transform: translateY(-1px);
+}
+
+.item-editor-dialog .modal-header-section {
+  gap: var(--space-1);
+  padding-right: 3rem;
+}
+
+.item-editor-dialog .modal-header-section .eyebrow {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  letter-spacing: .12em;
+  margin: 0;
+}
+
+.item-editor-dialog .modal-title {
+  color: var(--ui-text);
+  font-size: var(--type-title);
+  letter-spacing: -0.025em;
+  line-height: var(--leading-tight);
+  margin: 0;
+}
+
+.item-editor-dialog .item-editor-section {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.item-editor-dialog .item-editor-section h3,
+.item-editor-dialog .item-editor-availability h3 {
+  color: var(--ui-text);
+  font-size: var(--type-body-large);
+  line-height: var(--leading-title);
+  margin: 0;
+}
+
+.item-editor-dialog .modal-fields-group {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.item-editor-dialog .admin-modal-form label {
+  color: var(--ui-text);
+  display: grid;
+  font-size: var(--type-label);
+  font-weight: 650;
+  gap: var(--space-1);
+  line-height: var(--leading-title);
+}
+
+.item-editor-dialog .field-label {
+  align-items: baseline;
+  display: inline-flex;
+  gap: var(--space-1);
+}
+
+.item-editor-dialog .field-optional {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-label);
+  font-style: italic;
+  font-weight: 400;
+  margin: 0;
+}
+
+.item-editor-dialog .admin-modal-form input:not([type="checkbox"]):not([type="radio"]),
+.item-editor-dialog .admin-modal-form select,
+.item-editor-dialog .admin-modal-form textarea {
+  border-color: var(--ui-border);
+  border-radius: var(--radius-control);
+  box-shadow: none;
+  color: var(--ui-text);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  margin-top: 0;
+}
+
+.item-editor-dialog .admin-modal-form input:not([type="checkbox"]):not([type="radio"]):focus,
+.item-editor-dialog .admin-modal-form select:focus,
+.item-editor-dialog .admin-modal-form textarea:focus {
+  border-color: var(--ui-text);
+  box-shadow: 0 0 0 3px rgb(0 0 0 / 8%);
+}
+
+.item-editor-dialog .item-editor-meta-grid {
+  gap: var(--space-2);
+}
+
+.item-editor-dialog .item-editor-availability {
+  align-items: center;
+  background: var(--ui-canvas);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-control);
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: var(--space-2);
+}
+
+.item-editor-dialog .item-editor-availability p {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-label);
+  line-height: var(--leading-body);
+  margin: var(--space-1) 0 0;
+}
+
+.item-editor-dialog .item-availability-toggle {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+  gap: var(--space-1);
+  min-height: 2.75rem;
+}
+
+.item-editor-dialog .item-availability-toggle-copy strong {
+  color: var(--ui-text);
+  font-size: var(--type-label);
+}
+
+.item-editor-dialog .item-availability-toggle input[type="checkbox"] {
+  height: 1px !important;
+  margin: 0 !important;
+  opacity: 0;
+  position: absolute;
+  width: 1px !important;
+}
+
+.item-editor-dialog .item-availability-toggle-control {
+  background: rgb(0 0 0 / 14%);
+  border-radius: var(--radius-pill);
+  height: 1.5rem;
+  position: relative;
+  width: 2.625rem;
+}
+
+.item-editor-dialog .item-availability-toggle-control::after {
+  background: var(--ui-surface);
+  border-radius: 50%;
+  box-shadow: var(--ui-shadow-subtle);
+  content: "";
+  height: 1.125rem;
+  left: 0.1875rem;
+  position: absolute;
+  top: 0.1875rem;
+  transform: translateX(0);
+  transition: transform var(--motion-duration) var(--motion-ease);
+  width: 1.125rem;
+}
+
+.item-editor-dialog .item-availability-toggle input:checked + .item-availability-toggle-control {
+  background: var(--ui-text);
+}
+
+.item-editor-dialog .item-availability-toggle input:checked + .item-availability-toggle-control::after {
+  transform: translateX(1.125rem);
+}
+
+.item-editor-dialog .item-availability-toggle input:focus-visible + .item-availability-toggle-control {
+  outline: 3px solid rgb(0 0 0 / 22%);
+  outline-offset: 3px;
+}
+
+.item-editor-dialog .item-editor-dietary-section {
+  border-top: 1px solid var(--ui-border);
+  padding-top: var(--space-3);
+}
+
+.item-editor-dialog .tag-multi-selector-container {
+  gap: var(--space-1);
+}
+
+.item-editor-dialog .tag-multi-selector-container + .tag-multi-selector-container {
+  border-top: 1px solid var(--ui-border);
+  padding-top: var(--space-2);
+}
+
+.item-editor-dialog .tag-multi-selector-header {
+  align-items: baseline;
+  justify-content: flex-start;
+}
+
+.item-editor-dialog .tag-multi-selector-label {
+  color: var(--ui-text);
+  font-size: var(--type-label);
+  gap: var(--space-1);
+}
+
+.item-editor-dialog .tag-multi-selector-pills {
+  gap: var(--space-1);
+}
+
+.item-editor-dialog .tag-pill {
+  background: var(--ui-surface);
+  border-color: var(--ui-border);
+  color: var(--ui-text);
+  font-size: var(--type-label);
+  min-height: 2.25rem;
+  padding: 0.35rem 0.7rem;
+  transition: transform var(--motion-duration) var(--motion-ease);
+}
+
+.item-editor-dialog .tag-pill:hover {
+  background: var(--ui-canvas);
+  border-color: rgb(0 0 0 / 16%);
+  transform: translateY(-1px);
+}
+
+.item-editor-dialog .tag-pill.is-selected {
+  background: var(--ui-text);
+  border-color: var(--ui-text);
+  box-shadow: none;
+  color: var(--ui-surface);
+}
+
+.item-editor-dialog .translation-fields {
+  background: var(--ui-canvas);
+  border-color: var(--ui-border);
+  border-radius: var(--radius-control);
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2);
+}
+
+.item-editor-dialog .translation-fields-heading {
+  align-items: baseline;
+  display: flex;
+  gap: var(--space-1);
+}
+
+.item-editor-dialog .translation-fields-section h3 {
+  color: var(--ui-text);
+  font-size: var(--type-body-large);
+  line-height: var(--leading-title);
+  margin: 0;
+}
+
+.item-editor-dialog .translation-locale-summary,
+.item-editor-dialog .translation-locale strong {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  font-weight: 650;
+  letter-spacing: .1em;
+}
+
+.item-editor-dialog .translation-locale {
+  border-color: var(--ui-border);
+  display: grid;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+}
+
+.item-editor-dialog .admin-modal-actions {
+  border-top: 1px solid var(--ui-border);
+  margin-top: 0;
+  padding-top: var(--space-2);
+}
+
+.item-editor-dialog .admin-modal-actions .primary-link {
+  background: var(--ui-text);
+  border-color: var(--ui-text);
+}
+
+.item-editor-dialog .admin-modal-actions .primary-link,
+.item-editor-dialog .admin-modal-actions .secondary-link {
+  align-items: center;
+  font-size: var(--type-label);
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: .55rem .85rem;
+}
+
+@media (max-width: 40rem) {
+  .admin-dialog.item-editor-dialog {
+    border-radius: var(--radius-control);
+    max-height: calc(100vh - 1rem);
+    padding: var(--space-2);
+  }
+
+  .item-editor-dialog .item-editor-availability {
+    align-items: start;
+    grid-template-columns: 1fr;
+  }
+
+  .item-editor-dialog .item-availability-toggle {
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
 @media (max-width: 48rem) {
   .admin-dashboard-header {
     flex-direction: column;

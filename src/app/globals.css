@@ -5230,9 +5230,16 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .admin-menu-view .admin-availability-toggle .toggle-dot,
 .admin-menu-view .admin-availability-toggle.is-available .toggle-dot,
 .admin-menu-view .admin-availability-toggle.is-paused .toggle-dot {
-  background: currentColor;
   height: 0.45rem;
   width: 0.45rem;
+}
+
+.admin-menu-view .admin-availability-toggle.is-available .toggle-dot {
+  background: #2d7a46;
+}
+
+.admin-menu-view .admin-availability-toggle.is-paused .toggle-dot {
+  background: #bd4d3c;
 }
 
 .admin-menu-view .admin-dish-actions .icon-button {

@@ -11,6 +11,7 @@ type LocalizationFieldsProps = {
 export function LocalizationFields({ locales, translations, variant = "fieldset" }: LocalizationFieldsProps) {
   const headingId = useId();
   const editableLocales = locales.filter((locale) => locale !== "es");
+  const hasSingleTranslation = variant === "section" && editableLocales.length === 1;
   if (!editableLocales.length) return null;
 
   const fields = (
@@ -19,7 +20,7 @@ export function LocalizationFields({ locales, translations, variant = "fieldset"
       {editableLocales.map((locale) => {
         const translation = translations.find((item) => item.locale === locale);
         return <div className="translation-locale" key={locale}>
-          <strong>{locale.toUpperCase()}</strong>
+          <strong aria-hidden={hasSingleTranslation || undefined} className={hasSingleTranslation ? "visually-hidden" : undefined}>{locale.toUpperCase()}</strong>
           <label>Nombre<input defaultValue={translation?.name ?? ""} name={`translation_${locale}_name`} /></label>
           <label>Descripción <span className="field-optional">Opcional</span><input defaultValue={translation?.description ?? ""} name={`translation_${locale}_description`} /></label>
         </div>;
@@ -30,7 +31,10 @@ export function LocalizationFields({ locales, translations, variant = "fieldset"
   if (variant === "section") {
     return (
       <section aria-labelledby={headingId} className="translation-fields translation-fields-section">
-        <h3 id={headingId}>Traducciones</h3>
+        <div className="translation-fields-heading">
+          <h3 id={headingId}>Traducciones</h3>
+          {hasSingleTranslation ? <span className="translation-locale-summary">{editableLocales[0].toUpperCase()}</span> : null}
+        </div>
         {fields}
       </section>
     );

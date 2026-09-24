@@ -3290,6 +3290,8 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 .category-editor-dialog .field-optional {
   color: var(--ui-text-secondary);
   font-size: var(--type-label);
+  font-style: italic;
+  font-weight: 400;
   margin-left: var(--space-1);
 }
 
@@ -3306,11 +3308,24 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   display: grid;
 }
 
+.category-editor-dialog .translation-fields-heading {
+  align-items: baseline;
+  display: flex;
+  gap: var(--space-1);
+}
+
 .category-editor-dialog .translation-fields-section h3 {
   color: var(--ui-text);
   font-size: var(--type-body-large);
   line-height: var(--leading-title);
   margin: 0;
+}
+
+.category-editor-dialog .translation-locale-summary {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  font-weight: 650;
+  letter-spacing: .1em;
 }
 
 .category-editor-dialog .translation-locale {

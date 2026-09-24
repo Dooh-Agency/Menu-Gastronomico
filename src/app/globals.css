@@ -6259,6 +6259,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   box-shadow: var(--ui-shadow-float);
   max-height: min(92vh, 58rem);
   padding: var(--space-3);
+  width: min(100%, 58rem);
 }
 
 .item-editor-dialog .admin-dialog-close-btn {
@@ -6415,6 +6416,18 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   height: 100%;
   object-fit: cover;
   width: 100%;
+}
+
+.item-editor-dialog .dish-uploader-editor-main-badge {
+  background: rgb(29 29 31 / 82%);
+  border-radius: var(--radius-pill);
+  bottom: var(--space-1);
+  color: var(--ui-surface);
+  font-size: var(--type-caption);
+  font-weight: 700;
+  left: var(--space-1);
+  padding: 0.2rem 0.45rem;
+  position: absolute;
 }
 
 .item-editor-dialog .dish-uploader-thumb,

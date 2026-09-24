@@ -1604,7 +1604,7 @@ export function AdminMenuView({
       {editingItem ? (
         <AdminDialog
           className="item-editor-dialog"
-          maxWidth="46rem"
+          maxWidth="58rem"
           onClose={() => {
             setEditingItem(null);
             setEditStagedFiles([]);

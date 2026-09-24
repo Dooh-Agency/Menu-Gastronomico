@@ -202,7 +202,6 @@ export function DishImagesUploader({
                   ) : (
                     <Image alt="" className="dish-uploader-img" fill sizes="72px" src={image.src} />
                   )}
-                  {index === 0 ? <span className="dish-uploader-badge is-primary">Portada</span> : null}
                 </button>
                 <button
                   aria-label={`Eliminar foto ${index + 1}`}
@@ -253,6 +252,9 @@ export function DishImagesUploader({
                 src={selectedEditorImage.src}
               />
             )}
+            {!selectedEditorImage.isStaged && selectedEditorImage.index === 0 ? (
+              <span className="dish-uploader-editor-main-badge">Portada</span>
+            ) : null}
           </div>
         </div>
       ) : totalImages > 0 ? (

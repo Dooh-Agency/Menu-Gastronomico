@@ -22,7 +22,7 @@ export function LocalizationFields({ locales, translations, variant = "fieldset"
         return <div className="translation-locale" key={locale}>
           <strong aria-hidden={hasSingleTranslation || undefined} className={hasSingleTranslation ? "visually-hidden" : undefined}>{locale.toUpperCase()}</strong>
           <label>Nombre<input defaultValue={translation?.name ?? ""} name={`translation_${locale}_name`} /></label>
-          <label>Descripción <span className="field-optional">Opcional</span><input defaultValue={translation?.description ?? ""} name={`translation_${locale}_description`} /></label>
+          <label><span className="field-label">Descripción <span className="field-optional">Opcional</span></span><input defaultValue={translation?.description ?? ""} name={`translation_${locale}_description`} /></label>
         </div>;
       })}
     </>

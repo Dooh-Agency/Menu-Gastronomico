@@ -1438,7 +1438,7 @@ export function AdminMenuView({
                 </label>
 
                 <label>
-                  Descripción <span className="field-optional">Opcional</span>
+                  <span className="field-label">Descripción <span className="field-optional">Opcional</span></span>
                   <input defaultValue={editingCategory.description ?? ""} name="description" />
                 </label>
               </div>

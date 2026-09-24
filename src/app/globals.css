@@ -3292,7 +3292,12 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   font-size: var(--type-label);
   font-style: italic;
   font-weight: 400;
-  margin-left: var(--space-1);
+}
+
+.category-editor-dialog .field-label {
+  align-items: baseline;
+  display: inline-flex;
+  gap: var(--space-1);
 }
 
 .category-editor-dialog .translation-fields {

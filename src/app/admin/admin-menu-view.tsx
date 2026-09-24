@@ -856,7 +856,7 @@ export function AdminMenuView({
                             if (!thumbPath) return null;
                             const totalPhotos = item.image_paths?.length || 1;
                             return (
-                              <div style={{ position: "relative" }}>
+                              <div className="admin-dish-image">
                                 <Image
                                   alt=""
                                   className="menu-image"
@@ -868,8 +868,7 @@ export function AdminMenuView({
                                 {totalPhotos > 1 ? (
                                   <div
                                     aria-label={`${totalPhotos} fotos`}
-                                    className="dish-card-horizontal-photos-badge"
-                                    style={{ bottom: "0.5rem", right: "0.5rem" }}
+                                    className="dish-card-horizontal-photos-badge admin-dish-photos-badge"
                                   >
                                     <svg
                                       aria-hidden="true"
@@ -893,8 +892,8 @@ export function AdminMenuView({
                             );
                           })() : null}
 
-                          <div className="menu-card-content">
-                            <div className="menu-card-heading">
+                          <div className="menu-card-content admin-dish-card-content">
+                            <div className="menu-card-heading admin-dish-card-heading">
                               <h3>{itemDisplayName}</h3>
                               <strong>
                                 {formatPrice(item.price_cents, item.currency_code, selectedLocale)}
@@ -902,12 +901,12 @@ export function AdminMenuView({
                             </div>
 
                             {itemDisplayDesc ? (
-                              <p>{itemDisplayDesc}</p>
+                              <p className="admin-dish-description">{itemDisplayDesc}</p>
                             ) : null}
 
                             {/* Tags dietéticos */}
                             {item.dietary_tags.length > 0 ? (
-                              <ul className="tag-list" aria-label="Etiquetas dietéticas">
+                              <ul className="tag-list admin-dish-tags" aria-label="Etiquetas dietéticas">
                                 {item.dietary_tags.map((tag) => (
                                   <li key={tag}>{tag}</li>
                                 ))}
@@ -917,7 +916,7 @@ export function AdminMenuView({
                             {/* Alérgenos */}
                             {item.allergens.length > 0 ? (
                               <details
-                                className="menu-allergens-details"
+                                className="menu-allergens-details admin-dish-allergens"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <summary>Alérgenos</summary>
@@ -925,10 +924,6 @@ export function AdminMenuView({
                                   <b>Alérgenos:</b> {item.allergens.join(", ")}
                                 </p>
                               </details>
-                            ) : null}
-
-                            {!item.is_available ? (
-                              <span className="sold-out">Agotado</span>
                             ) : null}
 
                             {/* Acciones del plato para el administrador */}

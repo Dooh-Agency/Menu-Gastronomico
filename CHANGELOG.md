@@ -17,6 +17,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
 
 ### 🎨 UI & Diseño
+- **Tarjetas de platos administrativas refinadas (`admin-menu-view.tsx` / `globals.css`):** Las cards de gestión usan superficies y acciones monocromas, foto más contenida, tipografía de lectura compacta, chips neutrales y estados de disponibilidad sin duplicación ni pérdida de contraste. Se conservan la vista previa y todas las operaciones existentes.
 - **Separación formal de estilos público y administrativo (`src/AGENTS.md` / `DECISIONES-UX-MENU.md`):** Se documentó que la carta del comensal expresa el branding controlado del restaurante, mientras la administración mantiene un lenguaje monocromo y neutral, con branding limitado a contenido contextual.
 - **Reglas reutilizables para formularios del admin (`src/AGENTS.md` / `DECISIONES-UX-MENU.md`):** Se documentaron la disposición inline de aclaraciones opcionales, la presentación compacta y accesible de traducciones únicas y el criterio para evitar superficies redundantes en selectores por tarjetas.
 - **Editor de categoría alineado al admin (`admin-menu-view.tsx` / `globals.css`):** Se eliminó el encabezado visual con branding del restaurante y se reorganizó la edición en un formulario neutral y por bloques: datos públicos, traducciones, formato de tarjetas y visibilidad mediante un switch accesible. Se conservan los campos, estados y guardado existentes.

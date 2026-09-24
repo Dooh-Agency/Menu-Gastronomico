@@ -5089,6 +5089,169 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   color: #9d381c;
 }
 
+/* Dish cards inherit the restrained management language, not restaurant branding. */
+.admin-dish-grid {
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+}
+
+.admin-menu-view .menu-card.admin-dish-card {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-surface);
+  box-shadow: var(--ui-shadow-subtle);
+  color: var(--ui-text);
+  transition: transform var(--motion-duration) var(--motion-ease);
+}
+
+.admin-menu-view .menu-card.admin-dish-card:hover {
+  box-shadow: var(--ui-shadow-subtle);
+  transform: translateY(-1px);
+}
+
+.admin-menu-view .menu-card.admin-dish-card.is-unavailable {
+  opacity: 1;
+}
+
+.admin-dish-card:focus-visible {
+  outline: 2px solid var(--ui-text);
+  outline-offset: 2px;
+}
+
+.admin-dish-image {
+  position: relative;
+}
+
+.admin-menu-view .admin-dish-card .menu-image {
+  aspect-ratio: 16 / 8;
+}
+
+.admin-dish-photos-badge {
+  background: rgb(29 29 31 / 82%);
+  bottom: var(--space-1);
+  right: var(--space-1);
+}
+
+.admin-menu-view .admin-dish-card-content {
+  gap: var(--space-1);
+  padding: var(--space-2);
+}
+
+.admin-menu-view .admin-dish-card-heading {
+  gap: var(--space-1);
+}
+
+.admin-menu-view .admin-dish-card h3,
+.admin-menu-view .admin-dish-card strong {
+  color: var(--ui-text);
+  font-size: var(--type-body-large);
+  line-height: var(--leading-tight);
+}
+
+.admin-menu-view .admin-dish-card h3 {
+  display: -webkit-box;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.admin-menu-view .admin-dish-card strong {
+  font-weight: 750;
+}
+
+.admin-menu-view .admin-dish-description {
+  color: var(--ui-text-secondary);
+  display: -webkit-box;
+  font-size: var(--type-label);
+  line-height: var(--leading-body);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.admin-menu-view .admin-dish-tags {
+  gap: var(--space-1);
+  margin: var(--space-1) 0 0;
+}
+
+.admin-menu-view .admin-dish-tags li {
+  background: rgb(0 0 0 / 4%);
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  line-height: var(--leading-tight);
+  padding: 0.3rem 0.5rem;
+}
+
+.admin-menu-view .admin-dish-allergens {
+  margin-top: var(--space-1);
+}
+
+.admin-menu-view .admin-dish-allergens summary,
+.admin-menu-view .admin-dish-allergens p,
+.admin-menu-view .admin-dish-allergens p b {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  line-height: var(--leading-body);
+}
+
+.admin-menu-view .admin-dish-actions {
+  border-color: var(--ui-border);
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+}
+
+.admin-menu-view .admin-availability-toggle {
+  background: transparent;
+  border-color: var(--ui-border);
+  color: var(--ui-text);
+  font-size: var(--type-label);
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.7rem;
+  transition: transform var(--motion-duration) var(--motion-ease);
+}
+
+.admin-menu-view .admin-availability-toggle.is-available,
+.admin-menu-view .admin-availability-toggle.is-paused {
+  background: transparent;
+  border-color: var(--ui-border);
+}
+
+.admin-menu-view .admin-availability-toggle.is-paused {
+  color: var(--ui-text-secondary);
+}
+
+.admin-menu-view .admin-availability-toggle .toggle-dot,
+.admin-menu-view .admin-availability-toggle.is-available .toggle-dot,
+.admin-menu-view .admin-availability-toggle.is-paused .toggle-dot {
+  background: currentColor;
+  height: 0.45rem;
+  width: 0.45rem;
+}
+
+.admin-menu-view .admin-dish-actions .icon-button {
+  background: var(--ui-surface);
+  border-color: var(--ui-border);
+  border-radius: var(--radius-control);
+  color: var(--ui-text);
+  height: 2.25rem;
+  transition: transform var(--motion-duration) var(--motion-ease);
+  width: 2.25rem;
+}
+
+.admin-menu-view .admin-dish-actions .icon-button:hover,
+.admin-menu-view .admin-dish-actions .icon-button-danger:hover {
+  background: var(--ui-canvas);
+  border-color: var(--ui-border);
+  color: var(--ui-text);
+}
+
 /* Dashed Add-Dish Card (Square with dashed lines and + in center) */
 .admin-add-dish-card,
 .admin-add-item-card {

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { AdminDialog } from "./admin-dialog";
+import { updateLogoImage } from "./actions";
 
 interface AdminHeaderProps {
   restaurantName: string;
@@ -20,6 +22,9 @@ export function AdminHeader({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isLogoDialogOpen, setIsLogoDialogOpen] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on click outside
@@ -55,6 +60,38 @@ export function AdminHeader({
   const isEditingMenu = pathname === "/admin" && Boolean(searchParams.get("menu"));
 
   const initial = restaurantName ? restaurantName.charAt(0).toUpperCase() : "R";
+
+  function openLogoDialog() {
+    setLogoPreview(null);
+    setDropdownOpen(false);
+    setIsLogoDialogOpen(true);
+  }
+
+  function handleLogoFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    setLogoPreview(file ? URL.createObjectURL(file) : null);
+  }
+
+  function handleLogoSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    startTransition(async () => {
+      await updateLogoImage(formData);
+      setIsLogoDialogOpen(false);
+      setLogoPreview(null);
+    });
+  }
+
+  function handleRemoveLogo() {
+    if (!confirm("¿Deseás quitar la foto de perfil / logo?")) return;
+    const formData = new FormData();
+    formData.set("remove", "true");
+    startTransition(async () => {
+      await updateLogoImage(formData);
+      setIsLogoDialogOpen(false);
+      setLogoPreview(null);
+    });
+  }
 
   return (
     <header className="admin-header-unified">
@@ -198,6 +235,28 @@ export function AdminHeader({
 
             <div className="dropdown-divider" />
 
+            <button
+              className="dropdown-item"
+              onClick={openLogoDialog}
+              role="menuitem"
+              type="button"
+            >
+              <svg
+                className="dropdown-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 7a2 2 0 0 1 2-2h3l1.4-2h5.2L16 5h3a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+                <circle cx="12" cy="12.5" r="3.5" />
+              </svg>
+              <span>{logoUrl ? "Cambiar logo" : "Agregar logo"}</span>
+            </button>
+
             <Link
               href="/admin/users"
               className={`dropdown-item ${isEquipoActive ? "is-active" : ""}`}
@@ -246,6 +305,71 @@ export function AdminHeader({
           </div>
         )}
       </div>
+
+      {isLogoDialogOpen ? (
+        <AdminDialog className="profile-logo-dialog" onClose={() => setIsLogoDialogOpen(false)}>
+          <form className="admin-modal-form" onSubmit={handleLogoSubmit}>
+            <div className="profile-logo-preview">
+              {logoPreview || logoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img alt="Vista previa del logo" src={logoPreview ?? logoUrl} />
+              ) : (
+                <div aria-hidden="true" className="profile-logo-placeholder">
+                  <svg
+                    fill="none"
+                    height="28"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="1.5"
+                    viewBox="0 0 24 24"
+                    width="28"
+                  >
+                    <circle cx="12" cy="7" r="4" />
+                    <path d="M5.5 21a8.5 8.5 0 0 1 13 0" />
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-header-section">
+              <p className="eyebrow">Perfil del restaurante</p>
+              <h2 className="modal-title">Foto de perfil / logo</h2>
+              <p className="modal-description">Esta imagen se muestra en la cabecera del menú digital.</p>
+            </div>
+
+            <label>
+              Seleccionar imagen <span className="field-optional">JPG, PNG o WebP · máx. 5 MB</span>
+              <input
+                accept="image/jpeg,image/png,image/webp"
+                name="logo_image"
+                onChange={handleLogoFileChange}
+                required
+                type="file"
+              />
+            </label>
+
+            <div className="admin-modal-actions">
+              {logoUrl ? (
+                <button
+                  className="profile-logo-remove-btn"
+                  disabled={isPending}
+                  onClick={handleRemoveLogo}
+                  type="button"
+                >
+                  Quitar logo
+                </button>
+              ) : null}
+              <button className="secondary-link" onClick={() => setIsLogoDialogOpen(false)} type="button">
+                Cancelar
+              </button>
+              <button className="primary-link" disabled={isPending} type="submit">
+                {isPending ? "Guardando..." : "Guardar logo"}
+              </button>
+            </div>
+          </form>
+        </AdminDialog>
+      ) : null}
     </header>
   );
 }

@@ -73,6 +73,7 @@ Para documentación general del proyecto, consultar [`/docs`](../docs/README.md)
      - Gestión individual por fila: Editar (datos y formato visual), Quitar de esta carta (`unlinkCategoryFromMenu`), y Eliminar definitivamente (`deleteCategory`).
 8. **Estructura del Navbar de Administración (`AdminNav`):**
    - **Enlaces canónicos:** `Menú` (`/admin`), `Configuración` (`/admin/settings`), `Equipo` (`/admin/users`) y el acceso directo `Ver menú público`.
+   - La foto de perfil o logo es un dato del restaurante, no de una carta. Su edición se abre desde el desplegable del perfil del header global; el editor de carta no repite ese acceso ni reserva espacio para él.
    - No exponer pestañas separadas de `Categorías` ni `Platos` en el navbar superior; toda la creación, edición, reordenamiento y configuración de cartas, categorías y platos se gestiona de forma centralizada y contextual en `/admin`.
 9. **Reutilización y Unificación del Header Flotante (`menu-hero-pill-nav`):**
    - Toda vista pública del menú debe utilizar la función o componente auxiliar unificado `renderPublicHeader`.

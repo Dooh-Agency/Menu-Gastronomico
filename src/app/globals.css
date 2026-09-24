@@ -2683,6 +2683,150 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   width: 1rem;
 }
 
+/* Restaurant profile lives in the global header, not in an individual menu editor. */
+.admin-dialog.profile-logo-dialog {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-surface);
+  box-shadow: var(--ui-shadow-float);
+  max-width: 30rem;
+  padding: var(--space-3);
+}
+
+.profile-logo-dialog .admin-dialog-close-btn {
+  background: var(--ui-surface-glass);
+  border-color: var(--ui-border);
+  color: var(--ui-text);
+  height: 2.5rem;
+  right: var(--space-2);
+  top: var(--space-2);
+  transition: transform var(--motion-duration) var(--motion-ease);
+  width: 2.5rem;
+}
+
+.profile-logo-dialog .admin-dialog-close-btn:hover {
+  background: var(--ui-canvas);
+  color: var(--ui-text);
+  transform: rotate(90deg);
+}
+
+.profile-logo-dialog .admin-modal-form {
+  gap: var(--space-3);
+}
+
+.profile-logo-dialog .profile-logo-preview,
+.profile-logo-dialog .profile-logo-placeholder {
+  align-items: center;
+  background: var(--ui-canvas);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-control);
+  display: flex;
+  height: 7rem;
+  justify-content: center;
+  margin: 0 auto;
+  overflow: hidden;
+  width: 7rem;
+}
+
+.profile-logo-dialog .profile-logo-preview img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.profile-logo-dialog .profile-logo-placeholder {
+  color: var(--ui-text-secondary);
+}
+
+.profile-logo-dialog .modal-header-section {
+  gap: var(--space-1);
+  padding-right: 0;
+  text-align: center;
+}
+
+.profile-logo-dialog .modal-header-section .eyebrow {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  letter-spacing: .12em;
+  margin: 0;
+}
+
+.profile-logo-dialog .modal-title {
+  color: var(--ui-text);
+  font-size: var(--type-title);
+  letter-spacing: -0.025em;
+  line-height: var(--leading-tight);
+  margin: 0;
+}
+
+.profile-logo-dialog .modal-description {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-label);
+  line-height: var(--leading-body);
+  margin: 0;
+}
+
+.profile-logo-dialog .admin-modal-form label {
+  color: var(--ui-text);
+  display: grid;
+  font-size: var(--type-label);
+  font-weight: 650;
+  gap: var(--space-1);
+  line-height: var(--leading-title);
+}
+
+.profile-logo-dialog .field-optional {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-label);
+  font-style: italic;
+  font-weight: 400;
+  margin: 0;
+}
+
+.profile-logo-dialog .admin-modal-form input[type="file"] {
+  border-color: var(--ui-border);
+  border-radius: var(--radius-control);
+  box-shadow: none;
+  color: var(--ui-text);
+  font-size: var(--type-label);
+  margin-top: 0;
+}
+
+.profile-logo-dialog .admin-modal-form input[type="file"]:focus {
+  border-color: var(--ui-text);
+  box-shadow: 0 0 0 3px rgb(0 0 0 / 8%);
+}
+
+.profile-logo-dialog .admin-modal-actions {
+  border-top: 1px solid var(--ui-border);
+  margin-top: 0;
+  padding-top: var(--space-2);
+}
+
+.profile-logo-dialog .admin-modal-actions .primary-link,
+.profile-logo-dialog .admin-modal-actions .secondary-link,
+.profile-logo-dialog .profile-logo-remove-btn {
+  align-items: center;
+  font-size: var(--type-label);
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: .55rem .85rem;
+}
+
+.profile-logo-dialog .admin-modal-actions .primary-link {
+  background: var(--ui-text);
+  border-color: var(--ui-text);
+}
+
+.profile-logo-dialog .profile-logo-remove-btn {
+  background: transparent;
+  border: 1px solid #e9c8c1;
+  border-radius: var(--radius-control);
+  color: #b23d2d;
+  cursor: pointer;
+  margin-right: auto;
+}
+
 @media (max-width: 40rem) {
   .admin-header-unified {
     gap: 0.5rem;

@@ -17,7 +17,6 @@ import {
   toggleMenuItemAvailability,
   unlinkCategoryFromMenu,
   updateCategory,
-  updateLogoImage,
   updateMenuBanner,
   updateMenuItem,
 } from "./actions";
@@ -127,9 +126,6 @@ export function AdminMenuView({
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
 
   // Dialogs state
-  const [isLogoDialogOpen, setIsLogoDialogOpen] = useState(false);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-
   const [isMenuEditDialogOpen, setIsMenuEditDialogOpen] = useState(false);
 
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
@@ -220,37 +216,10 @@ export function AdminMenuView({
   // Active banner: menu specific banner or fallback to restaurant cover image
   const activeBannerPath = currentMenu.banner_path || branding.cover_image_path;
 
-  function handleLogoFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (file) setLogoPreview(URL.createObjectURL(file));
-    else setLogoPreview(null);
-  }
-
   function handleItemImageChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (file) setItemImagePreview(URL.createObjectURL(file));
     else setItemImagePreview(null);
-  }
-
-  function handleLogoSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    startTransition(async () => {
-      await updateLogoImage(formData);
-      setIsLogoDialogOpen(false);
-      setLogoPreview(null);
-    });
-  }
-
-  function handleRemoveLogo() {
-    if (!confirm("¿Deseas quitar la foto de perfil / logo?")) return;
-    const formData = new FormData();
-    formData.set("remove", "true");
-    startTransition(async () => {
-      await updateLogoImage(formData);
-      setIsLogoDialogOpen(false);
-      setLogoPreview(null);
-    });
   }
 
   function handleRemoveMenuBanner() {
@@ -326,73 +295,7 @@ export function AdminMenuView({
     <div className="admin-menu-editor-layout">
       {/* Lienzo de la Carta */}
       <div className="admin-menu-view" style={brandStyle}>
-        {/* 1. Header general del restaurante */}
-        <header className="admin-menu-header">
-          <div className="admin-menu-brand">
-            {branding.logo_path ? (
-              <button
-                className="admin-logo-avatar-btn"
-                onClick={() => {
-                  setLogoPreview(null);
-                  setIsLogoDialogOpen(true);
-                }}
-                title="Cambiar foto de perfil / logo"
-                type="button"
-              >
-                <Image
-                  alt=""
-                  className="brand-logo"
-                  height={52}
-                  src={menuImageUrl(branding.logo_path)}
-                  width={52}
-                />
-                <span className="avatar-edit-badge" aria-hidden="true">
-                  <svg
-                    fill="none"
-                    height="12"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    width="12"
-                  >
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                    <circle cx="12" cy="13" r="4" />
-                  </svg>
-                </span>
-              </button>
-            ) : (
-              <button
-                className="admin-logo-placeholder-btn"
-                onClick={() => {
-                  setLogoPreview(null);
-                  setIsLogoDialogOpen(true);
-                }}
-                title="Agregar foto de perfil / logo"
-                type="button"
-              >
-                <svg
-                  aria-hidden="true"
-                  fill="none"
-                  height="18"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2.5"
-                  viewBox="0 0 24 24"
-                  width="18"
-                >
-                  <line x1="12" x2="12" y1="5" y2="19" />
-                  <line x1="5" x2="19" y1="12" y2="12" />
-                </svg>
-              </button>
-            )}
-            <span className="admin-menu-title">{restaurant.name}</span>
-          </div>
-        </header>
-
-        {/* 2. Encabezado de la carta: portada, nombre y descripción */}
+        {/* Encabezado de la carta: portada, nombre y descripción */}
         <section className="admin-menu-cover-section" aria-label={`Encabezado de ${currentMenu.name}`}>
           {activeBannerPath ? (
             <div
@@ -1079,103 +982,6 @@ export function AdminMenuView({
           onClose={() => setIsMenuEditDialogOpen(false)}
         />
       )}
-
-      {/* Modal: Logo / Foto de Perfil */}
-      {isLogoDialogOpen ? (
-        <AdminDialog onClose={() => setIsLogoDialogOpen(false)}>
-          <form className="admin-modal-form" onSubmit={handleLogoSubmit}>
-            {/* 1- FOTO */}
-            <div className="modal-hero-photo-section" style={{ display: "flex", justifyContent: "center" }}>
-              {logoPreview ? (
-                <div className="banner-preview-box" style={{ maxWidth: "160px" }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img alt="Vista previa del logo" className="banner-preview-img" src={logoPreview} />
-                </div>
-              ) : branding.logo_path ? (
-                <div className="banner-preview-box" style={{ maxWidth: "160px" }}>
-                  <Image
-                    alt=""
-                    className="banner-preview-img"
-                    height={120}
-                    src={menuImageUrl(branding.logo_path)}
-                    width={120}
-                  />
-                </div>
-              ) : (
-                <div
-                  className="modal-banner-placeholder"
-                  style={{
-                    width: "120px",
-                    height: "120px",
-                    borderRadius: "50%",
-                    background: "#f4eee9",
-                    border: "2px dashed #cfc7bd",
-                  }}
-                >
-                  <svg
-                    fill="none"
-                    height="32"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="1.5"
-                    viewBox="0 0 24 24"
-                    width="32"
-                  >
-                    <circle cx="12" cy="7" r="4" />
-                    <path d="M5.5 21a8.5 8.5 0 0 1 13 0" />
-                  </svg>
-                  <span style={{ fontSize: "0.75rem" }}>Sin logo</span>
-                </div>
-              )}
-            </div>
-
-            {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
-            <div className="modal-header-section" style={{ textAlign: "center", paddingRight: 0 }}>
-              <p className="eyebrow">Personalización</p>
-              <h2 className="modal-title">Foto de perfil / Logo</h2>
-              <p className="modal-description">
-                Esta imagen identifica a tu restaurante en la cabecera del menú digital.
-              </p>
-            </div>
-
-            <label>
-              Seleccionar nueva imagen <span className="field-optional">JPG, PNG o WebP; máx 5 MB</span>
-              <input
-                accept="image/jpeg,image/png,image/webp"
-                name="logo_image"
-                onChange={handleLogoFileChange}
-                required
-                type="file"
-              />
-            </label>
-
-            <div className="admin-modal-actions">
-              {branding.logo_path ? (
-                <button
-                  className="secondary-link"
-                  disabled={isPending}
-                  onClick={handleRemoveLogo}
-                  style={{ color: "#ef4444", marginRight: "auto" }}
-                  type="button"
-                >
-                  Quitar logo
-                </button>
-              ) : null}
-              <button
-                className="secondary-link"
-                onClick={() => setIsLogoDialogOpen(false)}
-                type="button"
-              >
-                Cancelar
-              </button>
-              <button className="primary-link" disabled={isPending} type="submit">
-                {isPending ? "Guardando..." : "Guardar logo"}
-              </button>
-            </div>
-          </form>
-        </AdminDialog>
-      ) : null}
 
       {/* Modal: Configuración y Reordenamiento de Categorías de la Carta */}
       {isCategoryConfigOpen && (

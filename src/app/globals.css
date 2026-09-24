@@ -2960,7 +2960,7 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 
 .menu-form-dialog .modal-header-section {
   gap: var(--space-1);
-  padding-right: 3.5rem;
+  padding-right: 0;
 }
 
 .menu-form-dialog .modal-header-section .eyebrow {
@@ -2990,6 +2990,33 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   gap: var(--space-2);
 }
 
+.menu-form-dialog .modal-form-content {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 42rem;
+  width: 100%;
+}
+
+.menu-form-dialog .modal-form-section,
+.menu-form-dialog .modal-section-header {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.menu-form-dialog .modal-form-section h3,
+.menu-form-dialog .modal-section-header h3 {
+  font-size: var(--type-body-large);
+  line-height: var(--leading-title);
+  margin: 0;
+}
+
+.menu-form-dialog .modal-form-section p,
+.menu-form-dialog .modal-section-header p {
+  font-size: var(--type-label);
+  line-height: var(--leading-body);
+  margin: 0;
+}
+
 .menu-form-dialog .checkbox-label {
   font-size: var(--type-label);
   gap: var(--space-1) !important;
@@ -3005,6 +3032,11 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   padding: var(--space-2);
 }
 
+.menu-form-dialog .schedule-section-header {
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .menu-form-dialog .schedule-section-header h3 {
   font-size: var(--type-body-large);
   line-height: var(--leading-title);
@@ -3018,12 +3050,84 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 
 .menu-form-dialog .schedule-availability-mode {
   background: rgb(0 0 0 / 6%);
+  width: max-content;
 }
 
 .menu-form-dialog .availability-pill {
   font-size: var(--type-label);
   line-height: var(--leading-title);
   padding: var(--space-1) var(--space-2);
+}
+
+.menu-form-dialog .menu-active-toggle {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: var(--space-1);
+  justify-content: space-between;
+  min-height: 2.75rem;
+}
+
+.menu-form-dialog .menu-active-toggle-copy {
+  display: grid;
+  gap: 0.125rem;
+  text-align: right;
+}
+
+.menu-form-dialog .menu-active-toggle-copy strong {
+  color: var(--ui-text);
+  font-size: var(--type-label);
+}
+
+.menu-form-dialog .menu-active-toggle-copy span {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  line-height: var(--leading-title);
+}
+
+.menu-form-dialog .menu-active-toggle input[type="checkbox"] {
+  height: 1px !important;
+  margin: 0 !important;
+  opacity: 0;
+  position: absolute;
+  width: 1px !important;
+}
+
+.menu-form-dialog .menu-active-toggle-control {
+  background: rgb(0 0 0 / 14%);
+  border-radius: var(--radius-pill);
+  height: 1.5rem;
+  position: relative;
+  transition: background var(--motion-duration) var(--motion-ease);
+  width: 2.625rem;
+}
+
+.menu-form-dialog .menu-active-toggle-control::after {
+  background: var(--ui-surface);
+  border-radius: 50%;
+  box-shadow: var(--ui-shadow-subtle);
+  content: "";
+  height: 1.125rem;
+  left: 0.1875rem;
+  position: absolute;
+  top: 0.1875rem;
+  transform: translateX(0);
+  transition: transform var(--motion-duration) var(--motion-ease);
+  width: 1.125rem;
+}
+
+.menu-form-dialog .menu-active-toggle input:checked + .menu-active-toggle-control {
+  background: var(--ui-text);
+}
+
+.menu-form-dialog .menu-active-toggle input:checked + .menu-active-toggle-control::after {
+  transform: translateX(1.125rem);
+}
+
+.menu-form-dialog .menu-active-toggle input:focus-visible + .menu-active-toggle-control {
+  outline: 3px solid rgb(0 0 0 / 22%);
+  outline-offset: 3px;
 }
 
 .menu-form-dialog .availability-pill.is-active {
@@ -3115,6 +3219,14 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 
   .menu-form-dialog .schedule-availability-mode {
     width: 100%;
+  }
+
+  .menu-form-dialog .menu-active-toggle {
+    width: 100%;
+  }
+
+  .menu-form-dialog .menu-active-toggle-copy {
+    text-align: left;
   }
 
   .menu-form-dialog .availability-pill {

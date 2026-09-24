@@ -326,61 +326,68 @@ export function MenuFormDialog({
           </div>
         </div>
 
-        {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
-        <div className="modal-header-section">
-          <p className="eyebrow">{isEditing ? "Editar carta" : "Nueva carta"}</p>
-          <h2 className="modal-title">
-            {isEditing ? menu?.name : "Crear nueva carta"}
-          </h2>
-          <p className="modal-description">
-            {isEditing
-              ? "Modificá los datos generales, imagen de portada y horarios de disponibilidad."
-              : "Creá una carta con su propia portada, nombre, horarios y categorías de platos."}
-          </p>
-        </div>
+        <div className="modal-form-content">
+          {/* 2- CONTEXTO */}
+          <div className="modal-header-section">
+            <p className="eyebrow">{isEditing ? "Editar carta" : "Nueva carta"}</p>
+            <h2 className="modal-title">
+              {isEditing ? menu?.name : "Crear nueva carta"}
+            </h2>
+          </div>
 
-        {/* CAMPOS PRINCIPALES */}
-        <div className="modal-fields-group">
-          <label>
-            Nombre de la carta
-            <input
-              autoFocus
-              defaultValue={menu?.name || ""}
-              name="name"
-              placeholder="Ej: Menú Ejecutivo, Carta de Vinos, Desayunos..."
-              required
-              type="text"
-            />
-          </label>
+          {/* 3- DATOS BÁSICOS */}
+          <section aria-labelledby="menu-basics-heading" className="modal-form-section">
+            <div className="modal-section-header">
+              <h3 id="menu-basics-heading">Información de la carta</h3>
+              <p>Nombre y descripción visibles en el menú público.</p>
+            </div>
 
-          <label>
-            Descripción <span className="field-optional">Opcional</span>
-            <textarea
-              defaultValue={menu?.description || ""}
-              name="description"
-              placeholder="Breve reseña o aclaración sobre esta carta..."
-              rows={2}
-            />
-          </label>
+            <div className="modal-fields-group">
+              <label>
+                Nombre de la carta
+                <input
+                  autoFocus
+                  defaultValue={menu?.name || ""}
+                  name="name"
+                  placeholder="Ej: Menú Ejecutivo, Carta de Vinos, Desayunos..."
+                  required
+                  type="text"
+                />
+              </label>
 
-          <label className="checkbox-label" style={{ marginTop: "0.25rem" }}>
-            <input
-              defaultChecked={menu ? menu.is_active : true}
-              name="is_active"
-              type="checkbox"
-            />
-            <span>
-              <strong>Carta activa</strong> (visible para los comensales dentro de sus horarios)
-            </span>
-          </label>
-        </div>
+              <label>
+                Descripción <span className="field-optional">Opcional</span>
+                <textarea
+                  defaultValue={menu?.description || ""}
+                  name="description"
+                  placeholder="Breve reseña o aclaración sobre esta carta..."
+                  rows={2}
+                />
+              </label>
+            </div>
+          </section>
 
-        {/* FRANJAS HORARIAS Y DÍAS */}
-        <div className="modal-schedule-section">
-          <div className="schedule-section-header">
-            <div>
-              <h3>Horarios y disponibilidad</h3>
-              <p>Definí qué días y horas está disponible esta carta para los clientes.</p>
+          {/* 4- DISPONIBILIDAD, FRANJAS Y DÍAS */}
+          <section aria-labelledby="menu-availability-heading" className="modal-schedule-section">
+            <div className="schedule-section-header">
+              <div>
+                <h3 id="menu-availability-heading">Disponibilidad</h3>
+                <p>Definí cuándo pueden verla los comensales.</p>
+              </div>
+
+              <label className="menu-active-toggle">
+                <span className="menu-active-toggle-copy">
+                  <strong>Carta activa</strong>
+                  <span>Visible en los horarios definidos</span>
+                </span>
+                <input
+                  defaultChecked={menu ? menu.is_active : true}
+                  name="is_active"
+                  role="switch"
+                  type="checkbox"
+                />
+                <span aria-hidden="true" className="menu-active-toggle-control" />
+              </label>
             </div>
 
             <div className="schedule-availability-mode">
@@ -399,12 +406,11 @@ export function MenuFormDialog({
                 Horario programado
               </button>
             </div>
-          </div>
 
-          {!isAlwaysAvailable && (
-            <div className="schedule-intervals-list">
-              {intervals.map((interval, index) => (
-                <div className="schedule-interval-card" key={interval.id}>
+            {!isAlwaysAvailable && (
+              <div className="schedule-intervals-list">
+                {intervals.map((interval, index) => (
+                  <div className="schedule-interval-card" key={interval.id}>
                   <div className="schedule-interval-top">
                     <span className="interval-index-badge">
                       Franja {index + 1}
@@ -508,14 +514,14 @@ export function MenuFormDialog({
                       />
                     </label>
                   </div>
-                </div>
-              ))}
+                  </div>
+                ))}
 
-              <button
-                className="add-interval-btn"
-                onClick={addInterval}
-                type="button"
-              >
+                <button
+                  className="add-interval-btn"
+                  onClick={addInterval}
+                  type="button"
+                >
                 <svg
                   fill="none"
                   height="16"
@@ -529,10 +535,11 @@ export function MenuFormDialog({
                   <line x1="12" x2="12" y1="5" y2="19" />
                   <line x1="5" x2="19" y1="12" y2="12" />
                 </svg>
-                Agregar otra franja horaria
-              </button>
-            </div>
-          )}
+                  Agregar otra franja horaria
+                </button>
+              </div>
+            )}
+          </section>
         </div>
 
         {/* ACCIONES */}

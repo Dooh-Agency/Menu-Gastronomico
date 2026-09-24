@@ -2872,6 +2872,11 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   color: var(--ui-text);
 }
 
+.menu-form-dialog .admin-modal-form label {
+  font-size: var(--type-label);
+  line-height: var(--leading-title);
+}
+
 .menu-form-dialog .admin-modal-form p,
 .menu-form-dialog .field-optional {
   color: var(--ui-text-secondary);
@@ -2884,6 +2889,9 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   border-radius: var(--radius-control);
   box-shadow: none;
   color: var(--ui-text);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  margin-top: var(--space-1);
 }
 
 .menu-form-dialog .admin-modal-form input:not([type="checkbox"]):not([type="radio"]):focus,
@@ -2967,12 +2975,26 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   font-size: clamp(1.375rem, 2.5vw, 1.75rem);
   letter-spacing: -0.025em;
   line-height: var(--leading-tight);
+  margin: 0;
 }
 
 .menu-form-dialog .modal-description {
   color: var(--ui-text-secondary);
   font-size: var(--type-label);
   line-height: var(--leading-body);
+  margin: 0;
+  max-width: 52ch;
+}
+
+.menu-form-dialog .modal-fields-group {
+  gap: var(--space-2);
+}
+
+.menu-form-dialog .checkbox-label {
+  font-size: var(--type-label);
+  gap: var(--space-1) !important;
+  line-height: var(--leading-body);
+  margin: 0 !important;
 }
 
 .menu-form-dialog .modal-schedule-section {
@@ -2983,8 +3005,25 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   padding: var(--space-2);
 }
 
+.menu-form-dialog .schedule-section-header h3 {
+  font-size: var(--type-body-large);
+  line-height: var(--leading-title);
+}
+
+.menu-form-dialog .schedule-section-header p {
+  font-size: var(--type-label);
+  line-height: var(--leading-body);
+  margin: var(--space-1) 0 0;
+}
+
 .menu-form-dialog .schedule-availability-mode {
   background: rgb(0 0 0 / 6%);
+}
+
+.menu-form-dialog .availability-pill {
+  font-size: var(--type-label);
+  line-height: var(--leading-title);
+  padding: var(--space-1) var(--space-2);
 }
 
 .menu-form-dialog .availability-pill.is-active {

@@ -17,6 +17,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
 
 ### 🎨 UI & Diseño
+- **Escala y ritmo tipográfico reutilizables (`src/AGENTS.md` / `DECISIONES-UX-MENU.md`):** Se formalizaron los cinco roles de texto y la escala de espaciado de 8 px para todas las etapas. El editor de carta aplica etiquetas de 14 px, contenido editable de 16 px, subtítulos de 18 px y separaciones semánticas consistentes.
 - **Convención monocroma del admin (`src/AGENTS.md` / `DECISIONES-UX-MENU.md`):** Se establecieron reglas reutilizables para paleta neutral, jerarquía tipográfica y uso de botones de texto, texto + icono e icono-solo. El modal de carta adopta el criterio para sus acciones de portada, checkbox y escala de lectura.
 - **Modal de carta alineado al dashboard (`menu-dialogs.tsx` / `globals.css`):** La edición de carta adopta superficies grises neutrales, controles de borde tenue, jerarquía tipográfica y selección en negro. La portada conserva un preview contenido con acciones compactas y el selector de archivo queda correctamente oculto detrás de su control accesible.
 - **Pendiente de claridad en acción destructiva (`ROADMAP-DESARROLLO.md`):** Se registró para análisis el alcance y la etiqueta del botón “Quitar” en la carta activa, para que su texto y confirmación expresen claramente si elimina la carta o solo su portada.

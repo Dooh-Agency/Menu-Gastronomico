@@ -9,11 +9,19 @@ export interface DishImagesUploaderProps {
   maxImages?: number;
   onFilesChange?: (files: File[]) => void;
   onKeptImagesChange?: (images: string[]) => void;
+  variant?: "grid" | "editor";
 }
 
 type StagedImage = {
   file: File;
   url: string;
+};
+
+type EditorImage = {
+  id: string;
+  index: number;
+  isStaged: boolean;
+  src: string;
 };
 
 const DEFAULT_EMPTY_IMAGES: string[] = [];
@@ -23,9 +31,11 @@ export function DishImagesUploader({
   maxImages = 6,
   onFilesChange,
   onKeptImagesChange,
+  variant = "grid",
 }: DishImagesUploaderProps) {
   const [existingImages, setExistingImages] = useState<string[]>(initialImages);
   const [stagedImages, setStagedImages] = useState<StagedImage[]>([]);
+  const [selectedEditorImageId, setSelectedEditorImageId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Keep reference to current staged images for cleanup on unmount
@@ -78,6 +88,22 @@ export function DishImagesUploader({
 
   const totalImages = existingImages.length + stagedImages.length;
   const canAddMore = totalImages < maxImages;
+  const editorImages: EditorImage[] = [
+    ...existingImages.map((path, index) => ({
+      id: `existing-${path}-${index}`,
+      index,
+      isStaged: false,
+      src: menuImageUrl(path),
+    })),
+    ...stagedImages.map(({ url }, index) => ({
+      id: `staged-${url}-${index}`,
+      index,
+      isStaged: true,
+      src: url,
+    })),
+  ];
+  const selectedEditorImage =
+    editorImages.find((image) => image.id === selectedEditorImageId) ?? editorImages[0];
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
@@ -159,8 +185,79 @@ export function DishImagesUploader({
         type="file"
       />
 
-      {/* Preview Grid */}
-      {totalImages > 0 ? (
+      {/* Editor: portada amplia con navegación de miniaturas */}
+      {variant === "editor" && selectedEditorImage ? (
+        <div className="dish-uploader-editor-layout">
+          <div aria-label="Fotos del plato" className="dish-uploader-editor-thumbnails" role="group">
+            {editorImages.map((image, index) => (
+              <div className="dish-uploader-editor-thumbnail" key={image.id}>
+                <button
+                  aria-label={`Ver foto ${index + 1}`}
+                  aria-pressed={selectedEditorImage.id === image.id}
+                  className="dish-uploader-preview-btn"
+                  onClick={() => setSelectedEditorImageId(image.id)}
+                  type="button"
+                >
+                  {image.isStaged ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img alt="" className="dish-uploader-img" src={image.src} />
+                  ) : (
+                    <Image alt="" className="dish-uploader-img" fill sizes="72px" src={image.src} />
+                  )}
+                  {index === 0 ? <span className="dish-uploader-badge is-primary">Portada</span> : null}
+                </button>
+                <button
+                  aria-label={`Eliminar foto ${index + 1}`}
+                  className="dish-uploader-remove-btn"
+                  onClick={() => image.isStaged ? handleRemoveStaged(image.index) : handleRemoveExisting(image.index)}
+                  title="Eliminar esta foto"
+                  type="button"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            {canAddMore ? (
+              <button
+                className="dish-uploader-add-btn"
+                onClick={() => fileInputRef.current?.click()}
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  fill="none"
+                  height="18"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2.2"
+                  viewBox="0 0 24 24"
+                  width="18"
+                >
+                  <line x1="12" x2="12" y1="5" y2="19" />
+                  <line x1="5" x2="19" y1="12" y2="12" />
+                </svg>
+                <span>Agregar</span>
+              </button>
+            ) : null}
+          </div>
+
+          <div className="dish-uploader-editor-main">
+            {selectedEditorImage.isStaged ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img alt="Vista previa de la foto seleccionada" className="dish-uploader-editor-main-image" src={selectedEditorImage.src} />
+            ) : (
+              <Image
+                alt="Vista previa de la foto seleccionada"
+                className="dish-uploader-editor-main-image"
+                fill
+                sizes="(max-width: 40rem) 100vw, 22rem"
+                src={selectedEditorImage.src}
+              />
+            )}
+          </div>
+        </div>
+      ) : totalImages > 0 ? (
         <div className="dish-uploader-grid">
           {/* Existing images */}
           {existingImages.map((imgPath, idx) => (

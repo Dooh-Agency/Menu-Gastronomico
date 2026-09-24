@@ -1632,31 +1632,15 @@ export function AdminMenuView({
             <input name="item_id" type="hidden" value={editingItem.id} />
             <input name="sort_order" type="hidden" value={editingItem.sort_order} />
 
-            {/* 1- FOTO (Uploader de fotos múltiples arriba de todo) */}
-            <div className="modal-hero-photo-section">
-              <DishImagesUploader
-                initialImages={
-                  editingItem.image_paths?.length
-                    ? editingItem.image_paths
-                    : editingItem.image_path
-                    ? [editingItem.image_path]
-                    : []
-                }
-                onFilesChange={setEditStagedFiles}
-                onKeptImagesChange={setEditKeptImages}
-              />
-            </div>
-
-            {/* 2- TÍTULO */}
+            {/* Título */}
             <div className="modal-header-section">
               <p className="eyebrow">Editar plato</p>
               <h2 className="modal-title">{editingItem.name}</h2>
             </div>
 
             <div className="item-editor-content">
-              <section aria-labelledby="item-public-details-heading" className="item-editor-section">
-                <h3 id="item-public-details-heading">Información pública</h3>
-                <div className="modal-fields-group">
+              <div className="item-editor-primary-layout">
+                <div className="item-editor-primary-fields">
                   <label>
                     Nombre del plato
                     <input autoFocus defaultValue={editingItem.name} name="name" required />
@@ -1670,36 +1654,47 @@ export function AdminMenuView({
                       rows={2}
                     />
                   </label>
-                </div>
-              </section>
+                  <div className="admin-modal-grid item-editor-meta-grid">
+                    <label>
+                      Precio (ARS)
+                      <input
+                        defaultValue={(editingItem.price_cents / 100).toFixed(2)}
+                        min="0"
+                        name="price"
+                        required
+                        step=".01"
+                        type="number"
+                      />
+                    </label>
 
-              <section aria-labelledby="item-classification-heading" className="item-editor-section">
-                <h3 id="item-classification-heading">Clasificación</h3>
-                <div className="admin-modal-grid item-editor-meta-grid">
-                  <label>
-                    Precio (ARS)
-                    <input
-                      defaultValue={(editingItem.price_cents / 100).toFixed(2)}
-                      min="0"
-                      name="price"
-                      required
-                      step=".01"
-                      type="number"
-                    />
-                  </label>
-
-                  <label>
-                    Categoría
-                    <select defaultValue={editingItem.category_id} name="category_id">
-                      {menuCategories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                    <label>
+                      Categoría
+                      <select defaultValue={editingItem.category_id} name="category_id">
+                        {menuCategories.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
                 </div>
-              </section>
+
+                <div className="item-editor-media">
+                  <DishImagesUploader
+                    initialImages={
+                      editingItem.image_paths?.length
+                        ? editingItem.image_paths
+                        : editingItem.image_path
+                        ? [editingItem.image_path]
+                        : []
+                    }
+                    onFilesChange={setEditStagedFiles}
+                    onKeptImagesChange={setEditKeptImages}
+                    variant="editor"
+                  />
+                </div>
+              </div>
 
               <section aria-labelledby="item-availability-heading" className="item-editor-availability">
                 <div>

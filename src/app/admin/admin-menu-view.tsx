@@ -1410,7 +1410,7 @@ export function AdminMenuView({
 
       {/* Modal: Editar Categoría Existente */}
       {editingCategory ? (
-        <AdminDialog onClose={() => setEditingCategory(null)}>
+        <AdminDialog className="category-editor-dialog" maxWidth="48rem" onClose={() => setEditingCategory(null)}>
           <form
             action={async (formData) => {
               formData.set("menu_id", currentMenu.id);
@@ -1425,92 +1425,56 @@ export function AdminMenuView({
             <input name="category_id" type="hidden" value={editingCategory.id} />
             <input name="sort_order" type="hidden" value={editingCategory.sort_order} />
 
-            {/* 1- FOTO / HEADER VISUAL */}
-            <div className="modal-hero-photo-section">
-              <div
-                style={{
-                  background: "linear-gradient(135deg, #823718 0%, #b85d3b 100%)",
-                  borderRadius: "0.75rem",
-                  padding: "1.2rem 1.4rem",
-                  color: "white",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "1rem",
-                }}
-              >
-                <div
-                  style={{
-                    background: "rgba(255,255,255,0.22)",
-                    borderRadius: "50%",
-                    padding: "0.6rem",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <svg
-                    fill="none"
-                    height="24"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    width="24"
-                  >
-                    <path d="M4 6h16M4 12h16M4 18h7" />
-                  </svg>
-                </div>
-                <div>
-                  <span style={{ fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.85 }}>
-                    Sección de la carta
-                  </span>
-                  <h3 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 700 }}>Editar categoría</h3>
-                </div>
+            <div className="category-editor-content">
+              <div className="modal-header-section">
+                <p className="eyebrow">Editar categoría</p>
+                <h2 className="modal-title">{editingCategory.name}</h2>
               </div>
-            </div>
 
-            {/* 2- TÍTULO y 3- DESCRIPCIÓN */}
-            <div className="modal-header-section">
-              <p className="eyebrow">Editar categoría</p>
-              <h2 className="modal-title">{editingCategory.name}</h2>
-              <p className="modal-description">
-                Modificá los datos, visibilidad y traducciones de esta categoría.
-              </p>
-            </div>
+              <div className="modal-fields-group">
+                <label>
+                  Nombre de la categoría
+                  <input autoFocus defaultValue={editingCategory.name} name="name" required />
+                </label>
 
-            <label>
-              Nombre de la categoría
-              <input autoFocus defaultValue={editingCategory.name} name="name" required />
-            </label>
+                <label>
+                  Descripción <span className="field-optional">Opcional</span>
+                  <input defaultValue={editingCategory.description ?? ""} name="description" />
+                </label>
+              </div>
 
-            <label>
-              Descripción <span className="field-optional">Opcional</span>
-              <input defaultValue={editingCategory.description ?? ""} name="description" />
-            </label>
-
-            <LocalizationFields
-              locales={restaurant.supported_locales}
-              translations={editingCategory.menu_category_translations ?? []}
-            />
-
-            <div>
-              <label style={{ display: "block", marginBottom: "0.25rem" }}>
-                Formato de tarjetas
-              </label>
-              <CardLayoutSelector
-                name="card_layout"
-                onChange={setMenuCatEditLayout}
-                value={menuCatEditLayout}
+              <LocalizationFields
+                locales={restaurant.supported_locales}
+                translations={editingCategory.menu_category_translations ?? []}
               />
-            </div>
 
-            <label className="checkbox-label">
-              <input defaultChecked={editingCategory.is_active} name="is_active" type="checkbox" />
-              <span>
-                <strong>Categoría activa</strong> (visible para los comensales)
-              </span>
-            </label>
+              <section aria-labelledby="category-card-layout-heading" className="category-editor-section">
+                <div className="category-editor-section-header">
+                  <h3 id="category-card-layout-heading">Formato de tarjetas</h3>
+                  <p>Elegí cómo se presentan los platos de esta categoría en el menú público.</p>
+                </div>
+                <CardLayoutSelector
+                  name="card_layout"
+                  onChange={setMenuCatEditLayout}
+                  value={menuCatEditLayout}
+                />
+              </section>
+
+              <section aria-labelledby="category-visibility-heading" className="category-editor-visibility">
+                <div>
+                  <h3 id="category-visibility-heading">Visibilidad</h3>
+                  <p>Controlá si los comensales pueden ver esta categoría.</p>
+                </div>
+                <label className="category-active-toggle">
+                  <span className="category-active-toggle-copy">
+                    <strong>Categoría activa</strong>
+                    <span>Visible en el menú público</span>
+                  </span>
+                  <input defaultChecked={editingCategory.is_active} name="is_active" role="switch" type="checkbox" />
+                  <span aria-hidden="true" className="category-active-toggle-control" />
+                </label>
+              </section>
+            </div>
 
             <div className="admin-modal-actions">
               <button

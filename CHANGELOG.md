@@ -17,6 +17,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - **Migración `20260921120000_add_grid_card_layout.sql`:** Añade `grid` a los formatos válidos de tarjetas por categoría.
 
 ### 🎨 UI & Diseño
+- **Editor de categoría alineado al admin (`admin-menu-view.tsx` / `globals.css`):** Se eliminó el encabezado visual con branding del restaurante y se reorganizó la edición en un formulario neutral y por bloques: datos públicos, traducciones, formato de tarjetas y visibilidad mediante un switch accesible. Se conservan los campos, estados y guardado existentes.
 - **Encabezado de formulario más directo (`menu-dialogs.tsx`):** Se retiraron el subtítulo y la ayuda redundantes de los datos básicos; el contexto queda reducido a “Editar carta” y el nombre de la carta antes de sus dos campos.
 - **Formulario de carta por bloques (`menu-dialogs.tsx` / `globals.css`):** La edición separa la información pública de la disponibilidad, acota el ancho de lectura y presenta el estado activo como un switch accesible con ayuda secundaria. Se preservan los campos, horarios y flujo de guardado existentes.
 - **Escala y ritmo tipográfico reutilizables (`src/AGENTS.md` / `DECISIONES-UX-MENU.md`):** Se formalizaron los cinco roles de texto y la escala de espaciado de 8 px para todas las etapas. El editor de carta aplica etiquetas de 14 px, contenido editable de 16 px, subtítulos de 18 px y separaciones semánticas consistentes.

@@ -3202,6 +3202,326 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
   padding: .55rem .85rem;
 }
 
+/* Category editor: neutral, sectioned form matching the administration system. */
+.admin-dialog.category-editor-dialog {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-surface);
+  box-shadow: var(--ui-shadow-float);
+  max-height: min(92vh, 58rem);
+  padding: var(--space-3);
+}
+
+.category-editor-dialog .admin-dialog-close-btn {
+  background: var(--ui-surface-glass);
+  border-color: var(--ui-border);
+  color: var(--ui-text);
+  height: 2.5rem;
+  right: var(--space-2);
+  top: var(--space-2);
+  width: 2.5rem;
+}
+
+.category-editor-dialog .admin-dialog-close-btn:hover {
+  background: var(--ui-canvas);
+  color: var(--ui-text);
+  transform: rotate(90deg);
+}
+
+.category-editor-dialog .admin-modal-form,
+.category-editor-content {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.category-editor-dialog .modal-header-section {
+  gap: var(--space-1);
+  padding-right: 3rem;
+}
+
+.category-editor-dialog .modal-header-section .eyebrow {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  letter-spacing: .12em;
+  margin: 0;
+}
+
+.category-editor-dialog .modal-title {
+  color: var(--ui-text);
+  font-size: clamp(1.375rem, 2.5vw, 1.75rem);
+  letter-spacing: -0.025em;
+  line-height: var(--leading-tight);
+  margin: 0;
+}
+
+.category-editor-dialog .modal-fields-group {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.category-editor-dialog .admin-modal-form label {
+  color: var(--ui-text);
+  display: grid;
+  font-size: var(--type-label);
+  font-weight: 650;
+  gap: var(--space-1);
+  line-height: var(--leading-title);
+}
+
+.category-editor-dialog .admin-modal-form input:not([type="checkbox"]):not([type="radio"]),
+.category-editor-dialog .admin-modal-form select,
+.category-editor-dialog .admin-modal-form textarea {
+  border-color: var(--ui-border);
+  border-radius: var(--radius-control);
+  box-shadow: none;
+  color: var(--ui-text);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  margin-top: 0;
+}
+
+.category-editor-dialog .admin-modal-form input:not([type="checkbox"]):not([type="radio"]):focus,
+.category-editor-dialog .admin-modal-form select:focus,
+.category-editor-dialog .admin-modal-form textarea:focus {
+  border-color: var(--ui-text);
+  box-shadow: 0 0 0 3px rgb(0 0 0 / 8%);
+}
+
+.category-editor-dialog .field-optional {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-label);
+  margin-left: var(--space-1);
+}
+
+.category-editor-dialog .translation-fields {
+  background: var(--ui-canvas);
+  border-color: var(--ui-border);
+  border-radius: var(--radius-control);
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2);
+}
+
+.category-editor-dialog .translation-fields legend {
+  color: var(--ui-text);
+  font-size: var(--type-body-large);
+  line-height: var(--leading-title);
+  padding: 0;
+}
+
+.category-editor-dialog .translation-locale {
+  border-color: var(--ui-border);
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+}
+
+.category-editor-dialog .translation-locale strong {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  letter-spacing: .1em;
+}
+
+.category-editor-dialog .category-editor-section,
+.category-editor-dialog .category-editor-visibility {
+  background: var(--ui-canvas);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--radius-control);
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2);
+}
+
+.category-editor-dialog .category-editor-section-header {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.category-editor-dialog .category-editor-section h3,
+.category-editor-dialog .category-editor-visibility h3 {
+  color: var(--ui-text);
+  font-size: var(--type-body-large);
+  line-height: var(--leading-title);
+  margin: 0;
+}
+
+.category-editor-dialog .category-editor-section p,
+.category-editor-dialog .category-editor-visibility p {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-label);
+  line-height: var(--leading-body);
+  margin: 0;
+}
+
+.category-editor-dialog .card-layout-wizard-step {
+  gap: 0;
+}
+
+.category-editor-dialog .card-layout-options-grid {
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.category-editor-dialog .card-layout-option-card {
+  border-color: var(--ui-border);
+  border-radius: var(--radius-control);
+  box-shadow: none;
+  transition: transform var(--motion-duration) var(--motion-ease);
+}
+
+.category-editor-dialog .card-layout-option-card:hover {
+  border-color: rgb(0 0 0 / 24%);
+  box-shadow: none;
+  transform: translateY(-1px);
+}
+
+.category-editor-dialog .card-layout-option-card.is-selected {
+  background: var(--ui-surface);
+  border-color: var(--ui-text);
+  box-shadow: 0 0 0 1px var(--ui-text);
+}
+
+.category-editor-dialog .card-layout-preview-box,
+.category-editor-dialog .card-layout-option-card.is-selected .card-layout-preview-box {
+  background: rgb(0 0 0 / 5%);
+}
+
+.category-editor-dialog .card-layout-option-title,
+.category-editor-dialog .card-layout-option-desc {
+  color: var(--ui-text);
+}
+
+.category-editor-dialog .card-layout-option-desc {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  line-height: var(--leading-body);
+}
+
+.category-editor-dialog .card-layout-badge {
+  background: rgb(0 0 0 / 6%);
+  color: var(--ui-text-secondary);
+}
+
+.category-editor-dialog .category-editor-visibility {
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.category-editor-dialog .category-active-toggle {
+  align-items: center;
+  cursor: pointer;
+  display: inline-flex;
+  gap: var(--space-1);
+  justify-content: space-between;
+  min-height: 2.75rem;
+}
+
+.category-editor-dialog .category-active-toggle-copy {
+  display: grid;
+  gap: 0.125rem;
+  text-align: right;
+}
+
+.category-editor-dialog .category-active-toggle-copy strong {
+  color: var(--ui-text);
+  font-size: var(--type-label);
+}
+
+.category-editor-dialog .category-active-toggle-copy span {
+  color: var(--ui-text-secondary);
+  font-size: var(--type-caption);
+  line-height: var(--leading-title);
+}
+
+.category-editor-dialog .category-active-toggle input[type="checkbox"] {
+  height: 1px !important;
+  margin: 0 !important;
+  opacity: 0;
+  position: absolute;
+  width: 1px !important;
+}
+
+.category-editor-dialog .category-active-toggle-control {
+  background: rgb(0 0 0 / 14%);
+  border-radius: var(--radius-pill);
+  height: 1.5rem;
+  position: relative;
+  width: 2.625rem;
+}
+
+.category-editor-dialog .category-active-toggle-control::after {
+  background: var(--ui-surface);
+  border-radius: 50%;
+  box-shadow: var(--ui-shadow-subtle);
+  content: "";
+  height: 1.125rem;
+  left: 0.1875rem;
+  position: absolute;
+  top: 0.1875rem;
+  transform: translateX(0);
+  transition: transform var(--motion-duration) var(--motion-ease);
+  width: 1.125rem;
+}
+
+.category-editor-dialog .category-active-toggle input:checked + .category-active-toggle-control {
+  background: var(--ui-text);
+}
+
+.category-editor-dialog .category-active-toggle input:checked + .category-active-toggle-control::after {
+  transform: translateX(1.125rem);
+}
+
+.category-editor-dialog .category-active-toggle input:focus-visible + .category-active-toggle-control {
+  outline: 3px solid rgb(0 0 0 / 22%);
+  outline-offset: 3px;
+}
+
+.category-editor-dialog .admin-modal-actions {
+  border-top: 1px solid var(--ui-border);
+  margin-top: 0;
+  padding-top: var(--space-2);
+}
+
+.category-editor-dialog .admin-modal-actions .primary-link {
+  background: var(--ui-text);
+  border-color: var(--ui-text);
+}
+
+.category-editor-dialog .admin-modal-actions .primary-link,
+.category-editor-dialog .admin-modal-actions .secondary-link {
+  align-items: center;
+  font-size: var(--type-label);
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: .55rem .85rem;
+}
+
+@media (min-width: 34rem) {
+  .category-editor-dialog .card-layout-options-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 40rem) {
+  .admin-dialog.category-editor-dialog {
+    border-radius: var(--radius-control);
+    max-height: calc(100vh - 1rem);
+    padding: var(--space-2);
+  }
+
+  .category-editor-dialog .category-editor-visibility {
+    align-items: start;
+    grid-template-columns: 1fr;
+  }
+
+  .category-editor-dialog .category-active-toggle {
+    width: 100%;
+  }
+
+  .category-editor-dialog .category-active-toggle-copy {
+    text-align: left;
+  }
+}
+
 @media (max-width: 40rem) {
   .admin-dialog.menu-form-dialog {
     border-radius: var(--radius-control);

@@ -28,7 +28,7 @@ import {
   DEFAULT_DIETARY_TAGS,
   TagMultiSelector,
 } from "./tag-multi-selector";
-import { brandingFor, menuImageUrl, restaurantFonts } from "@/lib/restaurant-branding";
+import { brandingFor, menuImageUrl } from "@/lib/restaurant-branding";
 import { DishImageCarousel } from "@/components/dish-image-carousel";
 import { CardLayoutSelector, type CardLayoutType } from "./categories/card-layout-selector";
 import { MenuCategoriesConfigDialog } from "./menu-categories-config-dialog";
@@ -183,14 +183,15 @@ export function AdminMenuView({
 
   const branding = brandingFor(restaurant.branding);
   const brandStyle = {
-    "--color-accent": branding.primary_color,
-    "--color-secondary": branding.secondary_color,
-    "--color-paper": branding.surface_color,
-    "--color-ink": branding.text_color,
-    "--color-link": branding.accent_text_color,
-    "--menu-font": restaurantFonts[branding.font_family ?? "contemporary"].cssFamily,
-    "--menu-display-font": restaurantFonts[branding.font_family ?? "contemporary"].displayCssFamily,
-    "--radius-card": branding.radius === "soft" ? ".65rem" : branding.radius === "square" ? ".15rem" : "1rem",
+    "--color-accent": "var(--ui-text)",
+    "--color-secondary": "#ececef",
+    "--color-paper": "var(--ui-canvas)",
+    "--color-ink": "var(--ui-text)",
+    "--color-link": "var(--ui-text)",
+    "--color-muted": "var(--ui-text-secondary)",
+    "--menu-font": "var(--font-sans)",
+    "--menu-display-font": "var(--font-sans)",
+    "--radius-card": "var(--radius-surface)",
   } as CSSProperties;
 
   // Extract all dietary tags

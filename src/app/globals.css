@@ -3316,17 +3316,95 @@ p { color: var(--ui-text-secondary); font-size: var(--type-body); line-height: v
 }
 
 .admin-menu-view {
-  background: var(--color-paper, #fffdf8);
-  border: 1px solid #e7e1d8;
-  border-radius: var(--radius-card, 1rem);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  color: var(--color-ink, #1f2937);
-  font-family: var(--menu-font, Arial, Helvetica, sans-serif);
+  background: var(--ui-canvas);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--ui-text);
+  font-family: var(--font-sans);
   margin: 0 auto;
   overflow: hidden;
   padding: 1.25rem clamp(1rem, 3vw, 2rem) 3rem;
   width: 100%;
   max-width: 100%;
+}
+
+/* The editor is a neutral management surface. Restaurant branding remains in
+   its logo and cover image, while controls use the shared admin system. */
+.admin-menu-view .admin-menu-cover-section {
+  box-shadow: var(--ui-shadow-subtle);
+}
+
+.admin-menu-view .admin-menu-controls,
+.admin-menu-view .admin-category-section,
+.admin-menu-view .admin-category-block-header,
+.admin-menu-view .admin-dish-actions {
+  border-color: var(--ui-border);
+}
+
+.admin-menu-view .admin-menu-control select,
+.admin-menu-view .admin-schedule-trigger-btn,
+.admin-menu-view .admin-schedule-trigger-btn.admin-schedule-info-display,
+.admin-menu-view .admin-category-tab,
+.admin-menu-view .admin-category-settings-btn,
+.admin-menu-view .admin-dish-actions .icon-button,
+.admin-menu-view .menu-card {
+  background: var(--ui-surface);
+  border-color: var(--ui-border);
+  color: var(--ui-text);
+}
+
+.admin-menu-view .admin-category-tab:hover,
+.admin-menu-view .admin-category-settings-btn:hover,
+.admin-menu-view .admin-dish-actions .icon-button:hover {
+  background: var(--ui-canvas);
+  border-color: rgb(0 0 0 / 16%);
+  color: var(--ui-text);
+}
+
+.admin-menu-view .admin-category-tab.is-active {
+  background: var(--ui-text);
+  border-color: var(--ui-text);
+  box-shadow: none;
+  color: #fff;
+}
+
+.admin-menu-view .admin-add-category-circle-btn {
+  background: var(--ui-surface);
+  border-color: rgb(0 0 0 / 22%);
+  color: var(--ui-text);
+}
+
+.admin-menu-view .admin-add-category-circle-btn:hover {
+  background: var(--ui-canvas);
+  border-color: var(--ui-text);
+  color: var(--ui-text);
+}
+
+.admin-menu-view .admin-category-tabs-divider {
+  background: var(--ui-border);
+}
+
+.admin-menu-view .admin-add-dish-card,
+.admin-menu-view .admin-add-item-card,
+.admin-menu-view .admin-empty-categories-card,
+.admin-menu-view .admin-empty-menu-state {
+  background: var(--ui-surface);
+  border-color: rgb(0 0 0 / 16%);
+}
+
+.admin-menu-view .admin-add-dish-card:hover,
+.admin-menu-view .admin-add-item-card:hover {
+  background: var(--ui-canvas);
+  border-color: var(--ui-text);
+}
+
+.admin-menu-view .admin-add-dish-plus-icon,
+.admin-menu-view .admin-add-item-plus-circle,
+.admin-menu-view .admin-empty-menu-icon {
+  background: var(--ui-canvas);
+  border-color: var(--ui-text);
+  color: var(--ui-text);
 }
 
 .admin-menu-header {
